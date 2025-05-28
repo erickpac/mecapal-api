@@ -1,13 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { RefreshTokenRepository } from '../../infrastructure/repositories/refresh-token.repository';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
-import { randomBytes } from 'crypto';
+import { env } from '../../../../config/env.config';
+import * as crypto from 'crypto';
+import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.type';
 
 @Injectable()
 export class RefreshTokenUseCase {
   constructor(
-    private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
   ) {}
@@ -16,39 +16,40 @@ export class RefreshTokenUseCase {
     refreshToken: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
     try {
-      const token = await this.refreshTokenRepository.findByToken(refreshToken);
+      // Verify the refresh token
+      const payload = this.jwtService.verify<RefreshTokenPayload>(
+        refreshToken,
+        {
+          secret: env.JWT_REFRESH_SECRET,
+        },
+      );
 
-      if (!token || token.expiresAt < new Date()) {
-        throw new UnauthorizedException('Invalid or expired refresh token');
-      }
-
-      const user = await this.authRepository.findById(token.userId);
+      const user = await this.authRepository.findById(payload.sub);
 
       if (!user) {
         throw new UnauthorizedException('User not found');
       }
 
       // Generate new tokens
-      const newRefreshToken = randomBytes(40).toString('hex');
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+      const accessTokenPayload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      };
+      const refreshTokenPayload: RefreshTokenPayload = {
+        sub: user.id,
+        type: 'refresh',
+        jti: crypto.randomUUID(), // Add a unique token ID
+      };
 
-      // Create new refresh token
-      await this.refreshTokenRepository.create({
-        token: newRefreshToken,
-        userId: user.id,
-        expiresAt,
+      const newAccessToken = this.jwtService.sign(accessTokenPayload);
+      const newRefreshToken = this.jwtService.sign(refreshTokenPayload, {
+        secret: env.JWT_REFRESH_SECRET,
+        expiresIn: env.JWT_REFRESH_EXPIRATION_TIME,
       });
 
-      // Delete old refresh token
-      await this.refreshTokenRepository.deleteByToken(refreshToken);
-
-      // Generate new access token
-      const payload = { sub: user.id, email: user.email, role: user.role };
-      const access_token = this.jwtService.sign(payload);
-
       return {
-        access_token,
+        access_token: newAccessToken,
         refresh_token: newRefreshToken,
       };
     } catch (error: unknown) {

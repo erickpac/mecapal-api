@@ -1,16 +1,16 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
-import { RefreshTokenRepository } from '../../infrastructure/repositories/refresh-token.repository';
 import { LoginDto } from '../dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
+import { env } from '../../../../config/env.config';
+import * as crypto from 'crypto';
+import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.type';
 
 @Injectable()
 export class LoginUseCase {
   constructor(
     private readonly authRepository: AuthRepository,
-    private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -31,21 +31,23 @@ export class LoginUseCase {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Generate refresh token
-    const refreshToken = randomBytes(40).toString('hex');
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+    const accessTokenPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+    const refreshTokenPayload: RefreshTokenPayload = {
+      sub: user.id,
+      type: 'refresh',
+      jti: crypto.randomUUID(),
+    };
 
-    await this.refreshTokenRepository.create({
-      token: refreshToken,
-      userId: user.id,
-      expiresAt,
-    });
-
-    const payload = { sub: user.id, email: user.email, role: user.role };
     return {
-      access_token: this.jwtService.sign(payload),
-      refresh_token: refreshToken,
+      access_token: this.jwtService.sign(accessTokenPayload),
+      refresh_token: this.jwtService.sign(refreshTokenPayload, {
+        secret: env.JWT_REFRESH_SECRET,
+        expiresIn: env.JWT_REFRESH_EXPIRATION_TIME,
+      }),
     };
   }
 }
