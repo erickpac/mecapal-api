@@ -27,6 +27,7 @@ export class LoginUseCase {
       loginDto.password,
       user.password,
     );
+
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -36,6 +37,7 @@ export class LoginUseCase {
       email: user.email,
       role: user.role,
     };
+
     const refreshTokenPayload: RefreshTokenPayload = {
       sub: user.id,
       type: 'refresh',
