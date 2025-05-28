@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { env } from '../../../../config/env.config';
@@ -7,6 +7,8 @@ import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.ty
 
 @Injectable()
 export class RefreshTokenUseCase {
+  private readonly logger = new Logger(RefreshTokenUseCase.name);
+
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
@@ -15,6 +17,8 @@ export class RefreshTokenUseCase {
   async execute(
     refreshToken: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
+    this.logger.log('Attempting to refresh token');
+
     try {
       // Verify the refresh token
       const payload = this.jwtService.verify<RefreshTokenPayload>(
@@ -27,8 +31,13 @@ export class RefreshTokenUseCase {
       const user = await this.authRepository.findById(payload.sub);
 
       if (!user) {
+        this.logger.warn(
+          `Token refresh failed: User not found - ID: ${payload.sub}`,
+        );
         throw new UnauthorizedException('User not found');
       }
+
+      this.logger.log(`Refreshing tokens for user: ${user.email}`);
 
       // Generate new tokens
       const accessTokenPayload = {
@@ -52,6 +61,8 @@ export class RefreshTokenUseCase {
         },
       );
 
+      this.logger.log(`Tokens refreshed successfully for user: ${user.email}`);
+
       return {
         access_token: newAccessToken,
         refresh_token: newRefreshToken,
@@ -61,6 +72,7 @@ export class RefreshTokenUseCase {
         throw error;
       }
 
+      this.logger.error('Token refresh failed: Invalid refresh token');
       throw new UnauthorizedException('Invalid refresh token');
     }
   }

@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, Logger } from '@nestjs/common';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { RegisterDto } from '../dtos/register.dto';
 import { User } from '../../domain/entities/user.entity';
@@ -6,14 +6,21 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class RegisterUseCase {
+  private readonly logger = new Logger(RegisterUseCase.name);
+
   constructor(private readonly authRepository: AuthRepository) {}
 
   async execute(registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
+    this.logger.log(`Attempting to register new user: ${registerDto.email}`);
+
     const existingUser = await this.authRepository.findByEmail(
       registerDto.email,
     );
 
     if (existingUser) {
+      this.logger.warn(
+        `Registration failed: Email already exists - ${registerDto.email}`,
+      );
       throw new ConflictException('Email already exists');
     }
 
@@ -22,6 +29,8 @@ export class RegisterUseCase {
       ...registerDto,
       password: hashedPassword,
     });
+
+    this.logger.log(`User registered successfully: ${user.email}`);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = user;

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { LoginDto } from '../dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -9,6 +9,8 @@ import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.ty
 
 @Injectable()
 export class LoginUseCase {
+  private readonly logger = new Logger(LoginUseCase.name);
+
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
@@ -17,9 +19,12 @@ export class LoginUseCase {
   async execute(
     loginDto: LoginDto,
   ): Promise<{ access_token: string; refresh_token: string }> {
+    this.logger.log(`Attempting login for user: ${loginDto.email}`);
+
     const user = await this.authRepository.findByEmail(loginDto.email);
 
     if (!user) {
+      this.logger.warn(`Login failed: User not found - ${loginDto.email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -29,8 +34,13 @@ export class LoginUseCase {
     );
 
     if (!isPasswordValid) {
+      this.logger.warn(
+        `Login failed: Invalid password for user - ${loginDto.email}`,
+      );
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    this.logger.log(`User logged in successfully: ${user.email}`);
 
     const accessTokenPayload = {
       sub: user.id,
