@@ -42,11 +42,15 @@ export class RefreshTokenUseCase {
         jti: crypto.randomUUID(), // Add a unique token ID
       };
 
-      const newAccessToken = this.jwtService.sign(accessTokenPayload);
-      const newRefreshToken = this.jwtService.sign(refreshTokenPayload, {
-        secret: env.JWT_REFRESH_SECRET,
-        expiresIn: env.JWT_REFRESH_EXPIRATION_TIME,
-      });
+      const newAccessToken =
+        await this.jwtService.signAsync(accessTokenPayload);
+      const newRefreshToken = await this.jwtService.signAsync(
+        refreshTokenPayload,
+        {
+          secret: env.JWT_REFRESH_SECRET,
+          expiresIn: env.JWT_REFRESH_EXPIRATION_TIME,
+        },
+      );
 
       return {
         access_token: newAccessToken,

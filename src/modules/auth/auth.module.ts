@@ -8,7 +8,6 @@ import { AuthRepository } from './infrastructure/repositories/auth.repository';
 import { RegisterUseCase } from './application/use-cases/register.use-case';
 import { LoginUseCase } from './application/use-cases/login.use-case';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
-import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
 import { PrismaModule } from '../prisma/prisma.module';
 
@@ -35,7 +34,6 @@ import { PrismaModule } from '../prisma/prisma.module';
     RegisterUseCase,
     LoginUseCase,
     RefreshTokenUseCase,
-    LogoutUseCase,
     ChangePasswordUseCase,
   ],
   exports: [JwtStrategy, PassportModule],

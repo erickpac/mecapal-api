@@ -9,7 +9,6 @@ import {
 import { RegisterUseCase } from '../../application/use-cases/register.use-case';
 import { LoginUseCase } from '../../application/use-cases/login.use-case';
 import { RefreshTokenUseCase } from '../../application/use-cases/refresh-token.use-case';
-import { LogoutUseCase } from '../../application/use-cases/logout.use-case';
 import { ChangePasswordUseCase } from '../../application/use-cases/change-password.use-case';
 import { RegisterDto } from '../../application/dtos/register.dto';
 import { LoginDto } from '../../application/dtos/login.dto';
@@ -25,7 +24,6 @@ export class AuthController {
     private readonly registerUseCase: RegisterUseCase,
     private readonly loginUseCase: LoginUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
-    private readonly logoutUseCase: LogoutUseCase,
     private readonly changePasswordUseCase: ChangePasswordUseCase,
   ) {}
 
@@ -50,13 +48,6 @@ export class AuthController {
     @Body() refreshTokenDto: RefreshTokenDto,
   ): Promise<{ access_token: string; refresh_token: string }> {
     return this.refreshTokenUseCase.execute(refreshTokenDto.refresh_token);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('logout')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  logout(@Body() refreshTokenDto: RefreshTokenDto): void {
-    return this.logoutUseCase.execute(refreshTokenDto.refresh_token);
   }
 
   @UseGuards(JwtAuthGuard)

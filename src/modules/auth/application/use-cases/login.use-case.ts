@@ -45,8 +45,8 @@ export class LoginUseCase {
     };
 
     return {
-      access_token: this.jwtService.sign(accessTokenPayload),
-      refresh_token: this.jwtService.sign(refreshTokenPayload, {
+      access_token: await this.jwtService.signAsync(accessTokenPayload),
+      refresh_token: await this.jwtService.signAsync(refreshTokenPayload, {
         secret: env.JWT_REFRESH_SECRET,
         expiresIn: env.JWT_REFRESH_EXPIRATION_TIME,
       }),
