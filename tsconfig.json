@@ -16,6 +16,22 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@/*": ["src/*"],
+      "@config/*": ["src/config/*"],
+      "@common/*": ["src/common/*"],
+      "@shared/*": ["src/shared/*"],
+      "@modules/*": ["src/modules/*"],
+      "@prisma/*": ["src/modules/prisma/*"],
+      "@auth/*": ["src/modules/auth/*"],
+      "@auth/domain/*": ["src/modules/auth/domain/*"],
+      "@auth/application/*": ["src/modules/auth/application/*"],
+      "@auth/infrastructure/*": ["src/modules/auth/infrastructure/*"],
+      "@auth/presentation/*": ["src/modules/auth/presentation/*"],
+      "@auth/guards": ["src/modules/auth/guards"],
+      "@auth/middleware": ["src/modules/auth/middleware"],
+      "@auth/types": ["src/modules/auth/domain/types"]
+    }
   }
 }
