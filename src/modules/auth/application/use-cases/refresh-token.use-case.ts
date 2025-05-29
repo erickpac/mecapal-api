@@ -1,17 +1,25 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Logger,
+  Inject,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
-import { env } from '../../../../config/env.config';
+import { ConfigService } from '@nestjs/config';
+import { IAuthRepository } from '@auth/domain/repositories/auth.repository';
+import { RefreshTokenPayload } from '@auth/domain/types/refresh-token-payload.type';
+import { AUTH_REPOSITORY_TOKEN } from '@auth/auth.module';
 import * as crypto from 'crypto';
-import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.type';
 
 @Injectable()
 export class RefreshTokenUseCase {
   private readonly logger = new Logger(RefreshTokenUseCase.name);
 
   constructor(
-    private readonly authRepository: AuthRepository,
+    @Inject(AUTH_REPOSITORY_TOKEN)
+    private readonly authRepository: IAuthRepository,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async execute(
@@ -21,11 +29,13 @@ export class RefreshTokenUseCase {
 
     try {
       // Verify the refresh token
+      const refreshSecret =
+        this.configService.get<string>('JWT_REFRESH_SECRET') ||
+        this.configService.get<string>('JWT_SECRET');
+
       const payload = this.jwtService.verify<RefreshTokenPayload>(
         refreshToken,
-        {
-          secret: env.JWT_REFRESH_SECRET,
-        },
+        { secret: refreshSecret },
       );
 
       const user = await this.authRepository.findById(payload.sub);
@@ -45,19 +55,25 @@ export class RefreshTokenUseCase {
         email: user.email,
         role: user.role,
       };
+
       const refreshTokenPayload: RefreshTokenPayload = {
         sub: user.id,
+        email: user.email,
+        role: user.role,
         type: 'refresh',
-        jti: crypto.randomUUID(), // Add a unique token ID
+        jti: crypto.randomUUID(),
       };
 
       const newAccessToken =
         await this.jwtService.signAsync(accessTokenPayload);
+
+      const refreshExpiration =
+        this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d';
       const newRefreshToken = await this.jwtService.signAsync(
         refreshTokenPayload,
         {
-          secret: env.JWT_REFRESH_SECRET,
-          expiresIn: env.JWT_REFRESH_EXPIRATION_TIME,
+          secret: refreshSecret,
+          expiresIn: refreshExpiration,
         },
       );
 

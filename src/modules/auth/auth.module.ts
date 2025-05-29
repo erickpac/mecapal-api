@@ -1,15 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthController } from './infrastructure/controllers/auth.controller';
-import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
-import { AuthRepository } from './infrastructure/repositories/auth.repository';
-import { RegisterUseCase } from './application/use-cases/register.use-case';
-import { LoginUseCase } from './application/use-cases/login.use-case';
-import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
-import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
-import { PrismaModule } from '../prisma/prisma.module';
+import { AuthController } from '@auth/presentation/controllers/auth.controller';
+import { JwtStrategy } from '@auth/infrastructure/strategies/jwt.strategy';
+import { AuthRepository } from '@auth/infrastructure/repositories/auth.repository';
+import { LoginUseCase } from '@auth/application/use-cases/login.use-case';
+import { RegisterUseCase } from '@auth/application/use-cases/register.use-case';
+import { RefreshTokenUseCase } from '@auth/application/use-cases/refresh-token.use-case';
+import { ChangePasswordUseCase } from '@auth/application/use-cases/change-password.use-case';
+import { AuthMiddleware } from '@auth/middleware/auth.middleware';
+import { PrismaModule } from '@prisma/prisma.module';
+
+export const AUTH_REPOSITORY_TOKEN = 'AUTH_REPOSITORY';
 
 @Module({
   imports: [
@@ -21,7 +24,7 @@ import { PrismaModule } from '../prisma/prisma.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRATION_TIME', '1h'),
+          expiresIn: configService.get<string>('JWT_EXPIRATION', '1h'),
         },
       }),
       inject: [ConfigService],
@@ -30,12 +33,21 @@ import { PrismaModule } from '../prisma/prisma.module';
   controllers: [AuthController],
   providers: [
     JwtStrategy,
-    AuthRepository,
-    RegisterUseCase,
+    {
+      provide: AUTH_REPOSITORY_TOKEN,
+      useClass: AuthRepository,
+    },
     LoginUseCase,
+    RegisterUseCase,
     RefreshTokenUseCase,
     ChangePasswordUseCase,
   ],
-  exports: [JwtStrategy, PassportModule],
+  exports: [JwtModule, PassportModule],
 })
-export class AuthModule {}
+export class AuthModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

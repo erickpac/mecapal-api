@@ -1,14 +1,18 @@
-import { Injectable, ConflictException, Logger } from '@nestjs/common';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { Injectable, ConflictException, Logger, Inject } from '@nestjs/common';
+import { IAuthRepository } from '@auth/domain/repositories/auth.repository';
 import { RegisterDto } from '../dtos/register.dto';
-import { User } from '../../domain/entities/user.entity';
+import { User } from '@auth/domain/entities/user.entity';
+import { AUTH_REPOSITORY_TOKEN } from '@auth/auth.module';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class RegisterUseCase {
   private readonly logger = new Logger(RegisterUseCase.name);
 
-  constructor(private readonly authRepository: AuthRepository) {}
+  constructor(
+    @Inject(AUTH_REPOSITORY_TOKEN)
+    private readonly authRepository: IAuthRepository,
+  ) {}
 
   async execute(registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
     this.logger.log(`Attempting to register new user: ${registerDto.email}`);
