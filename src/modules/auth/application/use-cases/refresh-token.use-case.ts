@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Logger,
+  Inject,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { IAuthRepository } from '@auth/domain/repositories/auth.repository';
@@ -24,9 +29,10 @@ export class RefreshTokenUseCase {
 
     try {
       // Verify the refresh token
-      const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET') || 
-                           this.configService.get<string>('JWT_SECRET');
-      
+      const refreshSecret =
+        this.configService.get<string>('JWT_REFRESH_SECRET') ||
+        this.configService.get<string>('JWT_SECRET');
+
       const payload = this.jwtService.verify<RefreshTokenPayload>(
         refreshToken,
         { secret: refreshSecret },
@@ -49,7 +55,7 @@ export class RefreshTokenUseCase {
         email: user.email,
         role: user.role,
       };
-      
+
       const refreshTokenPayload: RefreshTokenPayload = {
         sub: user.id,
         email: user.email,
@@ -58,9 +64,11 @@ export class RefreshTokenUseCase {
         jti: crypto.randomUUID(),
       };
 
-      const newAccessToken = await this.jwtService.signAsync(accessTokenPayload);
-      
-      const refreshExpiration = this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d';
+      const newAccessToken =
+        await this.jwtService.signAsync(accessTokenPayload);
+
+      const refreshExpiration =
+        this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d';
       const newRefreshToken = await this.jwtService.signAsync(
         refreshTokenPayload,
         {

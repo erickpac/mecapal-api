@@ -29,10 +29,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: AccessTokenPayload): Promise<User> {
     const { sub } = payload;
-    
+
     // Verify user still exists in database
     const user = await this.authRepository.findById(sub);
-    
+
     if (!user) {
       throw new UnauthorizedException('User not found or token invalid');
     }

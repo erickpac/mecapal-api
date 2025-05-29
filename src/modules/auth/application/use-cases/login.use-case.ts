@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, Inject, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Inject,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { IAuthRepository } from '@auth/domain/repositories/auth.repository';
 import { AUTH_REPOSITORY_TOKEN } from '@auth/auth.module';

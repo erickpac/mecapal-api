@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Logger,
+  Inject,
+} from '@nestjs/common';
 import { IAuthRepository } from '@auth/domain/repositories/auth.repository';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
 import { AUTH_REPOSITORY_TOKEN } from '@auth/auth.module';
