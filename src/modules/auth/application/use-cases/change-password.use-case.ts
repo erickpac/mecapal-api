@@ -1,13 +1,17 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/common';
+import { IAuthRepository } from '@auth/domain/repositories/auth.repository';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
+import { AUTH_REPOSITORY_TOKEN } from '@auth/auth.module';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ChangePasswordUseCase {
   private readonly logger = new Logger(ChangePasswordUseCase.name);
 
-  constructor(private readonly authRepository: AuthRepository) {}
+  constructor(
+    @Inject(AUTH_REPOSITORY_TOKEN)
+    private readonly authRepository: IAuthRepository,
+  ) {}
 
   async execute(
     userId: string,

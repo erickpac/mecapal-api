@@ -6,6 +6,9 @@ import { AuthController } from '@auth/presentation/controllers/auth.controller';
 import { JwtStrategy } from '@auth/infrastructure/strategies/jwt.strategy';
 import { AuthRepository } from '@auth/infrastructure/repositories/auth.repository';
 import { LoginUseCase } from '@auth/application/use-cases/login.use-case';
+import { RegisterUseCase } from '@auth/application/use-cases/register.use-case';
+import { RefreshTokenUseCase } from '@auth/application/use-cases/refresh-token.use-case';
+import { ChangePasswordUseCase } from '@auth/application/use-cases/change-password.use-case';
 import { AuthMiddleware } from '@auth/middleware/auth.middleware';
 import { PrismaModule } from '@prisma/prisma.module';
 
@@ -35,6 +38,9 @@ export const AUTH_REPOSITORY_TOKEN = 'AUTH_REPOSITORY';
       useClass: AuthRepository,
     },
     LoginUseCase,
+    RegisterUseCase,
+    RefreshTokenUseCase,
+    ChangePasswordUseCase,
   ],
   exports: [JwtModule, PassportModule],
 })
