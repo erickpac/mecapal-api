@@ -15,6 +15,11 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(1),
   JWT_EXPIRATION_TIME: z.string().default('1d'),
   JWT_REFRESH_EXPIRATION_TIME: z.string().default('7d'),
+
+  // Cloudinary
+  CLOUDINARY_CLOUD_NAME: z.string().min(1),
+  CLOUDINARY_API_KEY: z.string().min(1),
+  CLOUDINARY_API_SECRET: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;
