@@ -26,6 +26,7 @@ export class VehiclePhotoRepository implements IVehiclePhotoRepository {
     const photos = await this.prisma.vehiclePhoto.findMany({
       where: { vehicleId },
     });
+
     return photos as VehiclePhoto[];
   }
 
@@ -33,6 +34,7 @@ export class VehiclePhotoRepository implements IVehiclePhotoRepository {
     const photo = await this.prisma.vehiclePhoto.findUnique({
       where: { id },
     });
+
     return photo as VehiclePhoto | null;
   }
 
@@ -41,6 +43,7 @@ export class VehiclePhotoRepository implements IVehiclePhotoRepository {
       where: { id },
       data,
     });
+
     return photo as VehiclePhoto;
   }
 

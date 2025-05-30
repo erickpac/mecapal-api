@@ -79,10 +79,10 @@ export class VehicleController {
     await this.deleteVehicleUseCase.execute(id);
   }
 
-  @Post(':id/photo')
+  @Post(':vehicleId/photo')
   @UseInterceptors(FileInterceptor('file', imageUploadOptions))
   async uploadImage(
-    @Param('id') id: string,
+    @Param('vehicleId') id: string,
     @UploadedFile() file: UploadedFileType,
   ): Promise<VehiclePhotoResponseDto> {
     return this.uploadVehicleImageUseCase.execute(id, file.buffer);
