@@ -9,7 +9,10 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateVehicleDto } from '../../application/dtos/create-vehicle.dto';
 import { CreateVehicleUseCase } from '../../application/use-cases/create-vehicle.use-case';
 import { FindAllVehiclesUseCase } from '../../application/use-cases/find-all-vehicles.use-case';
@@ -23,6 +26,10 @@ import { User } from '../../../auth/domain/entities/user.entity';
 import { RolesGuard } from '../../../auth/infrastructure/guards/roles.guard';
 import { Roles } from '../../../auth/infrastructure/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { UploadVehicleImageUseCase } from '../../application/use-cases/upload-vehicle-image.use-case';
+import { imageUploadOptions } from '../../../cloudinary/constants/upload-options';
+import { UploadedFileType } from '../../../cloudinary/domain/interfaces/file-upload.interface';
+import { VehicleResponseDto } from '../../application/dtos/vehicle-response.dto';
 
 @Controller('profile/vehicles')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -34,6 +41,7 @@ export class VehicleController {
     private readonly findVehicleByIdUseCase: FindVehicleByIdUseCase,
     private readonly updateVehicleUseCase: UpdateVehicleUseCase,
     private readonly deleteVehicleUseCase: DeleteVehicleUseCase,
+    private readonly uploadVehicleImageUseCase: UploadVehicleImageUseCase,
   ) {}
 
   @Post()
@@ -67,5 +75,14 @@ export class VehicleController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteVehicleUseCase.execute(id);
+  }
+
+  @Post(':id/photo')
+  @UseInterceptors(FileInterceptor('file', imageUploadOptions))
+  async uploadImage(
+    @Param('id') id: string,
+    @UploadedFile() file: UploadedFileType,
+  ): Promise<VehicleResponseDto> {
+    return this.uploadVehicleImageUseCase.execute(id, file.buffer);
   }
 }

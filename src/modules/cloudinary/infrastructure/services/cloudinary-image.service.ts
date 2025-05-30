@@ -14,7 +14,7 @@ export class CloudinaryImageService {
    * Generic method to handle image uploads for any entity
    */
   async uploadEntityImage<T extends EntityWithImage, R>(params: {
-    entityId: number;
+    entityId: string;
     repository: EntityRepository<T>;
     imageBuffer: Buffer;
     cloudinaryFolder: string;
