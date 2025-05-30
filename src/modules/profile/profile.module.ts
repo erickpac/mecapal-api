@@ -22,6 +22,7 @@ import { UploadVehicleImageUseCase } from './application/use-cases/upload-vehicl
 import { GetProfileUseCase } from './application/use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from './application/use-cases/update-profile.use-case';
 import { SetMainVehiclePhotoUseCase } from './application/use-cases/set-main-vehicle-photo.use-case';
+import { DeleteVehiclePhotoUseCase } from './application/use-cases/delete-vehicle-photo.use-case';
 
 @Module({
   imports: [PrismaModule, CloudinaryModule],
@@ -46,6 +47,7 @@ import { SetMainVehiclePhotoUseCase } from './application/use-cases/set-main-veh
     DeleteVehicleUseCase,
     UploadVehicleImageUseCase,
     SetMainVehiclePhotoUseCase,
+    DeleteVehiclePhotoUseCase,
   ],
   exports: [ProfileRepository],
 })
