@@ -21,6 +21,7 @@ import { FindRouteByIdUseCase } from './application/use-cases/find-route-by-id.u
 import { UploadVehicleImageUseCase } from './application/use-cases/upload-vehicle-image.use-case';
 import { GetProfileUseCase } from './application/use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from './application/use-cases/update-profile.use-case';
+import { SetMainVehiclePhotoUseCase } from './application/use-cases/set-main-vehicle-photo.use-case';
 
 @Module({
   imports: [PrismaModule, CloudinaryModule],
@@ -44,6 +45,7 @@ import { UpdateProfileUseCase } from './application/use-cases/update-profile.use
     DeleteRouteUseCase,
     DeleteVehicleUseCase,
     UploadVehicleImageUseCase,
+    SetMainVehiclePhotoUseCase,
   ],
   exports: [ProfileRepository],
 })

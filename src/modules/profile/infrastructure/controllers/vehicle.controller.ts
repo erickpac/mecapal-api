@@ -30,6 +30,7 @@ import { UploadVehicleImageUseCase } from '../../application/use-cases/upload-ve
 import { imageUploadOptions } from '../../../cloudinary/constants/upload-options';
 import { UploadedFileType } from '../../../cloudinary/domain/interfaces/file-upload.interface';
 import { VehiclePhotoResponseDto } from '../../application/dtos/vehicle-photo-response.dto';
+import { SetMainVehiclePhotoUseCase } from '../../application/use-cases/set-main-vehicle-photo.use-case';
 
 @Controller('profile/vehicles')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -42,6 +43,7 @@ export class VehicleController {
     private readonly updateVehicleUseCase: UpdateVehicleUseCase,
     private readonly deleteVehicleUseCase: DeleteVehicleUseCase,
     private readonly uploadVehicleImageUseCase: UploadVehicleImageUseCase,
+    private readonly setMainVehiclePhotoUseCase: SetMainVehiclePhotoUseCase,
   ) {}
 
   @Post()
@@ -84,5 +86,14 @@ export class VehicleController {
     @UploadedFile() file: UploadedFileType,
   ): Promise<VehiclePhotoResponseDto> {
     return this.uploadVehicleImageUseCase.execute(id, file.buffer);
+  }
+
+  @Patch(':vehicleId/photos/:photoId/main')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async setMainPhoto(
+    @Param('vehicleId') vehicleId: string,
+    @Param('photoId') photoId: string,
+  ): Promise<void> {
+    await this.setMainVehiclePhotoUseCase.execute(vehicleId, photoId);
   }
 }
