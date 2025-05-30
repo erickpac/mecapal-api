@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../modules/prisma/prisma.service';
+import { PrismaService } from '../prisma.service';
 import { PrismaClient } from '@prisma/client';
 
 jest.mock('@prisma/client', () => {
