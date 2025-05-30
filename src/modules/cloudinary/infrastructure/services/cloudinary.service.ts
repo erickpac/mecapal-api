@@ -6,14 +6,7 @@ import {
 } from 'cloudinary';
 import { env } from '../../../../config/env.config';
 import * as sharp from 'sharp';
-
-interface ImageTransformationOptions {
-  width?: number;
-  height?: number;
-  crop?: 'fill' | 'fit' | 'scale' | 'thumb';
-  quality?: 'auto' | number;
-  format?: 'jpg' | 'png' | 'gif' | 'webp';
-}
+import { ImageTransformationOptions } from '../../domain/interfaces/image-transformation-options.interface';
 
 @Injectable()
 export class CloudinaryService implements OnModuleInit {
