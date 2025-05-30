@@ -4,6 +4,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { ProfileRepository } from './infrastructure/repositories/profile.repository';
 import { VehicleRepository } from './infrastructure/repositories/vehicle.repository';
 import { RouteRepository } from './infrastructure/repositories/route.repository';
+import { VehiclePhotoRepository } from './infrastructure/repositories/vehicle-photo.repository';
 import { ProfileController } from './infrastructure/controllers/profile.controller';
 import { VehicleController } from './infrastructure/controllers/vehicle.controller';
 import { RouteController } from './infrastructure/controllers/route.controller';
@@ -20,6 +21,8 @@ import { FindRouteByIdUseCase } from './application/use-cases/find-route-by-id.u
 import { UploadVehicleImageUseCase } from './application/use-cases/upload-vehicle-image.use-case';
 import { GetProfileUseCase } from './application/use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from './application/use-cases/update-profile.use-case';
+import { SetMainVehiclePhotoUseCase } from './application/use-cases/set-main-vehicle-photo.use-case';
+import { DeleteVehiclePhotoUseCase } from './application/use-cases/delete-vehicle-photo.use-case';
 
 @Module({
   imports: [PrismaModule, CloudinaryModule],
@@ -32,6 +35,7 @@ import { UpdateProfileUseCase } from './application/use-cases/update-profile.use
     ProfileRepository,
     VehicleRepository,
     RouteRepository,
+    VehiclePhotoRepository,
     FindAllVehiclesUseCase,
     FindVehicleByIdUseCase,
     UpdateVehicleUseCase,
@@ -42,6 +46,8 @@ import { UpdateProfileUseCase } from './application/use-cases/update-profile.use
     DeleteRouteUseCase,
     DeleteVehicleUseCase,
     UploadVehicleImageUseCase,
+    SetMainVehiclePhotoUseCase,
+    DeleteVehiclePhotoUseCase,
   ],
   exports: [ProfileRepository],
 })

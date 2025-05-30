@@ -7,7 +7,7 @@ import { CreateVehicleDto } from '../dtos/create-vehicle.dto';
 export class UpdateVehicleUseCase {
   constructor(private readonly vehicleRepository: VehicleRepository) {}
 
-  async execute(id: string, data: Partial<CreateVehicleDto>): Promise<Vehicle> {
+  async execute(id: string, data: CreateVehicleDto): Promise<Vehicle> {
     const vehicle = await this.vehicleRepository.findById(id);
 
     if (!vehicle) {

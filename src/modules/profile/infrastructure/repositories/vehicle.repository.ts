@@ -32,7 +32,7 @@ export class VehicleRepository implements IVehicleRepository {
     return vehicle as Vehicle | null;
   }
 
-  async update(id: string, data: Partial<Vehicle>): Promise<Vehicle> {
+  async update(id: string, data: CreateVehicleDto): Promise<Vehicle> {
     const vehicle = await this.prisma.vehicle.update({
       where: { id },
       data,

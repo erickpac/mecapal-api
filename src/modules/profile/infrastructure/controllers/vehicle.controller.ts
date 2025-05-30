@@ -29,7 +29,9 @@ import { UserRole } from '@prisma/client';
 import { UploadVehicleImageUseCase } from '../../application/use-cases/upload-vehicle-image.use-case';
 import { imageUploadOptions } from '../../../cloudinary/constants/upload-options';
 import { UploadedFileType } from '../../../cloudinary/domain/interfaces/file-upload.interface';
-import { VehicleResponseDto } from '../../application/dtos/vehicle-response.dto';
+import { VehiclePhotoResponseDto } from '../../application/dtos/vehicle-photo-response.dto';
+import { SetMainVehiclePhotoUseCase } from '../../application/use-cases/set-main-vehicle-photo.use-case';
+import { DeleteVehiclePhotoUseCase } from '../../application/use-cases/delete-vehicle-photo.use-case';
 
 @Controller('profile/vehicles')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -42,6 +44,8 @@ export class VehicleController {
     private readonly updateVehicleUseCase: UpdateVehicleUseCase,
     private readonly deleteVehicleUseCase: DeleteVehicleUseCase,
     private readonly uploadVehicleImageUseCase: UploadVehicleImageUseCase,
+    private readonly setMainVehiclePhotoUseCase: SetMainVehiclePhotoUseCase,
+    private readonly deleteVehiclePhotoUseCase: DeleteVehiclePhotoUseCase,
   ) {}
 
   @Post()
@@ -66,7 +70,7 @@ export class VehicleController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateVehicleDto: Partial<CreateVehicleDto>,
+    @Body() updateVehicleDto: CreateVehicleDto,
   ): Promise<Vehicle> {
     return this.updateVehicleUseCase.execute(id, updateVehicleDto);
   }
@@ -77,12 +81,30 @@ export class VehicleController {
     await this.deleteVehicleUseCase.execute(id);
   }
 
-  @Post(':id/photo')
+  @Post(':vehicleId/photo')
   @UseInterceptors(FileInterceptor('file', imageUploadOptions))
   async uploadImage(
-    @Param('id') id: string,
+    @Param('vehicleId') id: string,
     @UploadedFile() file: UploadedFileType,
-  ): Promise<VehicleResponseDto> {
+  ): Promise<VehiclePhotoResponseDto> {
     return this.uploadVehicleImageUseCase.execute(id, file.buffer);
+  }
+
+  @Patch(':vehicleId/photos/:photoId/main')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async setMainPhoto(
+    @Param('vehicleId') vehicleId: string,
+    @Param('photoId') photoId: string,
+  ): Promise<void> {
+    await this.setMainVehiclePhotoUseCase.execute(vehicleId, photoId);
+  }
+
+  @Delete(':vehicleId/photos/:photoId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deletePhoto(
+    @Param('vehicleId') vehicleId: string,
+    @Param('photoId') photoId: string,
+  ): Promise<void> {
+    await this.deleteVehiclePhotoUseCase.execute(vehicleId, photoId);
   }
 }

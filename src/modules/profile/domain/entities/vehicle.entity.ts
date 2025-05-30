@@ -1,10 +1,11 @@
 import { VehicleType } from '@prisma/client';
+import { VehiclePhoto } from './vehicle-photo.entity';
 
 export class Vehicle {
   id: string;
   type: VehicleType;
   capacityKg: number;
-  photoUrl: string;
+  photos?: VehiclePhoto[];
   userId: string;
   createdAt: Date;
   updatedAt: Date;
