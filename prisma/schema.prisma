@@ -38,25 +38,29 @@ model User {
 }
 
 model Vehicle {
-  id         String      @id @default(uuid()) @db.Uuid
+  id         String      @id @default(uuid())
   type       VehicleType
   capacityKg Float
-  photoUrl   String?
-  userId     String      @db.Uuid
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photoUrl   String
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  @@index([userId])
 }
 
 model Route {
-  id          String   @id @default(uuid()) @db.Uuid
-  origin      String
-  destination String
+  id          String   @id @default(uuid())
+  origin      Json
+  destination Json
   basePrice   Float
   maxWeight   Float?
   isAvailable Boolean  @default(true)
-  userId      String   @db.Uuid
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
