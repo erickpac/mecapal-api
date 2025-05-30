@@ -29,7 +29,7 @@ import { UserRole } from '@prisma/client';
 import { UploadVehicleImageUseCase } from '../../application/use-cases/upload-vehicle-image.use-case';
 import { imageUploadOptions } from '../../../cloudinary/constants/upload-options';
 import { UploadedFileType } from '../../../cloudinary/domain/interfaces/file-upload.interface';
-import { VehicleResponseDto } from '../../application/dtos/vehicle-response.dto';
+import { VehiclePhotoResponseDto } from '../../application/dtos/vehicle-photo-response.dto';
 
 @Controller('profile/vehicles')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -66,7 +66,7 @@ export class VehicleController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateVehicleDto: Partial<CreateVehicleDto>,
+    @Body() updateVehicleDto: CreateVehicleDto,
   ): Promise<Vehicle> {
     return this.updateVehicleUseCase.execute(id, updateVehicleDto);
   }
@@ -82,7 +82,7 @@ export class VehicleController {
   async uploadImage(
     @Param('id') id: string,
     @UploadedFile() file: UploadedFileType,
-  ): Promise<VehicleResponseDto> {
+  ): Promise<VehiclePhotoResponseDto> {
     return this.uploadVehicleImageUseCase.execute(id, file.buffer);
   }
 }

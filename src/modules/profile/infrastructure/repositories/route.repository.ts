@@ -23,8 +23,8 @@ export class RouteRepository implements IRouteRepository {
 
     return {
       ...route,
-      origin: JSON.parse(route.origin) as Location,
-      destination: JSON.parse(route.destination) as Location,
+      origin: JSON.parse(route.origin as string) as Location,
+      destination: JSON.parse(route.destination as string) as Location,
       maxWeight: route.maxWeight ?? undefined,
     };
   }
@@ -35,8 +35,8 @@ export class RouteRepository implements IRouteRepository {
     });
     return routes.map((route) => ({
       ...route,
-      origin: JSON.parse(route.origin) as Location,
-      destination: JSON.parse(route.destination) as Location,
+      origin: JSON.parse(route.origin as string) as Location,
+      destination: JSON.parse(route.destination as string) as Location,
       maxWeight: route.maxWeight ?? undefined,
     }));
   }
@@ -50,8 +50,8 @@ export class RouteRepository implements IRouteRepository {
 
     return {
       ...route,
-      origin: JSON.parse(route.origin) as Location,
-      destination: JSON.parse(route.destination) as Location,
+      origin: JSON.parse(route.origin as string) as Location,
+      destination: JSON.parse(route.destination as string) as Location,
       maxWeight: route.maxWeight ?? undefined,
     };
   }
@@ -70,8 +70,8 @@ export class RouteRepository implements IRouteRepository {
 
     return {
       ...route,
-      origin: JSON.parse(route.origin) as Location,
-      destination: JSON.parse(route.destination) as Location,
+      origin: JSON.parse(route.origin as string) as Location,
+      destination: JSON.parse(route.destination as string) as Location,
       maxWeight: route.maxWeight ?? undefined,
     };
   }

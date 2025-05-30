@@ -4,6 +4,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { ProfileRepository } from './infrastructure/repositories/profile.repository';
 import { VehicleRepository } from './infrastructure/repositories/vehicle.repository';
 import { RouteRepository } from './infrastructure/repositories/route.repository';
+import { VehiclePhotoRepository } from './infrastructure/repositories/vehicle-photo.repository';
 import { ProfileController } from './infrastructure/controllers/profile.controller';
 import { VehicleController } from './infrastructure/controllers/vehicle.controller';
 import { RouteController } from './infrastructure/controllers/route.controller';
@@ -32,6 +33,7 @@ import { UpdateProfileUseCase } from './application/use-cases/update-profile.use
     ProfileRepository,
     VehicleRepository,
     RouteRepository,
+    VehiclePhotoRepository,
     FindAllVehiclesUseCase,
     FindVehicleByIdUseCase,
     UpdateVehicleUseCase,
