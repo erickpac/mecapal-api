@@ -8,6 +8,7 @@ import { mockAuthRepository } from './mocks/auth-repository.mock';
 import { mockJwtService } from './mocks/jwt-service.mock';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;
@@ -23,6 +24,25 @@ describe('LoginUseCase', () => {
         {
           provide: JwtService,
           useValue: mockJwtService,
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              switch (key) {
+                case 'JWT_SECRET':
+                  return 'test-secret';
+                case 'JWT_REFRESH_SECRET':
+                  return 'test-refresh-secret';
+                case 'JWT_EXPIRATION_TIME':
+                  return '1h';
+                case 'JWT_REFRESH_EXPIRATION_TIME':
+                  return '7d';
+                default:
+                  return undefined;
+              }
+            }),
+          },
         },
       ],
     }).compile();

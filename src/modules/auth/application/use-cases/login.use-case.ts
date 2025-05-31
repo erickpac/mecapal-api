@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { LoginDto } from '../dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { env } from '../../../../config/env.config';
 import * as crypto from 'crypto';
 import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.type';
 
@@ -14,6 +14,7 @@ export class LoginUseCase {
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async execute(
@@ -57,8 +58,10 @@ export class LoginUseCase {
     return {
       access_token: await this.jwtService.signAsync(accessTokenPayload),
       refresh_token: await this.jwtService.signAsync(refreshTokenPayload, {
-        secret: env.JWT_REFRESH_SECRET,
-        expiresIn: env.JWT_REFRESH_EXPIRATION_TIME,
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get<string>(
+          'JWT_REFRESH_EXPIRATION_TIME',
+        ),
       }),
     };
   }

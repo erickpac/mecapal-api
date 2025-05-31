@@ -3,6 +3,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from '../jwt.strategy';
 import { AuthRepository } from '../../repositories/auth.repository';
 import { mockUser, mockPayload } from './mocks/jwt.strategy.mock';
+import { ConfigService } from '@nestjs/config';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
@@ -16,6 +17,25 @@ describe('JwtStrategy', () => {
           provide: AuthRepository,
           useValue: {
             findById: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              switch (key) {
+                case 'JWT_SECRET':
+                  return 'test-secret';
+                case 'JWT_REFRESH_SECRET':
+                  return 'test-refresh-secret';
+                case 'JWT_EXPIRATION_TIME':
+                  return '1h';
+                case 'JWT_REFRESH_EXPIRATION_TIME':
+                  return '7d';
+                default:
+                  return undefined;
+              }
+            }),
           },
         },
       ],

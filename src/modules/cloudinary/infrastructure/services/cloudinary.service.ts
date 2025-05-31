@@ -1,10 +1,10 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   v2 as cloudinary,
   UploadApiOptions,
   UploadApiResponse,
 } from 'cloudinary';
-import { env } from '../../../../config/env.config';
 import * as sharp from 'sharp';
 import { ImageTransformationOptions } from '../../domain/interfaces/image-transformation-options.interface';
 
@@ -27,13 +27,25 @@ export class CloudinaryService implements OnModuleInit {
     'webp',
   ];
 
-  onModuleInit() {
+  constructor(private readonly configService: ConfigService) {
+    const cloudName = configService.get<string>('CLOUDINARY_CLOUD_NAME');
+    const apiKey = configService.get<string>('CLOUDINARY_API_KEY');
+    const apiSecret = configService.get<string>('CLOUDINARY_API_SECRET');
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      throw new Error('Cloudinary configuration is not complete');
+    }
+
     cloudinary.config({
-      cloud_name: env.CLOUDINARY_CLOUD_NAME,
-      api_key: env.CLOUDINARY_API_KEY,
-      api_secret: env.CLOUDINARY_API_SECRET,
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
       secure: true,
     });
+  }
+
+  onModuleInit(): void {
+    this.logger.log('Cloudinary service initialized');
   }
 
   /**
