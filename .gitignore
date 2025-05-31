@@ -4,6 +4,9 @@
 /build
 /generated
 
+# coverage
+/coverage
+
 # Logs
 logs
 *.log

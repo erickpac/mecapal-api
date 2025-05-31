@@ -56,9 +56,6 @@ importers:
       sharp:
         specifier: ^0.34.2
         version: 0.34.2
-      zod:
-        specifier: ^3.25.31
-        version: 3.25.31
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.2.0
@@ -3721,9 +3718,6 @@ packages:
   yoctocolors-cjs@2.1.2:
     resolution: {integrity: sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA==}
     engines: {node: '>=18'}
-
-  zod@3.25.31:
-    resolution: {integrity: sha512-SVCtUpZ1D9TFcRnCY7wlCpGEzV4+2HlXnJiwrgq1T93m98BIT6M5lbxRrEm7v6pYZXV4QNQo1t2KVv93JXk6XA==}
 
 snapshots:
 
@@ -7704,5 +7698,3 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yoctocolors-cjs@2.1.2: {}
-
-  zod@3.25.31: {}
