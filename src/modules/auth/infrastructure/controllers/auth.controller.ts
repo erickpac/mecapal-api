@@ -36,9 +36,11 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body() loginDto: LoginDto,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  async login(@Body() loginDto: LoginDto): Promise<{
+    access_token: string;
+    refresh_token: string;
+    user: Omit<User, 'password'>;
+  }> {
     return this.loginUseCase.execute(loginDto);
   }
 

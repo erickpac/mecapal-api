@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.type';
+import { User } from '../../domain/entities/user.entity';
 
 @Injectable()
 export class LoginUseCase {
@@ -17,9 +18,11 @@ export class LoginUseCase {
     private readonly configService: ConfigService,
   ) {}
 
-  async execute(
-    loginDto: LoginDto,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  async execute(loginDto: LoginDto): Promise<{
+    access_token: string;
+    refresh_token: string;
+    user: Omit<User, 'password'>;
+  }> {
     this.logger.log(`Attempting login for user: ${loginDto.email}`);
 
     const user = await this.authRepository.findByEmail(loginDto.email);
@@ -55,6 +58,9 @@ export class LoginUseCase {
       jti: crypto.randomUUID(),
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+
     return {
       access_token: await this.jwtService.signAsync(accessTokenPayload),
       refresh_token: await this.jwtService.signAsync(refreshTokenPayload, {
@@ -63,6 +69,7 @@ export class LoginUseCase {
           'JWT_REFRESH_EXPIRATION_TIME',
         ),
       }),
+      user: userWithoutPassword,
     };
   }
 }
