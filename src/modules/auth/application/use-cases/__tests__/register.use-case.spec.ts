@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException } from '@nestjs/common';
 import { RegisterUseCase } from '../register.use-case';
 import { AuthRepository } from '../../../infrastructure/repositories/auth.repository';
-import { mockRegisterDto, mockUser } from './mocks/user.mock';
-import { mockAuthRepository } from './mocks/auth-repository.mock';
+import { mockRegisterDto, mockUser } from './__mocks__/user.mock';
+import { mockAuthRepository } from './__mocks__/auth-repository.mock';
 import * as bcrypt from 'bcrypt';
 
 describe('RegisterUseCase', () => {

@@ -12,7 +12,7 @@ import {
   loginDto,
   refreshTokenDto,
   changePasswordDto,
-} from './mocks/use-cases.mock';
+} from './__mocks__/use-cases.mock';
 import { RegisterUseCase } from '../../../application/use-cases/register.use-case';
 import { LoginUseCase } from '../../../application/use-cases/login.use-case';
 import { RefreshTokenUseCase } from '../../../application/use-cases/refresh-token.use-case';

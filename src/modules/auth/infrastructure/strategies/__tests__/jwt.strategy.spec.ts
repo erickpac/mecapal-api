@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from '../jwt.strategy';
 import { AuthRepository } from '../../repositories/auth.repository';
-import { mockUser, mockPayload } from './mocks/jwt.strategy.mock';
+import { mockUser, mockPayload } from './__mocks__/jwt.strategy.mock';
 import { ConfigService } from '@nestjs/config';
 
 describe('JwtStrategy', () => {
