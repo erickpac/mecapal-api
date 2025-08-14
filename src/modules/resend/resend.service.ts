@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 export class ResendService {
   private readonly logger = new Logger(ResendService.name);
   private readonly resend: Resend;
-  private readonly from: string = "onboarding@resend.dev";
+  private readonly from: string = 'onboarding@resend.dev';
 
   constructor(private readonly configService: ConfigService) {
     const resendApiKey = configService.get<string>('RESEND_API_KEY');
@@ -20,7 +20,7 @@ export class ResendService {
       from: this.from,
       to: to,
       subject: subject,
-      html: html
+      html: html,
     });
   }
 }

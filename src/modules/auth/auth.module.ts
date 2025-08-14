@@ -28,7 +28,7 @@ import { ResendModule } from 'src/modules/resend/resend.module';
       }),
       inject: [ConfigService],
     }),
-    ResendModule
+    ResendModule,
   ],
   controllers: [AuthController],
   providers: [

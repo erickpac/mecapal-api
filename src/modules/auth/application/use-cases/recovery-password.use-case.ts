@@ -7,11 +7,12 @@ import { ResendService } from 'src/modules/resend/resend.service';
 export class RecoveryPasswordUseCase {
   private readonly logger = new Logger(RecoveryPasswordUseCase.name);
 
-  constructor(private readonly authRepository: AuthRepository, private readonly resendService: ResendService) {}
+  constructor(
+    private readonly authRepository: AuthRepository,
+    private readonly resendService: ResendService,
+  ) {}
 
-  async execute(
-    email: string
-  ): Promise<void> {
+  async execute(email: string): Promise<void> {
     this.logger.log(`Attempting to recovery password for user email: ${email}`);
 
     const user = await this.authRepository.findByEmail(email);
@@ -24,14 +25,17 @@ export class RecoveryPasswordUseCase {
     }
 
     const newPassword = Math.random().toString(36).slice(-8);
-    const hashedNewPassword = await bcrypt.hash(
-      newPassword,
-      10,
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.resendService.sendEmail(
+      user.email,
+      'Recuperación de Contraseña',
+      `Hola ${user.name}, <br>tu nueva contraseña es: ${newPassword}`,
     );
 
-    this.resendService.sendEmail(user.email, 'Password Recovery', `Hello ${user.name}, <br>your new password is: ${newPassword}`);
-
     await this.authRepository.update(user.id, { password: hashedNewPassword });
-    this.logger.log(`Password changed successfully for user: ${user.email} New Password: ${newPassword}`);
+    this.logger.log(
+      `Password changed successfully for user: ${user.email} New Password: ${newPassword}`,
+    );
   }
 }

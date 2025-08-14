@@ -66,7 +66,6 @@ export class AuthController {
     return this.changePasswordUseCase.execute(user.id, changePasswordDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('recovery-password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async recoveryPassword(
