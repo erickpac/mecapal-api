@@ -45,6 +45,86 @@ describe('JwtStrategy', () => {
     userRepository = module.get<AuthRepository>(AuthRepository);
   });
 
+  describe('constructor', () => {
+    it('should throw error when JWT_SECRET is not defined', async () => {
+      // Arrange - create a module with ConfigService that returns undefined for JWT_SECRET
+      const createModuleWithNoSecret = async () => {
+        const module: TestingModule = await Test.createTestingModule({
+          providers: [
+            JwtStrategy,
+            {
+              provide: AuthRepository,
+              useValue: {
+                findById: jest.fn(),
+              },
+            },
+            {
+              provide: ConfigService,
+              useValue: {
+                get: jest.fn((key: string) => {
+                  if (key === 'JWT_SECRET') {
+                    return undefined; // Simulate missing JWT_SECRET
+                  }
+                  return 'some-value';
+                }),
+              },
+            },
+          ],
+        }).compile();
+
+        // This should throw an error during construction
+        module.get<JwtStrategy>(JwtStrategy);
+      };
+
+      // Act & Assert
+      await expect(createModuleWithNoSecret()).rejects.toThrow(
+        'JWT_SECRET is not defined',
+      );
+    });
+
+    it('should throw error when JWT_SECRET is empty string', async () => {
+      // Arrange - create a module with ConfigService that returns empty string for JWT_SECRET
+      const createModuleWithEmptySecret = async () => {
+        const module: TestingModule = await Test.createTestingModule({
+          providers: [
+            JwtStrategy,
+            {
+              provide: AuthRepository,
+              useValue: {
+                findById: jest.fn(),
+              },
+            },
+            {
+              provide: ConfigService,
+              useValue: {
+                get: jest.fn((key: string) => {
+                  if (key === 'JWT_SECRET') {
+                    return ''; // Simulate empty JWT_SECRET
+                  }
+                  return 'some-value';
+                }),
+              },
+            },
+          ],
+        }).compile();
+
+        // This should throw an error during construction
+        module.get<JwtStrategy>(JwtStrategy);
+      };
+
+      // Act & Assert
+      await expect(createModuleWithEmptySecret()).rejects.toThrow(
+        'JWT_SECRET is not defined',
+      );
+    });
+
+    it('should successfully create strategy when JWT_SECRET is provided', () => {
+      // This is already covered by the beforeEach setup
+      expect(strategy).toBeDefined();
+      expect(strategy).toBeInstanceOf(JwtStrategy);
+    });
+  });
+
   describe('validate', () => {
     const findByIdSpy = () => jest.spyOn(userRepository, 'findById');
 
