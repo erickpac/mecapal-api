@@ -292,6 +292,15 @@ describe('CloudinaryService', () => {
 
       expect(mockCloudinary.uploader.destroy).toHaveBeenCalledTimes(3);
     });
+
+    it('should handle non-Error instances in delete failure', async () => {
+      // Mock destroy to throw a non-Error object
+      mockCloudinary.uploader.destroy.mockRejectedValue('String error');
+
+      await expect(service.deleteImage('test-public-id')).rejects.toThrow(
+        'Failed to delete image after 3 attempts: String error',
+      );
+    });
   });
 
   describe('extractPublicId', () => {
@@ -418,17 +427,17 @@ describe('CloudinaryService', () => {
 
     it('should handle sharp errors gracefully', async () => {
       mockSharpInstance.metadata.mockRejectedValue(
-        new Error('Sharp processing error'),
+        new Error('Sharp processing failed'),
       );
 
       const testBuffer = Buffer.alloc(1024);
       await expect(service.validateImage(testBuffer)).rejects.toThrow(
-        'Image validation failed: Sharp processing error',
+        'Image validation failed: Sharp processing failed',
       );
     });
 
-    it('should handle non-Error exceptions gracefully', async () => {
-      mockSharpInstance.metadata.mockRejectedValue('String error');
+    it('should handle non-Error instances in sharp failures', async () => {
+      mockSharpInstance.metadata.mockRejectedValue('Sharp string error');
 
       const testBuffer = Buffer.alloc(1024);
       await expect(service.validateImage(testBuffer)).rejects.toThrow(
