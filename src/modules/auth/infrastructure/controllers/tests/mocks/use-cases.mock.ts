@@ -3,6 +3,7 @@ import { RegisterUseCase } from '../../../../application/use-cases/register.use-
 import { LoginUseCase } from '../../../../application/use-cases/login.use-case';
 import { RefreshTokenUseCase } from '../../../../application/use-cases/refresh-token.use-case';
 import { ChangePasswordUseCase } from '../../../../application/use-cases/change-password.use-case';
+import { RecoveryPasswordUseCase } from '../../../../application/use-cases/recovery-password.use-case';
 import { User } from '../../../../domain/entities/user.entity';
 import { RegisterDto } from '../../../../application/dtos/register.dto';
 import { LoginDto } from '../../../../application/dtos/login.dto';
@@ -25,11 +26,16 @@ export const mockChangePasswordUseCase = {
   execute: jest.fn(),
 } as unknown as jest.Mocked<ChangePasswordUseCase>;
 
+export const mockRecoveryPasswordUseCase = {
+  execute: jest.fn(),
+} as unknown as jest.Mocked<RecoveryPasswordUseCase>;
+
 export const registerDto: RegisterDto = {
   email: 'test@example.com',
   password: 'password123',
   name: 'Test User',
-  role: UserRole.USER,
+  phone: null,
+  role: 'USER',
 };
 
 export const loginDto: LoginDto = {
@@ -41,6 +47,7 @@ export const mockUser: Omit<User, 'password'> = {
   id: '1',
   email: 'test@example.com',
   name: 'Test User',
+  phone: null,
   role: 'USER',
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -49,6 +56,7 @@ export const mockUser: Omit<User, 'password'> = {
 export const mockTokens = {
   access_token: 'mock-access-token',
   refresh_token: 'mock-refresh-token',
+  user: mockUser,
 };
 
 export const refreshTokenDto: RefreshTokenDto = {

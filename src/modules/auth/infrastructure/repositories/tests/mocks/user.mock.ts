@@ -6,6 +6,7 @@ export const mockUser: User = {
   name: 'Test User',
   email: 'test@example.com',
   password: 'hashedPassword',
+  phone: null,
   role: UserRole.USER,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -15,6 +16,7 @@ export const mockCreateUserData = {
   name: 'Test User',
   email: 'test@example.com',
   password: 'hashedPassword',
+  phone: null,
   role: UserRole.USER,
 };
 

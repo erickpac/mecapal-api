@@ -45,6 +45,7 @@ describe('RegisterUseCase', () => {
         id: mockUser.id,
         email: mockUser.email,
         name: mockUser.name,
+        phone: mockUser.phone,
         role: mockUser.role,
         createdAt: mockUser.createdAt,
         updatedAt: mockUser.updatedAt,

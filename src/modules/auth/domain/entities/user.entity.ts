@@ -5,6 +5,7 @@ export class User {
   name: string;
   email: string;
   password: string;
+  phone: string | null;
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;

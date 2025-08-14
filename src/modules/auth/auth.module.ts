@@ -11,7 +11,7 @@ import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-c
 import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RecoveryPasswordUseCase } from './application/use-cases/recovery-password.use-case';
-import { ResendModule } from 'src/modules/resend/resend.module';
+import { ResendModule } from '../resend/resend.module';
 
 @Module({
   imports: [

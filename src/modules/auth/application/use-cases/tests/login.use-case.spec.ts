@@ -9,6 +9,7 @@ import { mockJwtService } from './mocks/jwt-service.mock';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { UserRole } from '@prisma/client';
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;
@@ -78,6 +79,15 @@ describe('LoginUseCase', () => {
       expect(result).toEqual({
         access_token: 'access_token',
         refresh_token: 'refresh_token',
+        user: {
+          id: '1',
+          name: 'Test User',
+          email: 'test@example.com',
+          phone: null,
+          role: UserRole.USER,
+          createdAt: expect.any(Date),
+          updatedAt: expect.any(Date),
+        },
       });
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(
         mockLoginDto.email,

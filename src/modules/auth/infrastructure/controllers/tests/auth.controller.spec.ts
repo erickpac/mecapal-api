@@ -5,6 +5,7 @@ import {
   mockLoginUseCase,
   mockRefreshTokenUseCase,
   mockChangePasswordUseCase,
+  mockRecoveryPasswordUseCase,
   mockUser,
   mockTokens,
   registerDto,
@@ -16,6 +17,8 @@ import { RegisterUseCase } from '../../../application/use-cases/register.use-cas
 import { LoginUseCase } from '../../../application/use-cases/login.use-case';
 import { RefreshTokenUseCase } from '../../../application/use-cases/refresh-token.use-case';
 import { ChangePasswordUseCase } from '../../../application/use-cases/change-password.use-case';
+import { RecoveryPasswordUseCase } from '../../../application/use-cases/recovery-password.use-case';
+import { RecoveryPasswordDto } from '../../../application/dtos/recovery-password.dto';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -39,6 +42,10 @@ describe('AuthController', () => {
         {
           provide: ChangePasswordUseCase,
           useValue: mockChangePasswordUseCase,
+        },
+        {
+          provide: RecoveryPasswordUseCase,
+          useValue: mockRecoveryPasswordUseCase,
         },
       ],
     }).compile();
@@ -106,6 +113,18 @@ describe('AuthController', () => {
         userWithPassword.id,
         changePasswordDto,
       );
+    });
+  });
+
+  describe('recoveryPassword', () => {
+    it('should recovery user password', async () => {
+      const recoveryPasswordDto: RecoveryPasswordDto = { email: 'test@example.com' };
+      const executeSpy = jest.spyOn(mockRecoveryPasswordUseCase, 'execute');
+      executeSpy.mockResolvedValue(undefined);
+
+      await controller.recoveryPassword(recoveryPasswordDto);
+
+      expect(executeSpy).toHaveBeenCalledWith(recoveryPasswordDto.email);
     });
   });
 });

@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import * as bcrypt from 'bcrypt';
-import { ResendService } from 'src/modules/resend/resend.service';
+import { ResendService } from '../../../resend/resend.service';
 
 @Injectable()
 export class RecoveryPasswordUseCase {
