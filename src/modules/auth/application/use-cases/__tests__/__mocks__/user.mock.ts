@@ -7,6 +7,7 @@ export const mockRegisterDto: RegisterDto = {
   email: 'test@example.com',
   password: 'password123',
   name: 'Test User',
+  phone: null,
   role: 'USER',
 };
 
@@ -20,6 +21,7 @@ export const mockUser: User = {
   email: 'test@example.com',
   password: 'hashedPassword',
   name: 'Test User',
+  phone: null,
   role: 'USER',
   createdAt: new Date(),
   updatedAt: new Date(),

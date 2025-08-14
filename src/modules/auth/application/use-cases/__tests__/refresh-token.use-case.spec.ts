@@ -6,9 +6,9 @@ import {
   mockRefreshToken,
   mockRefreshTokenPayload,
   mockUser,
-} from './mocks/user.mock';
-import { mockAuthRepository } from './mocks/auth-repository.mock';
-import { mockJwtService } from './mocks/jwt-service.mock';
+} from './__mocks__/user.mock';
+import { mockAuthRepository } from './__mocks__/auth-repository.mock';
+import { mockJwtService } from './__mocks__/jwt-service.mock';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 

@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { ChangePasswordUseCase } from '../change-password.use-case';
 import { AuthRepository } from '../../../infrastructure/repositories/auth.repository';
-import { mockChangePasswordDto } from './mocks/user.mock';
-import { mockUser } from './mocks/user.mock';
-import { mockAuthRepository } from './mocks/auth-repository.mock';
+import { mockChangePasswordDto } from './__mocks__/user.mock';
+import { mockUser } from './__mocks__/user.mock';
+import { mockAuthRepository } from './__mocks__/auth-repository.mock';
 import * as bcrypt from 'bcrypt';
 
 describe('ChangePasswordUseCase', () => {
