@@ -5,7 +5,7 @@ import {
   mockUser,
   mockCreateUserData,
   mockUpdateUserData,
-} from './__mocks__/user.mock';
+} from '../../../application/use-cases/__tests__/__mocks__/user.mock';
 
 describe('AuthRepository', () => {
   let repository: AuthRepository;
