@@ -1,4 +1,3 @@
-import { UserRole } from '@prisma/client';
 import { RegisterUseCase } from '../../../../application/use-cases/register.use-case';
 import { LoginUseCase } from '../../../../application/use-cases/login.use-case';
 import { RefreshTokenUseCase } from '../../../../application/use-cases/refresh-token.use-case';

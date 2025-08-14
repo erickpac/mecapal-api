@@ -85,8 +85,8 @@ describe('LoginUseCase', () => {
           email: 'test@example.com',
           phone: null,
           role: UserRole.USER,
-          createdAt: expect.any(Date),
-          updatedAt: expect.any(Date),
+          createdAt: mockUser.createdAt,
+          updatedAt: mockUser.updatedAt,
         },
       });
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(

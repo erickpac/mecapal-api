@@ -118,7 +118,9 @@ describe('AuthController', () => {
 
   describe('recoveryPassword', () => {
     it('should recovery user password', async () => {
-      const recoveryPasswordDto: RecoveryPasswordDto = { email: 'test@example.com' };
+      const recoveryPasswordDto: RecoveryPasswordDto = {
+        email: 'test@example.com',
+      };
       const executeSpy = jest.spyOn(mockRecoveryPasswordUseCase, 'execute');
       executeSpy.mockResolvedValue(undefined);
 
