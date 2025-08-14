@@ -32,6 +32,13 @@ describe('CloudinaryService', () => {
   let mockCloudinary: any;
 
   beforeEach(async () => {
+    // Mock setTimeout to make retry tests faster
+    jest.spyOn(global, 'setTimeout').mockImplementation((fn) => {
+      // Execute immediately without delay
+      setImmediate(fn as () => void);
+      return {} as NodeJS.Timeout;
+    });
+
     // Get the mocked cloudinary instance
     mockCloudinary = jest.requireMock('cloudinary').v2;
 
@@ -65,6 +72,8 @@ describe('CloudinaryService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    // Restore setTimeout
+    jest.restoreAllMocks();
   });
 
   describe('Constructor and Initialization', () => {
@@ -213,6 +222,7 @@ describe('CloudinaryService', () => {
         },
       );
 
+      // Start the async operation
       const result = await service.uploadImage(testBuffer);
 
       expect(result).toEqual(mockResult);
@@ -228,6 +238,7 @@ describe('CloudinaryService', () => {
         },
       );
 
+      // Start the async operation
       await expect(service.uploadImage(testBuffer)).rejects.toThrow(
         'Failed to upload image after 3 attempts: Persistent error',
       );
@@ -262,6 +273,7 @@ describe('CloudinaryService', () => {
         }
       });
 
+      // Start the async operation
       const result = await service.deleteImage('test-public-id');
 
       expect(result).toEqual(mockResult);
@@ -273,6 +285,7 @@ describe('CloudinaryService', () => {
         new Error('Persistent error'),
       );
 
+      // Start the async operation
       await expect(service.deleteImage('test-public-id')).rejects.toThrow(
         'Failed to delete image after 3 attempts: Persistent error',
       );
@@ -434,14 +447,19 @@ describe('CloudinaryService', () => {
     });
 
     it('should return original buffer for small images', async () => {
-      const smallBuffer = Buffer.alloc(1024 * 1024); // 1MB (less than MAX_SIZE/2)
+      // Mock the buffer length check by spying on buffer.length
+      const smallBuffer = Buffer.alloc(1024); // 1KB
+      Object.defineProperty(smallBuffer, 'length', { value: 3 * 1024 * 1024 }); // Mock as 3MB (< 5MB threshold)
+
       const result = await service.optimizeImage(smallBuffer);
       expect(result).toBe(smallBuffer);
     });
 
     it('should optimize large images', async () => {
-      const largeBuffer = Buffer.alloc(8 * 1024 * 1024); // 8MB
-      const optimizedBuffer = Buffer.alloc(2 * 1024 * 1024); // 2MB
+      const largeBuffer = Buffer.alloc(1024); // Small actual buffer for test speed
+      Object.defineProperty(largeBuffer, 'length', { value: 8 * 1024 * 1024 }); // Mock as 8MB (> 5MB threshold)
+
+      const optimizedBuffer = Buffer.alloc(512); // Small optimized buffer
       mockSharpInstance.toBuffer.mockResolvedValue(optimizedBuffer);
 
       const result = await service.optimizeImage(largeBuffer);
@@ -460,7 +478,9 @@ describe('CloudinaryService', () => {
     });
 
     it('should handle optimization errors gracefully', async () => {
-      const largeBuffer = Buffer.alloc(8 * 1024 * 1024);
+      const largeBuffer = Buffer.alloc(1024); // Small actual buffer
+      Object.defineProperty(largeBuffer, 'length', { value: 8 * 1024 * 1024 }); // Mock as large
+
       mockSharpInstance.toBuffer.mockRejectedValue(
         new Error('Optimization failed'),
       );
@@ -471,7 +491,9 @@ describe('CloudinaryService', () => {
     });
 
     it('should limit dimensions to MAX_DIMENSION', async () => {
-      const largeBuffer = Buffer.alloc(8 * 1024 * 1024);
+      const largeBuffer = Buffer.alloc(1024); // Small actual buffer
+      Object.defineProperty(largeBuffer, 'length', { value: 8 * 1024 * 1024 }); // Mock as large
+
       mockSharpInstance.metadata.mockResolvedValue({
         width: 6000,
         height: 4000,
