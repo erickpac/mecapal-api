@@ -18,6 +18,9 @@ import { User } from '../../domain/entities/user.entity';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 
+import { RecoveryPasswordUseCase } from '../../application/use-cases/recovery-password.use-case';
+import { RecoveryPasswordDto } from '../../application/dtos/recovery-password.dto';
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -25,6 +28,7 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly changePasswordUseCase: ChangePasswordUseCase,
+    private readonly recoveryPasswordUseCase: RecoveryPasswordUseCase,
   ) {}
 
   @Post('register')
@@ -60,5 +64,14 @@ export class AuthController {
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<void> {
     return this.changePasswordUseCase.execute(user.id, changePasswordDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('recovery-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async recoveryPassword(
+    @Body() recoveryPasswordDto: RecoveryPasswordDto,
+  ): Promise<void> {
+    return this.recoveryPasswordUseCase.execute(recoveryPasswordDto.email);
   }
 }

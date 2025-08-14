@@ -10,6 +10,8 @@ import { LoginUseCase } from './application/use-cases/login.use-case';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
 import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
 import { PrismaModule } from '../prisma/prisma.module';
+import { RecoveryPasswordUseCase } from './application/use-cases/recovery-password.use-case';
+import { ResendModule } from 'src/modules/resend/resend.module';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { PrismaModule } from '../prisma/prisma.module';
       }),
       inject: [ConfigService],
     }),
+    ResendModule
   ],
   controllers: [AuthController],
   providers: [
@@ -35,6 +38,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     LoginUseCase,
     RefreshTokenUseCase,
     ChangePasswordUseCase,
+    RecoveryPasswordUseCase,
   ],
   exports: [JwtStrategy, PassportModule],
 })
