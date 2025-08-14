@@ -5,7 +5,16 @@ import { AuthModule } from '../modules/auth/auth.module';
 import { PrismaModule } from '../modules/prisma/prisma.module';
 import { CloudinaryModule } from '../modules/cloudinary/cloudinary.module';
 import { ProfileModule } from '../modules/profile/profile.module';
+import { PrismaService } from '../modules/prisma/prisma.service';
 import { INestApplication } from '@nestjs/common';
+
+// Mock PrismaService for AppModule tests
+const mockPrismaService = {
+  onModuleInit: jest.fn().mockResolvedValue(undefined),
+  onModuleDestroy: jest.fn().mockResolvedValue(undefined),
+  $connect: jest.fn().mockResolvedValue(undefined),
+  $disconnect: jest.fn().mockResolvedValue(undefined),
+};
 
 describe('AppModule', () => {
   let module: TestingModule;
@@ -14,7 +23,10 @@ describe('AppModule', () => {
   beforeEach(async () => {
     module = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockPrismaService)
+      .compile();
     app = module.createNestApplication();
     await app.init();
   });

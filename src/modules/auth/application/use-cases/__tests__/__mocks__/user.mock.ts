@@ -2,6 +2,7 @@ import { User } from '../../../../domain/entities/user.entity';
 import { ChangePasswordDto } from '../../../dtos/change-password.dto';
 import { LoginDto } from '../../../dtos/login.dto';
 import { RegisterDto } from '../../../dtos/register.dto';
+import { UserRole } from '@prisma/client';
 
 export const mockRegisterDto: RegisterDto = {
   email: 'test@example.com',
@@ -38,4 +39,18 @@ export const mockRefreshTokenPayload = {
   sub: '1',
   type: 'refresh',
   jti: 'mock-jti',
+};
+
+// Additional mocks for repository tests
+export const mockCreateUserData = {
+  name: 'Test User',
+  email: 'test@example.com',
+  password: 'hashedPassword',
+  phone: null,
+  role: UserRole.USER,
+};
+
+export const mockUpdateUserData = {
+  name: 'Updated User',
+  email: 'updated@example.com',
 };

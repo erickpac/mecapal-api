@@ -1,21 +1,11 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma.service';
-import { PrismaClient } from '@prisma/client';
-
-jest.mock('@prisma/client', () => {
-  const mockPrismaClient = {
-    $connect: jest.fn(),
-    $disconnect: jest.fn(),
-  };
-  return {
-    PrismaClient: jest.fn(() => mockPrismaClient),
-  };
-});
+import { Logger } from '@nestjs/common';
 
 describe('PrismaService', () => {
   let service: PrismaService;
-  let prismaClient: jest.Mocked<PrismaClient>;
+  let connectSpy: jest.SpyInstance;
+  let disconnectSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,63 +13,90 @@ describe('PrismaService', () => {
     }).compile();
 
     service = module.get<PrismaService>(PrismaService);
-    prismaClient = service as unknown as jest.Mocked<PrismaClient>;
 
-    // Ensure methods are proper Jest mocks
-    prismaClient.$connect = jest.fn();
-    prismaClient.$disconnect = jest.fn();
+    // Mock the PrismaClient methods directly on the service
+    const connectMethod = '$connect' as const;
+    const disconnectMethod = '$disconnect' as const;
+    connectSpy = jest
+      .spyOn(service, connectMethod)
+      .mockResolvedValue(undefined);
+    disconnectSpy = jest
+      .spyOn(service, disconnectMethod)
+      .mockResolvedValue(undefined);
+    service['$transaction'] = jest.fn();
 
-    // Add lifecycle methods to the mock
-    service.onModuleInit = jest.fn().mockImplementation(async () => {
-      await prismaClient.$connect();
-    });
-    service.onModuleDestroy = jest.fn().mockImplementation(async () => {
-      await prismaClient.$disconnect();
-    });
+    // Mock the logger to avoid actual logging in tests
+    jest.spyOn(Logger.prototype, 'log').mockImplementation();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+  describe('Basic functionality', () => {
+    it('should be defined', () => {
+      expect(service).toBeDefined();
+    });
 
-  it('should extend PrismaClient', () => {
-    // Check for PrismaClient methods instead of instance type
-    expect(typeof service.$connect).toBe('function');
-    expect(typeof service.$disconnect).toBe('function');
-    expect(typeof service.$transaction).toBe('function');
+    it('should extend PrismaClient functionality', () => {
+      expect(typeof service.$connect).toBe('function');
+      expect(typeof service.$disconnect).toBe('function');
+      expect(typeof service.$transaction).toBe('function');
+    });
   });
 
   describe('onModuleInit', () => {
-    it('should call $connect', async () => {
+    it('should call $connect when module initializes', async () => {
       await service.onModuleInit();
-      expect(prismaClient.$connect).toHaveBeenCalledTimes(1);
+
+      expect(connectSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle connection errors', async () => {
+    it('should handle connection errors gracefully', async () => {
       const error = new Error('Connection failed');
-      prismaClient.$connect.mockRejectedValueOnce(error);
+      connectSpy.mockRejectedValueOnce(error);
 
-      await expect(service.onModuleInit()).rejects.toThrow(error);
-      expect(prismaClient.$connect).toHaveBeenCalledTimes(1);
+      await expect(service.onModuleInit()).rejects.toThrow('Connection failed');
+      expect(connectSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should complete successfully when connection works', async () => {
+      connectSpy.mockResolvedValueOnce(undefined);
+
+      await expect(service.onModuleInit()).resolves.not.toThrow();
+      expect(connectSpy).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('onModuleDestroy', () => {
-    it('should call $disconnect', async () => {
+    it('should call $disconnect when module is destroyed', async () => {
       await service.onModuleDestroy();
-      expect(prismaClient.$disconnect).toHaveBeenCalledTimes(1);
+
+      expect(disconnectSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle disconnection errors', async () => {
+    it('should handle disconnection errors gracefully', async () => {
       const error = new Error('Disconnection failed');
-      prismaClient.$disconnect.mockRejectedValueOnce(error);
+      disconnectSpy.mockRejectedValueOnce(error);
 
-      await expect(service.onModuleDestroy()).rejects.toThrow(error);
-      expect(prismaClient.$disconnect).toHaveBeenCalledTimes(1);
+      await expect(service.onModuleDestroy()).rejects.toThrow(
+        'Disconnection failed',
+      );
+      expect(disconnectSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should complete successfully when disconnection works', async () => {
+      disconnectSpy.mockResolvedValueOnce(undefined);
+
+      await expect(service.onModuleDestroy()).resolves.not.toThrow();
+      expect(disconnectSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Logger integration', () => {
+    it('should initialize without throwing logger-related errors', async () => {
+      // This implicitly tests that the logger was created successfully in the constructor
+      await expect(service.onModuleInit()).resolves.not.toThrow();
     });
   });
 });
