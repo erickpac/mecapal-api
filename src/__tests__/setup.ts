@@ -1,4 +1,11 @@
-process.loadEnvFile();
+// Global mock cleanup
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
 
 // Mock bcrypt module
 jest.mock('bcrypt', () => ({
@@ -49,3 +56,7 @@ jest.mock('../modules/prisma/prisma.service', () => {
     PrismaService: jest.fn(() => mockPrismaService),
   };
 });
+
+// Global test environment setup
+process.env.NODE_ENV = 'test';
+process.env.PORT = '3001';
