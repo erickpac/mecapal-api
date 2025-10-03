@@ -1,38 +1,61 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { IAuthRepository } from '../../domain/repositories/auth.repository';
+import { IPasswordHasher } from '../../domain/services/password-hasher.interface';
+import { ITokenService } from '../../domain/services/token.service.interface';
+import { AUTH_TOKENS } from '../../domain/constants/injection-tokens';
 import { LoginDto } from '../dtos/login.dto';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { env } from '../../../../config/env.config';
 import * as crypto from 'crypto';
 import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.type';
+import { AccessTokenPayload } from '../../domain/types/access-token-payload.type';
+import { User } from '../../domain/entities/user.entity';
+import { InvalidCredentialsException } from '../../domain/exceptions/invalid-credentials.exception';
 
+/**
+ * Login Use Case
+ * Handles user authentication and token generation
+ */
 @Injectable()
 export class LoginUseCase {
+  private readonly logger = new Logger(LoginUseCase.name);
+
   constructor(
-    private readonly authRepository: AuthRepository,
-    private readonly jwtService: JwtService,
+    @Inject(AUTH_TOKENS.IAuthRepository)
+    private readonly authRepository: IAuthRepository,
+    @Inject(AUTH_TOKENS.IPasswordHasher)
+    private readonly passwordHasher: IPasswordHasher,
+    @Inject(AUTH_TOKENS.ITokenService)
+    private readonly tokenService: ITokenService,
   ) {}
 
-  async execute(
-    loginDto: LoginDto,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  async execute(loginDto: LoginDto): Promise<{
+    access_token: string;
+    refresh_token: string;
+    user: User;
+  }> {
+    this.logger.log(`Attempting login for user: ${loginDto.email}`);
+
     const user = await this.authRepository.findByEmail(loginDto.email);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      this.logger.warn(`Login failed: User not found - ${loginDto.email}`);
+      throw new InvalidCredentialsException();
     }
 
-    const isPasswordValid = await bcrypt.compare(
+    const isPasswordValid = await this.passwordHasher.compare(
       loginDto.password,
       user.password,
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      this.logger.warn(
+        `Login failed: Invalid password for user - ${loginDto.email}`,
+      );
+      throw new InvalidCredentialsException();
     }
 
-    const accessTokenPayload = {
+    this.logger.log(`User logged in successfully: ${user.email}`);
+
+    const accessTokenPayload: AccessTokenPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
@@ -45,11 +68,11 @@ export class LoginUseCase {
     };
 
     return {
-      access_token: await this.jwtService.signAsync(accessTokenPayload),
-      refresh_token: await this.jwtService.signAsync(refreshTokenPayload, {
-        secret: env.JWT_REFRESH_SECRET,
-        expiresIn: env.JWT_REFRESH_EXPIRATION_TIME,
-      }),
+      access_token:
+        await this.tokenService.generateAccessToken(accessTokenPayload),
+      refresh_token:
+        await this.tokenService.generateRefreshToken(refreshTokenPayload),
+      user: user,
     };
   }
 }

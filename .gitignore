@@ -4,6 +4,9 @@
 /build
 /generated
 
+# coverage
+/coverage
+
 # Logs
 logs
 *.log
@@ -35,6 +38,11 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# IDE - Cursor
+.cursor/
+.cursorrules
+
 
 # dotenv environment variable files
 .env

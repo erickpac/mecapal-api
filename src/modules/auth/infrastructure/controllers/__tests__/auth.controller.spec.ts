@@ -1,0 +1,147 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { AuthController } from '../auth.controller';
+import {
+  mockRegisterUseCase,
+  mockLoginUseCase,
+  mockRefreshTokenUseCase,
+  mockChangePasswordUseCase,
+  mockRecoveryPasswordUseCase,
+  mockUser,
+  mockTokens,
+  registerDto,
+  loginDto,
+  refreshTokenDto,
+  changePasswordDto,
+} from './__mocks__/use-cases.mock';
+import { RegisterUseCase } from '../../../application/use-cases/register.use-case';
+import { LoginUseCase } from '../../../application/use-cases/login.use-case';
+import { RefreshTokenUseCase } from '../../../application/use-cases/refresh-token.use-case';
+import { ChangePasswordUseCase } from '../../../application/use-cases/change-password.use-case';
+import { RecoveryPasswordUseCase } from '../../../application/use-cases/recovery-password.use-case';
+import { RecoveryPasswordDto } from '../../../application/dtos/recovery-password.dto';
+import { UserMapper } from '../../mappers/user.mapper';
+
+describe('AuthController', () => {
+  let controller: AuthController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AuthController],
+      providers: [
+        {
+          provide: RegisterUseCase,
+          useValue: mockRegisterUseCase,
+        },
+        {
+          provide: LoginUseCase,
+          useValue: mockLoginUseCase,
+        },
+        {
+          provide: RefreshTokenUseCase,
+          useValue: mockRefreshTokenUseCase,
+        },
+        {
+          provide: ChangePasswordUseCase,
+          useValue: mockChangePasswordUseCase,
+        },
+        {
+          provide: RecoveryPasswordUseCase,
+          useValue: mockRecoveryPasswordUseCase,
+        },
+      ],
+    }).compile();
+
+    controller = module.get<AuthController>(AuthController);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+
+  describe('register', () => {
+    it('should register a new user', async () => {
+      const executeSpy = jest.spyOn(mockRegisterUseCase, 'execute');
+      executeSpy.mockResolvedValue(mockUser);
+
+      const result = await controller.register(registerDto);
+
+      expect(executeSpy).toHaveBeenCalledWith(registerDto);
+      expect(result).toEqual(UserMapper.toResponseDto(mockUser));
+    });
+  });
+
+  describe('login', () => {
+    it('should login a user and return tokens', async () => {
+      const executeSpy = jest.spyOn(mockLoginUseCase, 'execute');
+      executeSpy.mockResolvedValue(mockTokens);
+
+      const result = await controller.login(loginDto);
+
+      expect(executeSpy).toHaveBeenCalledWith(loginDto);
+      expect(result).toEqual(
+        UserMapper.toAuthResponseDto(
+          mockTokens.user,
+          mockTokens.access_token,
+          mockTokens.refresh_token,
+        ),
+      );
+    });
+  });
+
+  describe('refreshToken', () => {
+    it('should refresh the access token', async () => {
+      const executeSpy = jest.spyOn(mockRefreshTokenUseCase, 'execute');
+      executeSpy.mockResolvedValue({
+        access_token: mockTokens.access_token,
+        refresh_token: mockTokens.refresh_token,
+      });
+
+      const result = await controller.refreshToken(refreshTokenDto);
+
+      expect(executeSpy).toHaveBeenCalledWith(refreshTokenDto.refresh_token);
+      expect(result).toEqual(
+        UserMapper.toTokenResponseDto(
+          mockTokens.access_token,
+          mockTokens.refresh_token,
+        ),
+      );
+    });
+  });
+
+  describe('changePassword', () => {
+    it('should change user password', async () => {
+      const userWithPassword = {
+        ...mockUser,
+        password: 'hashedPassword',
+      };
+
+      const executeSpy = jest.spyOn(mockChangePasswordUseCase, 'execute');
+      executeSpy.mockResolvedValue(undefined);
+
+      await controller.changePassword(userWithPassword, changePasswordDto);
+
+      expect(executeSpy).toHaveBeenCalledWith(
+        userWithPassword.id,
+        changePasswordDto,
+      );
+    });
+  });
+
+  describe('recoveryPassword', () => {
+    it('should recovery user password', async () => {
+      const recoveryPasswordDto: RecoveryPasswordDto = {
+        email: 'test@example.com',
+      };
+      const executeSpy = jest.spyOn(mockRecoveryPasswordUseCase, 'execute');
+      executeSpy.mockResolvedValue(undefined);
+
+      await controller.recoveryPassword(recoveryPasswordDto);
+
+      expect(executeSpy).toHaveBeenCalledWith(recoveryPasswordDto.email);
+    });
+  });
+});
