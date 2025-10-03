@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { IAuthRepository } from '../../domain/repositories/auth.repository';
+import { AUTH_TOKENS } from '../../domain/constants/injection-tokens';
 import { User } from '../../domain/entities/user.entity';
 
 interface JwtPayload {
@@ -14,7 +15,8 @@ interface JwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private readonly userRepository: AuthRepository,
+    @Inject(AUTH_TOKENS.IAuthRepository)
+    private readonly userRepository: IAuthRepository,
     private readonly configService: ConfigService,
   ) {
     const secret = configService.get<string>('JWT_SECRET');

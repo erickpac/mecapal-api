@@ -2,14 +2,14 @@ import { User } from '../../../../domain/entities/user.entity';
 import { ChangePasswordDto } from '../../../dtos/change-password.dto';
 import { LoginDto } from '../../../dtos/login.dto';
 import { RegisterDto } from '../../../dtos/register.dto';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../../domain/enums/user-role.enum';
 
 export const mockRegisterDto: RegisterDto = {
   email: 'test@example.com',
   password: 'password123',
   name: 'Test User',
   phone: null,
-  role: 'USER',
+  role: UserRole.USER,
 };
 
 export const mockLoginDto: LoginDto = {
@@ -23,7 +23,7 @@ export const mockUser: User = {
   password: 'hashedPassword',
   name: 'Test User',
   phone: null,
-  role: 'USER',
+  role: UserRole.USER,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

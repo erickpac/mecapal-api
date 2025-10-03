@@ -25,7 +25,7 @@ import { CurrentUser } from '../../../auth/infrastructure/decorators/current-use
 import { User } from '../../../auth/domain/entities/user.entity';
 import { RolesGuard } from '../../../auth/infrastructure/guards/roles.guard';
 import { Roles } from '../../../auth/infrastructure/decorators/roles.decorator';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../auth/domain/enums/user-role.enum';
 import { UploadVehicleImageUseCase } from '../../application/use-cases/upload-vehicle-image.use-case';
 import { imageUploadOptions } from '../../../cloudinary/constants/upload-options';
 import { UploadedFileType } from '../../../cloudinary/domain/interfaces/file-upload.interface';

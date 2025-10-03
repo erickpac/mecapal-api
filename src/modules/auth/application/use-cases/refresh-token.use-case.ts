@@ -1,18 +1,26 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { IAuthRepository } from '../../domain/repositories/auth.repository';
+import { ITokenService } from '../../domain/services/token.service.interface';
+import { AUTH_TOKENS } from '../../domain/constants/injection-tokens';
 import * as crypto from 'crypto';
 import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.type';
+import { AccessTokenPayload } from '../../domain/types/access-token-payload.type';
+import { UserNotFoundException } from '../../domain/exceptions/user-not-found.exception';
+import { InvalidCredentialsException } from '../../domain/exceptions/invalid-credentials.exception';
 
+/**
+ * Refresh Token Use Case
+ * Handles token refresh and generation of new access/refresh tokens
+ */
 @Injectable()
 export class RefreshTokenUseCase {
   private readonly logger = new Logger(RefreshTokenUseCase.name);
 
   constructor(
-    private readonly authRepository: AuthRepository,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    @Inject(AUTH_TOKENS.IAuthRepository)
+    private readonly authRepository: IAuthRepository,
+    @Inject(AUTH_TOKENS.ITokenService)
+    private readonly tokenService: ITokenService,
   ) {}
 
   async execute(
@@ -21,13 +29,7 @@ export class RefreshTokenUseCase {
     this.logger.log('Attempting to refresh token');
 
     try {
-      // Verify the refresh token
-      const payload = this.jwtService.verify<RefreshTokenPayload>(
-        refreshToken,
-        {
-          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        },
-      );
+      const payload = this.tokenService.verifyRefreshToken(refreshToken);
 
       const user = await this.authRepository.findById(payload.sub);
 
@@ -35,13 +37,12 @@ export class RefreshTokenUseCase {
         this.logger.warn(
           `Token refresh failed: User not found - ID: ${payload.sub}`,
         );
-        throw new UnauthorizedException('User not found');
+        throw new UserNotFoundException(payload.sub);
       }
 
       this.logger.log(`Refreshing tokens for user: ${user.email}`);
 
-      // Generate new tokens
-      const accessTokenPayload = {
+      const accessTokenPayload: AccessTokenPayload = {
         sub: user.id,
         email: user.email,
         role: user.role,
@@ -49,20 +50,13 @@ export class RefreshTokenUseCase {
       const refreshTokenPayload: RefreshTokenPayload = {
         sub: user.id,
         type: 'refresh',
-        jti: crypto.randomUUID(), // Add a unique token ID
+        jti: crypto.randomUUID(),
       };
 
       const newAccessToken =
-        await this.jwtService.signAsync(accessTokenPayload);
-      const newRefreshToken = await this.jwtService.signAsync(
-        refreshTokenPayload,
-        {
-          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-          expiresIn: this.configService.get<string>(
-            'JWT_REFRESH_EXPIRATION_TIME',
-          ),
-        },
-      );
+        await this.tokenService.generateAccessToken(accessTokenPayload);
+      const newRefreshToken =
+        await this.tokenService.generateRefreshToken(refreshTokenPayload);
 
       this.logger.log(`Tokens refreshed successfully for user: ${user.email}`);
 
@@ -71,12 +65,15 @@ export class RefreshTokenUseCase {
         refresh_token: newRefreshToken,
       };
     } catch (error: unknown) {
-      if (error instanceof UnauthorizedException) {
+      if (
+        error instanceof UserNotFoundException ||
+        error instanceof InvalidCredentialsException
+      ) {
         throw error;
       }
 
       this.logger.error('Token refresh failed: Invalid refresh token');
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new InvalidCredentialsException();
     }
   }
 }

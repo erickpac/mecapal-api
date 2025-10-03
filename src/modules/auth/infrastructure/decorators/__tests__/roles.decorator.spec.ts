@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
 import { Roles, ROLES_KEY } from '../roles.decorator';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../domain/enums/user-role.enum';
 
 jest.mock('@nestjs/common', () => ({
   SetMetadata: jest.fn(),

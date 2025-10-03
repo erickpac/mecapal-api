@@ -6,7 +6,7 @@ import {
   MinLength,
   IsOptional,
 } from 'class-validator';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../domain/enums/user-role.enum';
 
 export class RegisterDto {
   @IsString()

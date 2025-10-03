@@ -1,5 +1,5 @@
 import { User } from '../user.entity';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../enums/user-role.enum';
 
 describe('User Entity', () => {
   const mockUserData = {

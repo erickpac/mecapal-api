@@ -1,5 +1,9 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../enums/user-role.enum';
 
+/**
+ * User entity
+ * Represents a user in the domain
+ */
 export class User {
   id: string;
   name: string;

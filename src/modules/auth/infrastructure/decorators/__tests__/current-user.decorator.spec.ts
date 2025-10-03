@@ -1,6 +1,6 @@
 import { ExecutionContext } from '@nestjs/common';
 import { User } from '../../../domain/entities/user.entity';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../domain/enums/user-role.enum';
 import { Request } from 'express';
 
 // Mock createParamDecorator to capture and execute the function

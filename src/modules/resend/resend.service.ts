@@ -18,7 +18,7 @@ export class ResendService {
 
     return await this.resend.emails.send({
       from: this.from,
-      to: to,
+      to: [to],
       subject: subject,
       html: html,
     });

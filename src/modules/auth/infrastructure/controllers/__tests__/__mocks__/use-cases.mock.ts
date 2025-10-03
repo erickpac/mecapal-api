@@ -4,6 +4,7 @@ import { RefreshTokenUseCase } from '../../../../application/use-cases/refresh-t
 import { ChangePasswordUseCase } from '../../../../application/use-cases/change-password.use-case';
 import { RecoveryPasswordUseCase } from '../../../../application/use-cases/recovery-password.use-case';
 import { User } from '../../../../domain/entities/user.entity';
+import { UserRole } from '../../../../domain/enums/user-role.enum';
 import { RegisterDto } from '../../../../application/dtos/register.dto';
 import { LoginDto } from '../../../../application/dtos/login.dto';
 import { RefreshTokenDto } from '../../../../application/dtos/refresh-token.dto';
@@ -34,7 +35,7 @@ export const registerDto: RegisterDto = {
   password: 'password123',
   name: 'Test User',
   phone: null,
-  role: 'USER',
+  role: UserRole.USER,
 };
 
 export const loginDto: LoginDto = {
@@ -47,7 +48,7 @@ export const mockUser: Omit<User, 'password'> = {
   email: 'test@example.com',
   name: 'Test User',
   phone: null,
-  role: 'USER',
+  role: UserRole.USER,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

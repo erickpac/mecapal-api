@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import { ResendModule } from './modules/resend/resend.module';
 import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
@@ -12,6 +13,7 @@ import { ProfileModule } from './modules/profile/profile.module';
     AuthModule,
     CloudinaryModule,
     ProfileModule,
+    ResendModule,
   ],
   controllers: [],
   providers: [],

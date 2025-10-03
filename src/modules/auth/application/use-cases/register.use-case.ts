@@ -1,16 +1,27 @@
-import { Injectable, ConflictException, Logger } from '@nestjs/common';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { IAuthRepository } from '../../domain/repositories/auth.repository';
+import { IPasswordHasher } from '../../domain/services/password-hasher.interface';
+import { AUTH_TOKENS } from '../../domain/constants/injection-tokens';
 import { RegisterDto } from '../dtos/register.dto';
 import { User } from '../../domain/entities/user.entity';
-import * as bcrypt from 'bcrypt';
+import { UserAlreadyExistsException } from '../../domain/exceptions/user-already-exists.exception';
 
+/**
+ * Register Use Case
+ * Handles user registration with password hashing
+ */
 @Injectable()
 export class RegisterUseCase {
   private readonly logger = new Logger(RegisterUseCase.name);
 
-  constructor(private readonly authRepository: AuthRepository) {}
+  constructor(
+    @Inject(AUTH_TOKENS.IAuthRepository)
+    private readonly authRepository: IAuthRepository,
+    @Inject(AUTH_TOKENS.IPasswordHasher)
+    private readonly passwordHasher: IPasswordHasher,
+  ) {}
 
-  async execute(registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
+  async execute(registerDto: RegisterDto): Promise<User> {
     this.logger.log(`Attempting to register new user: ${registerDto.email}`);
 
     const existingUser = await this.authRepository.findByEmail(
@@ -21,10 +32,10 @@ export class RegisterUseCase {
       this.logger.warn(
         `Registration failed: Email already exists - ${registerDto.email}`,
       );
-      throw new ConflictException('Email already exists');
+      throw new UserAlreadyExistsException(registerDto.email);
     }
 
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+    const hashedPassword = await this.passwordHasher.hash(registerDto.password);
     const user = await this.authRepository.create({
       ...registerDto,
       password: hashedPassword,
@@ -32,9 +43,6 @@ export class RegisterUseCase {
 
     this.logger.log(`User registered successfully: ${user.email}`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...result } = user;
-
-    return result;
+    return user;
   }
 }

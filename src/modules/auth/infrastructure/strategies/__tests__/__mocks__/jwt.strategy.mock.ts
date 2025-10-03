@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../../domain/enums/user-role.enum';
 import { User } from '../../../../domain/entities/user.entity';
 
 export const mockUser: User = {

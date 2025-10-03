@@ -16,12 +16,15 @@ datasource db {
 enum UserRole {
   USER
   TRANSPORTER
+  ADMIN
+  BACKOFFICE
 }
 
 enum VehicleType {
   TRUCK
   VAN
   PICKUP
+  MOTORCYCLE
 }
 
 model User {

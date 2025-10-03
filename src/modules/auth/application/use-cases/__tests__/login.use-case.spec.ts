@@ -9,7 +9,7 @@ import { mockJwtService } from './__mocks__/jwt-service.mock';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../domain/enums/user-role.enum';
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;

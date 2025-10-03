@@ -1,7 +1,7 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from '../jwt-auth.guard';
 import { User } from '../../../domain/entities/user.entity';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../../domain/enums/user-role.enum';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
