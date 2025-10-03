@@ -1,17 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CloudinaryImageService } from '../../../cloudinary/infrastructure/services/cloudinary-image.service';
+import { Injectable, Inject } from '@nestjs/common';
+import { IVehicleRepository } from '../../domain/repositories/vehicle.repository';
+import { IVehiclePhotoRepository } from '../../domain/repositories/vehicle-photo.repository';
+import { PROFILE_TOKENS } from '../../domain/constants/injection-tokens';
+import { VehicleNotFoundException } from '../../domain/exceptions/vehicle-not-found.exception';
+import { ImageUploadFailedException } from '../../domain/exceptions/image-upload-failed.exception';
 import { CLOUDINARY_FOLDERS } from '../../../cloudinary/constants/cloudinary-folders';
-import { VehiclePhoto } from '../../domain/entities/vehicle-photo.entity';
-import { VehiclePhotoRepository } from '../../infrastructure/repositories/vehicle-photo.repository';
 import { VehiclePhotoResponseDto } from '../dtos/vehicle-photo-response.dto';
-import { VehicleRepository } from '../../infrastructure/repositories/vehicle.repository';
+import { CloudinaryService } from '../../../cloudinary/infrastructure/services/cloudinary.service';
 
 @Injectable()
 export class UploadVehicleImageUseCase {
   constructor(
-    private readonly vehiclePhotoRepository: VehiclePhotoRepository,
-    private readonly vehicleRepository: VehicleRepository,
-    private readonly cloudinaryImageService: CloudinaryImageService,
+    @Inject(PROFILE_TOKENS.IVehiclePhotoRepository)
+    private readonly vehiclePhotoRepository: IVehiclePhotoRepository,
+    @Inject(PROFILE_TOKENS.IVehicleRepository)
+    private readonly vehicleRepository: IVehicleRepository,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async execute(
@@ -23,7 +27,7 @@ export class UploadVehicleImageUseCase {
       const vehicle = await this.vehicleRepository.findById(vehicleId);
 
       if (!vehicle) {
-        throw new NotFoundException(`Vehicle with ID ${vehicleId} not found`);
+        throw new VehicleNotFoundException(vehicleId);
       }
 
       // Check if this is the first photo for the vehicle
@@ -31,23 +35,32 @@ export class UploadVehicleImageUseCase {
         await this.vehiclePhotoRepository.findAll(vehicleId);
       const isMain = existingPhotos.length === 0;
 
-      return await this.cloudinaryImageService.uploadEntityImage({
-        entityId: vehicleId,
-        repository: this.vehiclePhotoRepository,
-        imageBuffer: file,
-        cloudinaryFolder: CLOUDINARY_FOLDERS.VEHICLES.MAIN,
-        imageField: 'url',
-        createNewEntity: true,
-        additionalData: { isMain },
-        responseTransformer: (entity: VehiclePhoto) =>
-          VehiclePhotoResponseDto.fromEntity(entity),
+      // Validate and optimize image before upload
+      await this.cloudinaryService.validateImage(file);
+      const optimizedBuffer = await this.cloudinaryService.optimizeImage(file);
+
+      // Upload image to cloudinary
+      const uploadResult = await this.cloudinaryService.uploadImage(
+        optimizedBuffer,
+        CLOUDINARY_FOLDERS.VEHICLES.MAIN,
+      );
+      const imageUrl = uploadResult.secure_url;
+
+      // Create vehicle photo entity
+      const vehiclePhoto = await this.vehiclePhotoRepository.create(vehicleId, {
+        url: imageUrl,
+        isMain,
       });
+
+      return VehiclePhotoResponseDto.fromEntity(vehiclePhoto);
     } catch (error: unknown) {
-      if (error instanceof Error && error.message.includes('not found')) {
-        throw new NotFoundException(`Vehicle with ID ${vehicleId} not found`);
+      if (error instanceof VehicleNotFoundException) {
+        throw error;
       }
 
-      throw error;
+      throw new ImageUploadFailedException(
+        error instanceof Error ? error.message : 'Unknown error',
+      );
     }
   }
 }

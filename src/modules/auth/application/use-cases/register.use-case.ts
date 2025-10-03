@@ -1,10 +1,10 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IAuthRepository } from '../../domain/repositories/auth.repository';
-import { IPasswordHasher } from '../../domain/services/password-hasher.interface';
 import { AUTH_TOKENS } from '../../domain/constants/injection-tokens';
 import { RegisterDto } from '../dtos/register.dto';
 import { User } from '../../domain/entities/user.entity';
 import { UserAlreadyExistsException } from '../../domain/exceptions/user-already-exists.exception';
+import * as bcrypt from 'bcrypt';
 
 /**
  * Register Use Case
@@ -17,8 +17,6 @@ export class RegisterUseCase {
   constructor(
     @Inject(AUTH_TOKENS.IAuthRepository)
     private readonly authRepository: IAuthRepository,
-    @Inject(AUTH_TOKENS.IPasswordHasher)
-    private readonly passwordHasher: IPasswordHasher,
   ) {}
 
   async execute(registerDto: RegisterDto): Promise<User> {
@@ -35,7 +33,7 @@ export class RegisterUseCase {
       throw new UserAlreadyExistsException(registerDto.email);
     }
 
-    const hashedPassword = await this.passwordHasher.hash(registerDto.password);
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
     const user = await this.authRepository.create({
       ...registerDto,
       password: hashedPassword,

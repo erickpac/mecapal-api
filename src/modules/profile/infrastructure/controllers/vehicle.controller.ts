@@ -19,7 +19,6 @@ import { FindAllVehiclesUseCase } from '../../application/use-cases/find-all-veh
 import { FindVehicleByIdUseCase } from '../../application/use-cases/find-vehicle-by-id.use-case';
 import { UpdateVehicleUseCase } from '../../application/use-cases/update-vehicle.use-case';
 import { DeleteVehicleUseCase } from '../../application/use-cases/delete-vehicle.use-case';
-import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
 import { User } from '../../../auth/domain/entities/user.entity';
@@ -32,6 +31,8 @@ import { UploadedFileType } from '../../../cloudinary/domain/interfaces/file-upl
 import { VehiclePhotoResponseDto } from '../../application/dtos/vehicle-photo-response.dto';
 import { SetMainVehiclePhotoUseCase } from '../../application/use-cases/set-main-vehicle-photo.use-case';
 import { DeleteVehiclePhotoUseCase } from '../../application/use-cases/delete-vehicle-photo.use-case';
+import { VehicleResponseDto } from '../../application/dtos/responses/vehicle-response.dto';
+import { VehicleMapper } from '../mappers/vehicle.mapper';
 
 @Controller('profile/vehicles')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -53,26 +54,36 @@ export class VehicleController {
   async createVehicle(
     @CurrentUser() user: User,
     @Body() createVehicleDto: CreateVehicleDto,
-  ): Promise<Vehicle> {
-    return this.createVehicleUseCase.execute(user.id, createVehicleDto);
+  ): Promise<VehicleResponseDto> {
+    const vehicle = await this.createVehicleUseCase.execute(
+      user.id,
+      createVehicleDto,
+    );
+    return VehicleMapper.toResponseDto(vehicle);
   }
 
   @Get()
-  async findAll(@CurrentUser() user: User): Promise<Vehicle[]> {
-    return this.findAllVehiclesUseCase.execute(user.id);
+  async findAll(@CurrentUser() user: User): Promise<VehicleResponseDto[]> {
+    const vehicles = await this.findAllVehiclesUseCase.execute(user.id);
+    return VehicleMapper.toResponseDtoArray(vehicles);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Vehicle> {
-    return this.findVehicleByIdUseCase.execute(id);
+  async findOne(@Param('id') id: string): Promise<VehicleResponseDto> {
+    const vehicle = await this.findVehicleByIdUseCase.execute(id);
+    return VehicleMapper.toResponseDto(vehicle);
   }
 
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() updateVehicleDto: CreateVehicleDto,
-  ): Promise<Vehicle> {
-    return this.updateVehicleUseCase.execute(id, updateVehicleDto);
+  ): Promise<VehicleResponseDto> {
+    const vehicle = await this.updateVehicleUseCase.execute(
+      id,
+      updateVehicleDto,
+    );
+    return VehicleMapper.toResponseDto(vehicle);
   }
 
   @Delete(':id')

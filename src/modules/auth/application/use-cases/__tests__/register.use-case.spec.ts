@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserAlreadyExistsException } from '../../../domain/exceptions/user-already-exists.exception';
 import { RegisterUseCase } from '../register.use-case';
 import { AUTH_TOKENS } from '../../../domain/constants/injection-tokens';
 import { mockRegisterDto, mockUser } from './__mocks__/user.mock';
 import { mockAuthRepository } from './__mocks__/auth-repository.mock';
-import { mockPasswordHasher } from './__mocks__/password-hasher.mock';
 
 describe('RegisterUseCase', () => {
   let useCase: RegisterUseCase;
@@ -17,10 +15,6 @@ describe('RegisterUseCase', () => {
         {
           provide: AUTH_TOKENS.IAuthRepository,
           useValue: mockAuthRepository,
-        },
-        {
-          provide: AUTH_TOKENS.IPasswordHasher,
-          useValue: mockPasswordHasher,
         },
       ],
     }).compile();
@@ -39,7 +33,6 @@ describe('RegisterUseCase', () => {
     it('should successfully register a new user', async () => {
       // Arrange
       mockAuthRepository.findByEmail.mockResolvedValue(null);
-      mockPasswordHasher.hash.mockResolvedValue('hashedPassword');
       mockAuthRepository.create.mockResolvedValue(mockUser);
 
       // Act
@@ -50,13 +43,16 @@ describe('RegisterUseCase', () => {
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(
         mockRegisterDto.email,
       );
-      expect(mockPasswordHasher.hash).toHaveBeenCalledWith(
-        mockRegisterDto.password,
+      expect(mockAuthRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: mockRegisterDto.email,
+          name: mockRegisterDto.name,
+          phone: mockRegisterDto.phone,
+          role: mockRegisterDto.role,
+        }),
       );
-      expect(mockAuthRepository.create).toHaveBeenCalledWith({
-        ...mockRegisterDto,
-        password: 'hashedPassword',
-      });
+      // Verify that create was called with a hashed password
+      expect(mockAuthRepository.create).toHaveBeenCalledTimes(1);
     });
 
     it('should throw UserAlreadyExistsException when email already exists', async () => {

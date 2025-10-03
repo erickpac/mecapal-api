@@ -1,7 +1,5 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IAuthRepository } from '../../domain/repositories/auth.repository';
-import { IPasswordHasher } from '../../domain/services/password-hasher.interface';
-import { ITokenService } from '../../domain/services/token.service.interface';
 import { AUTH_TOKENS } from '../../domain/constants/injection-tokens';
 import { LoginDto } from '../dtos/login.dto';
 import * as crypto from 'crypto';
@@ -9,6 +7,9 @@ import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.ty
 import { AccessTokenPayload } from '../../domain/types/access-token-payload.type';
 import { User } from '../../domain/entities/user.entity';
 import { InvalidCredentialsException } from '../../domain/exceptions/invalid-credentials.exception';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Login Use Case
@@ -21,10 +22,8 @@ export class LoginUseCase {
   constructor(
     @Inject(AUTH_TOKENS.IAuthRepository)
     private readonly authRepository: IAuthRepository,
-    @Inject(AUTH_TOKENS.IPasswordHasher)
-    private readonly passwordHasher: IPasswordHasher,
-    @Inject(AUTH_TOKENS.ITokenService)
-    private readonly tokenService: ITokenService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async execute(loginDto: LoginDto): Promise<{
@@ -41,7 +40,7 @@ export class LoginUseCase {
       throw new InvalidCredentialsException();
     }
 
-    const isPasswordValid = await this.passwordHasher.compare(
+    const isPasswordValid = await bcrypt.compare(
       loginDto.password,
       user.password,
     );
@@ -68,10 +67,13 @@ export class LoginUseCase {
     };
 
     return {
-      access_token:
-        await this.tokenService.generateAccessToken(accessTokenPayload),
-      refresh_token:
-        await this.tokenService.generateRefreshToken(refreshTokenPayload),
+      access_token: await this.jwtService.signAsync(accessTokenPayload),
+      refresh_token: await this.jwtService.signAsync(refreshTokenPayload, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get<string>(
+          'JWT_REFRESH_EXPIRATION_TIME',
+        ),
+      }),
       user: user,
     };
   }

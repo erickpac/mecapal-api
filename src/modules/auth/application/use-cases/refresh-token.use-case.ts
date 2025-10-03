@@ -1,12 +1,13 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IAuthRepository } from '../../domain/repositories/auth.repository';
-import { ITokenService } from '../../domain/services/token.service.interface';
 import { AUTH_TOKENS } from '../../domain/constants/injection-tokens';
 import * as crypto from 'crypto';
 import { RefreshTokenPayload } from '../../domain/types/refresh-token-payload.type';
 import { AccessTokenPayload } from '../../domain/types/access-token-payload.type';
 import { UserNotFoundException } from '../../domain/exceptions/user-not-found.exception';
 import { InvalidCredentialsException } from '../../domain/exceptions/invalid-credentials.exception';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Refresh Token Use Case
@@ -19,8 +20,8 @@ export class RefreshTokenUseCase {
   constructor(
     @Inject(AUTH_TOKENS.IAuthRepository)
     private readonly authRepository: IAuthRepository,
-    @Inject(AUTH_TOKENS.ITokenService)
-    private readonly tokenService: ITokenService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async execute(
@@ -29,7 +30,12 @@ export class RefreshTokenUseCase {
     this.logger.log('Attempting to refresh token');
 
     try {
-      const payload = this.tokenService.verifyRefreshToken(refreshToken);
+      const payload = this.jwtService.verify<RefreshTokenPayload>(
+        refreshToken,
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        },
+      );
 
       const user = await this.authRepository.findById(payload.sub);
 
@@ -54,9 +60,16 @@ export class RefreshTokenUseCase {
       };
 
       const newAccessToken =
-        await this.tokenService.generateAccessToken(accessTokenPayload);
-      const newRefreshToken =
-        await this.tokenService.generateRefreshToken(refreshTokenPayload);
+        await this.jwtService.signAsync(accessTokenPayload);
+      const newRefreshToken = await this.jwtService.signAsync(
+        refreshTokenPayload,
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+          expiresIn: this.configService.get<string>(
+            'JWT_REFRESH_EXPIRATION_TIME',
+          ),
+        },
+      );
 
       this.logger.log(`Tokens refreshed successfully for user: ${user.email}`);
 
