@@ -26,6 +26,9 @@ export class VehicleRepository implements IVehicleRepository {
   async findAll(userId: string): Promise<Vehicle[]> {
     const vehicles = await this.prisma.vehicle.findMany({
       where: { userId },
+      include: {
+        photos: true,
+      },
     });
     return vehicles.map((vehicle) => this.mapToDomain(vehicle));
   }
@@ -33,6 +36,9 @@ export class VehicleRepository implements IVehicleRepository {
   async findById(id: string): Promise<Vehicle | null> {
     const vehicle = await this.prisma.vehicle.findUnique({
       where: { id },
+      include: {
+        photos: true,
+      },
     });
     return vehicle ? this.mapToDomain(vehicle) : null;
   }
@@ -55,6 +61,12 @@ export class VehicleRepository implements IVehicleRepository {
   }
 
   async delete(id: string): Promise<void> {
+    // Delete vehicle photos first to avoid foreign key constraint errors
+    await this.prisma.vehiclePhoto.deleteMany({
+      where: { vehicleId: id },
+    });
+
+    // Then delete the vehicle
     await this.prisma.vehicle.delete({
       where: { id },
     });
@@ -67,6 +79,14 @@ export class VehicleRepository implements IVehicleRepository {
     userId: string;
     createdAt: Date;
     updatedAt: Date;
+    photos?: Array<{
+      id: string;
+      url: string;
+      isMain: boolean;
+      vehicleId: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }>;
   }): Vehicle {
     return {
       id: prismaVehicle.id,
@@ -75,6 +95,14 @@ export class VehicleRepository implements IVehicleRepository {
       userId: prismaVehicle.userId,
       createdAt: prismaVehicle.createdAt,
       updatedAt: prismaVehicle.updatedAt,
+      photos: prismaVehicle.photos?.map((photo) => ({
+        id: photo.id,
+        url: photo.url,
+        isMain: photo.isMain,
+        vehicleId: photo.vehicleId,
+        createdAt: photo.createdAt,
+        updatedAt: photo.updatedAt,
+      })),
     };
   }
 }

@@ -7,7 +7,4 @@ export const PROFILE_TOKENS = {
   IProfileRepository: 'IProfileRepository',
   IVehicleRepository: 'IVehicleRepository',
   IVehiclePhotoRepository: 'IVehiclePhotoRepository',
-
-  // Services
-  IImageUploadService: 'IImageUploadService',
 };

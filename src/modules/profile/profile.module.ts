@@ -18,7 +18,6 @@ import { UpdateProfileUseCase } from './application/use-cases/update-profile.use
 import { SetMainVehiclePhotoUseCase } from './application/use-cases/set-main-vehicle-photo.use-case';
 import { DeleteVehiclePhotoUseCase } from './application/use-cases/delete-vehicle-photo.use-case';
 import { DomainExceptionFilter } from './infrastructure/filters/domain-exception.filter';
-import { CloudinaryImageUploadService } from './infrastructure/services/cloudinary-image-upload.service';
 import { PROFILE_TOKENS } from './domain/constants/injection-tokens';
 
 @Module({
@@ -42,11 +41,6 @@ import { PROFILE_TOKENS } from './domain/constants/injection-tokens';
     {
       provide: PROFILE_TOKENS.IVehiclePhotoRepository,
       useClass: VehiclePhotoRepository,
-    },
-    // Service implementations
-    {
-      provide: PROFILE_TOKENS.IImageUploadService,
-      useClass: CloudinaryImageUploadService,
     },
     // Use Cases
     GetProfileUseCase,

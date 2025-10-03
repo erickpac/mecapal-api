@@ -1,12 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { IVehicleRepository } from '../../domain/repositories/vehicle.repository';
 import { IVehiclePhotoRepository } from '../../domain/repositories/vehicle-photo.repository';
-import { IImageUploadService } from '../../domain/services/image-upload.service.interface';
 import { PROFILE_TOKENS } from '../../domain/constants/injection-tokens';
 import { VehicleNotFoundException } from '../../domain/exceptions/vehicle-not-found.exception';
 import { ImageUploadFailedException } from '../../domain/exceptions/image-upload-failed.exception';
 import { CLOUDINARY_FOLDERS } from '../../../cloudinary/constants/cloudinary-folders';
 import { VehiclePhotoResponseDto } from '../dtos/vehicle-photo-response.dto';
+import { CloudinaryService } from '../../../cloudinary/infrastructure/services/cloudinary.service';
 
 @Injectable()
 export class UploadVehicleImageUseCase {
@@ -15,8 +15,7 @@ export class UploadVehicleImageUseCase {
     private readonly vehiclePhotoRepository: IVehiclePhotoRepository,
     @Inject(PROFILE_TOKENS.IVehicleRepository)
     private readonly vehicleRepository: IVehicleRepository,
-    @Inject(PROFILE_TOKENS.IImageUploadService)
-    private readonly imageUploadService: IImageUploadService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async execute(
@@ -36,11 +35,16 @@ export class UploadVehicleImageUseCase {
         await this.vehiclePhotoRepository.findAll(vehicleId);
       const isMain = existingPhotos.length === 0;
 
+      // Validate and optimize image before upload
+      await this.cloudinaryService.validateImage(file);
+      const optimizedBuffer = await this.cloudinaryService.optimizeImage(file);
+
       // Upload image to cloudinary
-      const imageUrl = await this.imageUploadService.uploadImage(
-        file,
+      const uploadResult = await this.cloudinaryService.uploadImage(
+        optimizedBuffer,
         CLOUDINARY_FOLDERS.VEHICLES.MAIN,
       );
+      const imageUrl = uploadResult.secure_url;
 
       // Create vehicle photo entity
       const vehiclePhoto = await this.vehiclePhotoRepository.create(vehicleId, {

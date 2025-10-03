@@ -1,5 +1,6 @@
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { VehicleResponseDto } from '../../application/dtos/responses/vehicle-response.dto';
+import { VehiclePhotoMapper } from './vehicle-photo.mapper';
 
 /**
  * Vehicle Mapper
@@ -16,6 +17,9 @@ export class VehicleMapper {
       id: vehicle.id,
       type: vehicle.type,
       capacityKg: vehicle.capacityKg,
+      photos: vehicle.photos
+        ? VehiclePhotoMapper.toResponseDtoArray(vehicle.photos)
+        : [],
       userId: vehicle.userId,
       createdAt: vehicle.createdAt,
       updatedAt: vehicle.updatedAt,
