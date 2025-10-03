@@ -1,10 +1,10 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IAuthRepository } from '../../domain/repositories/auth.repository';
-import { IPasswordHasher } from '../../domain/services/password-hasher.interface';
 import { AUTH_TOKENS } from '../../domain/constants/injection-tokens';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
 import { UserNotFoundException } from '../../domain/exceptions/user-not-found.exception';
 import { InvalidPasswordException } from '../../domain/exceptions/invalid-password.exception';
+import * as bcrypt from 'bcrypt';
 
 /**
  * Change Password Use Case
@@ -17,8 +17,6 @@ export class ChangePasswordUseCase {
   constructor(
     @Inject(AUTH_TOKENS.IAuthRepository)
     private readonly authRepository: IAuthRepository,
-    @Inject(AUTH_TOKENS.IPasswordHasher)
-    private readonly passwordHasher: IPasswordHasher,
   ) {}
 
   async execute(
@@ -36,7 +34,7 @@ export class ChangePasswordUseCase {
       throw new UserNotFoundException(userId);
     }
 
-    const isPasswordValid = await this.passwordHasher.compare(
+    const isPasswordValid = await bcrypt.compare(
       changePasswordDto.current_password,
       user.password,
     );
@@ -48,8 +46,9 @@ export class ChangePasswordUseCase {
       throw new InvalidPasswordException();
     }
 
-    const hashedNewPassword = await this.passwordHasher.hash(
+    const hashedNewPassword = await bcrypt.hash(
       changePasswordDto.new_password,
+      10,
     );
 
     await this.authRepository.update(userId, { password: hashedNewPassword });

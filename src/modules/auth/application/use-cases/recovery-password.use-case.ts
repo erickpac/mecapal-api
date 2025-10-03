@@ -1,9 +1,9 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IAuthRepository } from '../../domain/repositories/auth.repository';
-import { IPasswordHasher } from '../../domain/services/password-hasher.interface';
-import { IEmailService } from '../../domain/services/email.service.interface';
 import { AUTH_TOKENS } from '../../domain/constants/injection-tokens';
 import { UserNotFoundException } from '../../domain/exceptions/user-not-found.exception';
+import * as bcrypt from 'bcrypt';
+import { ResendService } from '../../../resend/resend.service';
 
 /**
  * Recovery Password Use Case
@@ -16,10 +16,7 @@ export class RecoveryPasswordUseCase {
   constructor(
     @Inject(AUTH_TOKENS.IAuthRepository)
     private readonly authRepository: IAuthRepository,
-    @Inject(AUTH_TOKENS.IPasswordHasher)
-    private readonly passwordHasher: IPasswordHasher,
-    @Inject(AUTH_TOKENS.IEmailService)
-    private readonly emailService: IEmailService,
+    private readonly resendService: ResendService,
   ) {}
 
   async execute(email: string): Promise<void> {
@@ -35,12 +32,12 @@ export class RecoveryPasswordUseCase {
     }
 
     const newPassword = this.generateRandomPassword();
-    const hashedNewPassword = await this.passwordHasher.hash(newPassword);
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-    await this.emailService.sendPasswordRecovery(
+    await this.resendService.sendEmail(
       user.email,
-      user.name,
-      newPassword,
+      'Recuperación de Contraseña',
+      `Hola ${user.name}, <br>tu nueva contraseña es: ${newPassword}`,
     );
 
     await this.authRepository.update(user.id, { password: hashedNewPassword });

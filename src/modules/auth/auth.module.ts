@@ -13,9 +13,6 @@ import { ChangePasswordUseCase } from './application/use-cases/change-password.u
 import { RecoveryPasswordUseCase } from './application/use-cases/recovery-password.use-case';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ResendModule } from '../resend/resend.module';
-import { JwtTokenService } from './infrastructure/services/jwt-token.service';
-import { BcryptPasswordHasher } from './infrastructure/services/bcrypt-password-hasher.service';
-import { ResendEmailService } from './infrastructure/services/resend-email.service';
 import { DomainExceptionFilter } from './infrastructure/filters/domain-exception.filter';
 import { AUTH_TOKENS } from './domain/constants/injection-tokens';
 
@@ -49,19 +46,6 @@ import { AUTH_TOKENS } from './domain/constants/injection-tokens';
     {
       provide: AUTH_TOKENS.IAuthRepository,
       useClass: AuthRepository,
-    },
-    // Service implementations
-    {
-      provide: AUTH_TOKENS.ITokenService,
-      useClass: JwtTokenService,
-    },
-    {
-      provide: AUTH_TOKENS.IPasswordHasher,
-      useClass: BcryptPasswordHasher,
-    },
-    {
-      provide: AUTH_TOKENS.IEmailService,
-      useClass: ResendEmailService,
     },
     // Use Cases
     RegisterUseCase,

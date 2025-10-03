@@ -4,7 +4,4 @@
  */
 export const AUTH_TOKENS = {
   IAuthRepository: 'IAuthRepository',
-  ITokenService: 'ITokenService',
-  IPasswordHasher: 'IPasswordHasher',
-  IEmailService: 'IEmailService',
 };
