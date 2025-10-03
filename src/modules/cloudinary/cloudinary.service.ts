@@ -6,7 +6,7 @@ import {
   UploadApiResponse,
 } from 'cloudinary';
 import * as sharp from 'sharp';
-import { ImageTransformationOptions } from '../../domain/interfaces/image-transformation-options.interface';
+import { ImageTransformationOptions } from './types/image-transformation.type';
 
 @Injectable()
 export class CloudinaryService implements OnModuleInit {

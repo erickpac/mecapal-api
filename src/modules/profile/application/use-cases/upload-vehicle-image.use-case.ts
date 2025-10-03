@@ -6,7 +6,7 @@ import { VehicleNotFoundException } from '../../domain/exceptions/vehicle-not-fo
 import { ImageUploadFailedException } from '../../domain/exceptions/image-upload-failed.exception';
 import { CLOUDINARY_FOLDERS } from '../../../cloudinary/constants/cloudinary-folders';
 import { VehiclePhotoResponseDto } from '../dtos/vehicle-photo-response.dto';
-import { CloudinaryService } from '../../../cloudinary/infrastructure/services/cloudinary.service';
+import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
 
 @Injectable()
 export class UploadVehicleImageUseCase {

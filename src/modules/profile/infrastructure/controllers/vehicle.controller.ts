@@ -27,7 +27,7 @@ import { Roles } from '../../../auth/infrastructure/decorators/roles.decorator';
 import { UserRole } from '../../../auth/domain/enums/user-role.enum';
 import { UploadVehicleImageUseCase } from '../../application/use-cases/upload-vehicle-image.use-case';
 import { imageUploadOptions } from '../../../cloudinary/constants/upload-options';
-import { UploadedFileType } from '../../../cloudinary/domain/interfaces/file-upload.interface';
+import { UploadedFileType } from '../../../cloudinary/types/file-upload.type';
 import { VehiclePhotoResponseDto } from '../../application/dtos/vehicle-photo-response.dto';
 import { SetMainVehiclePhotoUseCase } from '../../application/use-cases/set-main-vehicle-photo.use-case';
 import { DeleteVehiclePhotoUseCase } from '../../application/use-cases/delete-vehicle-photo.use-case';
