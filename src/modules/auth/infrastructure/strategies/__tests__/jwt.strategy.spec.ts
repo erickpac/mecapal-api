@@ -42,6 +42,7 @@ describe('JwtStrategy', () => {
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     userRepository = module.get(AUTH_TOKENS.IAuthRepository);
   });
 
