@@ -19,6 +19,7 @@ import { RefreshTokenUseCase } from '../../../application/use-cases/refresh-toke
 import { ChangePasswordUseCase } from '../../../application/use-cases/change-password.use-case';
 import { RecoveryPasswordUseCase } from '../../../application/use-cases/recovery-password.use-case';
 import { RecoveryPasswordDto } from '../../../application/dtos/recovery-password.dto';
+import { UserMapper } from '../../mappers/user.mapper';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -69,7 +70,7 @@ describe('AuthController', () => {
       const result = await controller.register(registerDto);
 
       expect(executeSpy).toHaveBeenCalledWith(registerDto);
-      expect(result).toEqual(mockUser);
+      expect(result).toEqual(UserMapper.toResponseDto(mockUser));
     });
   });
 
@@ -81,19 +82,33 @@ describe('AuthController', () => {
       const result = await controller.login(loginDto);
 
       expect(executeSpy).toHaveBeenCalledWith(loginDto);
-      expect(result).toEqual(mockTokens);
+      expect(result).toEqual(
+        UserMapper.toAuthResponseDto(
+          mockTokens.user,
+          mockTokens.access_token,
+          mockTokens.refresh_token,
+        ),
+      );
     });
   });
 
   describe('refreshToken', () => {
     it('should refresh the access token', async () => {
       const executeSpy = jest.spyOn(mockRefreshTokenUseCase, 'execute');
-      executeSpy.mockResolvedValue(mockTokens);
+      executeSpy.mockResolvedValue({
+        access_token: mockTokens.access_token,
+        refresh_token: mockTokens.refresh_token,
+      });
 
       const result = await controller.refreshToken(refreshTokenDto);
 
       expect(executeSpy).toHaveBeenCalledWith(refreshTokenDto.refresh_token);
-      expect(result).toEqual(mockTokens);
+      expect(result).toEqual(
+        UserMapper.toTokenResponseDto(
+          mockTokens.access_token,
+          mockTokens.refresh_token,
+        ),
+      );
     });
   });
 

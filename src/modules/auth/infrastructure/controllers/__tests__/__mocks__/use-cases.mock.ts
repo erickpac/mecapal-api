@@ -43,12 +43,13 @@ export const loginDto: LoginDto = {
   password: 'password123',
 };
 
-export const mockUser: Omit<User, 'password'> = {
+export const mockUser: User = {
   id: '1',
   email: 'test@example.com',
   name: 'Test User',
   phone: null,
   role: UserRole.USER,
+  password: 'hashedPassword',
   createdAt: new Date(),
   updatedAt: new Date(),
 };

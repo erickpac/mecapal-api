@@ -88,7 +88,7 @@ describe('ResendService', () => {
 
       expect(mockEmailsSend).toHaveBeenCalledWith({
         from: 'onboarding@resend.dev',
-        to: mockEmailData.to,
+        to: [mockEmailData.to],
         subject: mockEmailData.subject,
         html: mockEmailData.html,
       });
@@ -110,7 +110,7 @@ describe('ResendService', () => {
 
       expect(mockEmailsSend).toHaveBeenCalledWith({
         from: 'onboarding@resend.dev',
-        to: mockEmailData.to,
+        to: [mockEmailData.to],
         subject: mockEmailData.subject,
         html: mockEmailData.html,
       });
@@ -164,7 +164,7 @@ describe('ResendService', () => {
 
       expect(mockEmailsSend).toHaveBeenCalledWith({
         from: 'onboarding@resend.dev',
-        to: customEmailData.to,
+        to: [customEmailData.to],
         subject: customEmailData.subject,
         html: customEmailData.html,
       });
@@ -178,7 +178,7 @@ describe('ResendService', () => {
 
       expect(mockEmailsSend).toHaveBeenCalledWith({
         from: 'onboarding@resend.dev',
-        to: '',
+        to: [''],
         subject: '',
         html: '',
       });

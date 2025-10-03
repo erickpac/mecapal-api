@@ -1,20 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from '../jwt.strategy';
-import { AuthRepository } from '../../repositories/auth.repository';
+import { AUTH_TOKENS } from '../../../domain/constants/injection-tokens';
 import { mockUser, mockPayload } from './__mocks__/jwt.strategy.mock';
 import { ConfigService } from '@nestjs/config';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
-  let userRepository: AuthRepository;
+  let userRepository: any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JwtStrategy,
         {
-          provide: AuthRepository,
+          provide: AUTH_TOKENS.IAuthRepository,
           useValue: {
             findById: jest.fn(),
           },
@@ -42,7 +42,7 @@ describe('JwtStrategy', () => {
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
-    userRepository = module.get<AuthRepository>(AuthRepository);
+    userRepository = module.get(AUTH_TOKENS.IAuthRepository);
   });
 
   describe('constructor', () => {
@@ -53,7 +53,7 @@ describe('JwtStrategy', () => {
           providers: [
             JwtStrategy,
             {
-              provide: AuthRepository,
+              provide: AUTH_TOKENS.IAuthRepository,
               useValue: {
                 findById: jest.fn(),
               },
@@ -89,7 +89,7 @@ describe('JwtStrategy', () => {
           providers: [
             JwtStrategy,
             {
-              provide: AuthRepository,
+              provide: AUTH_TOKENS.IAuthRepository,
               useValue: {
                 findById: jest.fn(),
               },
