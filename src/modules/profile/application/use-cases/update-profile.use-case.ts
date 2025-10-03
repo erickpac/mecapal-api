@@ -1,5 +1,7 @@
-import { Injectable, Logger, ConflictException } from '@nestjs/common';
-import { ProfileRepository } from '../../infrastructure/repositories/profile.repository';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { IProfileRepository } from '../../domain/repositories/profile.repository';
+import { PROFILE_TOKENS } from '../../domain/constants/injection-tokens';
+import { EmailAlreadyTakenException } from '../../domain/exceptions/email-already-taken.exception';
 import { UpdateProfileDto } from '../dtos/update-profile.dto';
 import { User } from '../../../auth/domain/entities/user.entity';
 
@@ -7,7 +9,10 @@ import { User } from '../../../auth/domain/entities/user.entity';
 export class UpdateProfileUseCase {
   private readonly logger = new Logger(UpdateProfileUseCase.name);
 
-  constructor(private readonly profileRepository: ProfileRepository) {}
+  constructor(
+    @Inject(PROFILE_TOKENS.IProfileRepository)
+    private readonly profileRepository: IProfileRepository,
+  ) {}
 
   async execute(
     userId: string,
@@ -24,7 +29,7 @@ export class UpdateProfileUseCase {
         this.logger.warn(
           `Email update failed: Email already taken - ${updateProfileDto.email}`,
         );
-        throw new ConflictException('Email already taken');
+        throw new EmailAlreadyTakenException(updateProfileDto.email);
       }
     }
 

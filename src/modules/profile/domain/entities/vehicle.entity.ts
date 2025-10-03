@@ -1,4 +1,4 @@
-import { VehicleType } from '@prisma/client';
+import { VehicleType } from '../enums/vehicle-type.enum';
 import { VehiclePhoto } from './vehicle-photo.entity';
 
 export class Vehicle {

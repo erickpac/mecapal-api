@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { VehicleRepository } from '../../infrastructure/repositories/vehicle.repository';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { IVehicleRepository } from '../../domain/repositories/vehicle.repository';
+import { PROFILE_TOKENS } from '../../domain/constants/injection-tokens';
 import { CreateVehicleDto } from '../dtos/create-vehicle.dto';
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 
@@ -7,7 +8,10 @@ import { Vehicle } from '../../domain/entities/vehicle.entity';
 export class CreateVehicleUseCase {
   private readonly logger = new Logger(CreateVehicleUseCase.name);
 
-  constructor(private readonly vehicleRepository: VehicleRepository) {}
+  constructor(
+    @Inject(PROFILE_TOKENS.IVehicleRepository)
+    private readonly vehicleRepository: IVehicleRepository,
+  ) {}
 
   async execute(
     userId: string,
@@ -20,6 +24,7 @@ export class CreateVehicleUseCase {
       createVehicleDto,
     );
 
+    this.logger.log(`Vehicle created successfully with ID: ${vehicle.id}`);
     return vehicle;
   }
 }

@@ -1,5 +1,5 @@
-import { IsEnum, IsNumber, IsString, Min } from 'class-validator';
-import { VehicleType } from '@prisma/client';
+import { IsEnum, IsNumber, Min } from 'class-validator';
+import { VehicleType } from '../../domain/enums/vehicle-type.enum';
 
 export class CreateVehicleDto {
   @IsEnum(VehicleType)
@@ -8,7 +8,4 @@ export class CreateVehicleDto {
   @IsNumber()
   @Min(0)
   capacityKg: number;
-
-  @IsString()
-  photoUrl: string;
 }
