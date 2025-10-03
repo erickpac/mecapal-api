@@ -1,12 +1,12 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import { UserNotFoundException } from '../../../domain/exceptions/user-not-found.exception';
 import { RecoveryPasswordUseCase } from '../recovery-password.use-case';
-import { AuthRepository } from '../../../infrastructure/repositories/auth.repository';
-import { ResendService } from '../../../../resend/resend.service';
+import { AUTH_TOKENS } from '../../../domain/constants/injection-tokens';
 import { mockUser } from './__mocks__/user.mock';
 import { mockAuthRepository } from './__mocks__/auth-repository.mock';
-import { mockResendService } from './__mocks__/resend-service.mock';
-import * as bcrypt from 'bcrypt';
+import { mockPasswordHasher } from './__mocks__/password-hasher.mock';
+import { mockEmailService } from './__mocks__/email-service.mock';
 
 describe('RecoveryPasswordUseCase', () => {
   let useCase: RecoveryPasswordUseCase;
@@ -16,12 +16,16 @@ describe('RecoveryPasswordUseCase', () => {
       providers: [
         RecoveryPasswordUseCase,
         {
-          provide: AuthRepository,
+          provide: AUTH_TOKENS.IAuthRepository,
           useValue: mockAuthRepository,
         },
         {
-          provide: ResendService,
-          useValue: mockResendService,
+          provide: AUTH_TOKENS.IPasswordHasher,
+          useValue: mockPasswordHasher,
+        },
+        {
+          provide: AUTH_TOKENS.IEmailService,
+          useValue: mockEmailService,
         },
       ],
     }).compile();
@@ -43,8 +47,8 @@ describe('RecoveryPasswordUseCase', () => {
       const hashedPassword = 'hashedNewPassword';
 
       mockAuthRepository.findByEmail.mockResolvedValue(mockUser);
-      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
-      mockResendService.sendEmail.mockResolvedValue(undefined);
+      mockPasswordHasher.hash.mockResolvedValue(hashedPassword);
+      mockEmailService.sendPasswordRecovery.mockResolvedValue(undefined);
       mockAuthRepository.update.mockResolvedValue(mockUser);
 
       // Act
@@ -52,30 +56,28 @@ describe('RecoveryPasswordUseCase', () => {
 
       // Assert
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(email);
-      expect(bcrypt.hash).toHaveBeenCalledWith(expect.any(String), 10);
-      expect(mockResendService.sendEmail).toHaveBeenCalledWith(
+      expect(mockPasswordHasher.hash).toHaveBeenCalledWith(expect.any(String));
+      expect(mockEmailService.sendPasswordRecovery).toHaveBeenCalledWith(
         email,
-        'Recuperación de Contraseña',
-        expect.stringContaining(
-          `Hola ${mockUser.name}, <br>tu nueva contraseña es:`,
-        ),
+        mockUser.name,
+        expect.any(String),
       );
       expect(mockAuthRepository.update).toHaveBeenCalledWith(mockUser.id, {
         password: hashedPassword,
       });
     });
 
-    it('should throw UnauthorizedException when user is not found', async () => {
+    it('should throw UserNotFoundException when user is not found', async () => {
       // Arrange
       const email = 'nonexistent@example.com';
       mockAuthRepository.findByEmail.mockResolvedValue(null);
 
       // Act & Assert
       await expect(useCase.execute(email)).rejects.toThrow(
-        UnauthorizedException,
+        UserNotFoundException,
       );
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(email);
-      expect(mockResendService.sendEmail).not.toHaveBeenCalled();
+      expect(mockEmailService.sendPasswordRecovery).not.toHaveBeenCalled();
       expect(mockAuthRepository.update).not.toHaveBeenCalled();
     });
 
@@ -85,17 +87,17 @@ describe('RecoveryPasswordUseCase', () => {
       const hashedPassword = 'hashedNewPassword';
 
       mockAuthRepository.findByEmail.mockResolvedValue(mockUser);
-      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
-      mockResendService.sendEmail.mockResolvedValue(undefined);
+      mockPasswordHasher.hash.mockResolvedValue(hashedPassword);
+      mockEmailService.sendPasswordRecovery.mockResolvedValue(undefined);
       mockAuthRepository.update.mockResolvedValue(mockUser);
 
       // Act
       await useCase.execute(email);
 
       // Assert
-      expect(bcrypt.hash).toHaveBeenCalledWith(expect.any(String), 10);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const generatedPassword = (bcrypt.hash as jest.Mock).mock.calls[0][0];
+      expect(mockPasswordHasher.hash).toHaveBeenCalledWith(expect.any(String));
+
+      const generatedPassword = mockPasswordHasher.hash.mock.calls[0][0];
       expect(generatedPassword).toHaveLength(8);
     });
   });

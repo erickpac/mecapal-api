@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
+import { UserAlreadyExistsException } from '../../../domain/exceptions/user-already-exists.exception';
 import { RegisterUseCase } from '../register.use-case';
-import { AuthRepository } from '../../../infrastructure/repositories/auth.repository';
+import { AUTH_TOKENS } from '../../../domain/constants/injection-tokens';
 import { mockRegisterDto, mockUser } from './__mocks__/user.mock';
 import { mockAuthRepository } from './__mocks__/auth-repository.mock';
-import * as bcrypt from 'bcrypt';
+import { mockPasswordHasher } from './__mocks__/password-hasher.mock';
 
 describe('RegisterUseCase', () => {
   let useCase: RegisterUseCase;
@@ -14,8 +15,12 @@ describe('RegisterUseCase', () => {
       providers: [
         RegisterUseCase,
         {
-          provide: AuthRepository,
+          provide: AUTH_TOKENS.IAuthRepository,
           useValue: mockAuthRepository,
+        },
+        {
+          provide: AUTH_TOKENS.IPasswordHasher,
+          useValue: mockPasswordHasher,
         },
       ],
     }).compile();
@@ -34,39 +39,33 @@ describe('RegisterUseCase', () => {
     it('should successfully register a new user', async () => {
       // Arrange
       mockAuthRepository.findByEmail.mockResolvedValue(null);
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+      mockPasswordHasher.hash.mockResolvedValue('hashedPassword');
       mockAuthRepository.create.mockResolvedValue(mockUser);
 
       // Act
       const result = await useCase.execute(mockRegisterDto);
 
       // Assert
-      expect(result).toEqual({
-        id: mockUser.id,
-        email: mockUser.email,
-        name: mockUser.name,
-        phone: mockUser.phone,
-        role: mockUser.role,
-        createdAt: mockUser.createdAt,
-        updatedAt: mockUser.updatedAt,
-      });
+      expect(result).toEqual(mockUser);
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(
         mockRegisterDto.email,
       );
-      expect(bcrypt.hash).toHaveBeenCalledWith(mockRegisterDto.password, 10);
+      expect(mockPasswordHasher.hash).toHaveBeenCalledWith(
+        mockRegisterDto.password,
+      );
       expect(mockAuthRepository.create).toHaveBeenCalledWith({
         ...mockRegisterDto,
         password: 'hashedPassword',
       });
     });
 
-    it('should throw ConflictException when email already exists', async () => {
+    it('should throw UserAlreadyExistsException when email already exists', async () => {
       // Arrange
       mockAuthRepository.findByEmail.mockResolvedValue(mockUser);
 
       // Act & Assert
       await expect(useCase.execute(mockRegisterDto)).rejects.toThrow(
-        ConflictException,
+        UserAlreadyExistsException,
       );
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(
         mockRegisterDto.email,

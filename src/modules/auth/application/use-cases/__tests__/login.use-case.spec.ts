@@ -1,15 +1,13 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import { InvalidCredentialsException } from '../../../domain/exceptions/invalid-credentials.exception';
 import { LoginUseCase } from '../login.use-case';
-import { AuthRepository } from '../../../infrastructure/repositories/auth.repository';
+import { AUTH_TOKENS } from '../../../domain/constants/injection-tokens';
 import { mockLoginDto } from './__mocks__/user.mock';
 import { mockUser } from './__mocks__/user.mock';
 import { mockAuthRepository } from './__mocks__/auth-repository.mock';
-import { mockJwtService } from './__mocks__/jwt-service.mock';
-import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { UserRole } from '../../../domain/enums/user-role.enum';
+import { mockPasswordHasher } from './__mocks__/password-hasher.mock';
+import { mockTokenService } from './__mocks__/token-service.mock';
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;
@@ -19,31 +17,16 @@ describe('LoginUseCase', () => {
       providers: [
         LoginUseCase,
         {
-          provide: AuthRepository,
+          provide: AUTH_TOKENS.IAuthRepository,
           useValue: mockAuthRepository,
         },
         {
-          provide: JwtService,
-          useValue: mockJwtService,
+          provide: AUTH_TOKENS.IPasswordHasher,
+          useValue: mockPasswordHasher,
         },
         {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn((key: string) => {
-              switch (key) {
-                case 'JWT_SECRET':
-                  return 'test-secret';
-                case 'JWT_REFRESH_SECRET':
-                  return 'test-refresh-secret';
-                case 'JWT_EXPIRATION_TIME':
-                  return '1h';
-                case 'JWT_REFRESH_EXPIRATION_TIME':
-                  return '7d';
-                default:
-                  return undefined;
-              }
-            }),
-          },
+          provide: AUTH_TOKENS.ITokenService,
+          useValue: mockTokenService,
         },
       ],
     }).compile();
@@ -62,15 +45,9 @@ describe('LoginUseCase', () => {
     it('should successfully login and return tokens', async () => {
       // Arrange
       mockAuthRepository.findByEmail.mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      mockJwtService.signAsync.mockImplementation(
-        (payload: { type?: string }) => {
-          if (payload.type === 'refresh') {
-            return Promise.resolve('refresh_token');
-          }
-          return Promise.resolve('access_token');
-        },
-      );
+      mockPasswordHasher.compare.mockResolvedValue(true);
+      mockTokenService.generateAccessToken.mockResolvedValue('access_token');
+      mockTokenService.generateRefreshToken.mockResolvedValue('refresh_token');
 
       // Act
       const result = await useCase.execute(mockLoginDto);
@@ -79,53 +56,46 @@ describe('LoginUseCase', () => {
       expect(result).toEqual({
         access_token: 'access_token',
         refresh_token: 'refresh_token',
-        user: {
-          id: '1',
-          name: 'Test User',
-          email: 'test@example.com',
-          phone: null,
-          role: UserRole.USER,
-          createdAt: mockUser.createdAt,
-          updatedAt: mockUser.updatedAt,
-        },
+        user: mockUser,
       });
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(
         mockLoginDto.email,
       );
-      expect(bcrypt.compare).toHaveBeenCalledWith(
+      expect(mockPasswordHasher.compare).toHaveBeenCalledWith(
         mockLoginDto.password,
         mockUser.password,
       );
-      expect(mockJwtService.signAsync).toHaveBeenCalledTimes(2);
+      expect(mockTokenService.generateAccessToken).toHaveBeenCalledTimes(1);
+      expect(mockTokenService.generateRefreshToken).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw UnauthorizedException when user is not found', async () => {
+    it('should throw InvalidCredentialsException when user is not found', async () => {
       // Arrange
       mockAuthRepository.findByEmail.mockResolvedValue(null);
 
       // Act & Assert
       await expect(useCase.execute(mockLoginDto)).rejects.toThrow(
-        UnauthorizedException,
+        InvalidCredentialsException,
       );
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(
         mockLoginDto.email,
       );
-      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(mockPasswordHasher.compare).not.toHaveBeenCalled();
     });
 
-    it('should throw UnauthorizedException when password is invalid', async () => {
+    it('should throw InvalidCredentialsException when password is invalid', async () => {
       // Arrange
       mockAuthRepository.findByEmail.mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      mockPasswordHasher.compare.mockResolvedValue(false);
 
       // Act & Assert
       await expect(useCase.execute(mockLoginDto)).rejects.toThrow(
-        UnauthorizedException,
+        InvalidCredentialsException,
       );
       expect(mockAuthRepository.findByEmail).toHaveBeenCalledWith(
         mockLoginDto.email,
       );
-      expect(bcrypt.compare).toHaveBeenCalledWith(
+      expect(mockPasswordHasher.compare).toHaveBeenCalledWith(
         mockLoginDto.password,
         mockUser.password,
       );

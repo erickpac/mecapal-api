@@ -1,16 +1,16 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import { InvalidCredentialsException } from '../../../domain/exceptions/invalid-credentials.exception';
+import { UserNotFoundException } from '../../../domain/exceptions/user-not-found.exception';
 import { RefreshTokenUseCase } from '../refresh-token.use-case';
-import { AuthRepository } from '../../../infrastructure/repositories/auth.repository';
+import { AUTH_TOKENS } from '../../../domain/constants/injection-tokens';
 import {
   mockRefreshToken,
   mockRefreshTokenPayload,
   mockUser,
 } from './__mocks__/user.mock';
 import { mockAuthRepository } from './__mocks__/auth-repository.mock';
-import { mockJwtService } from './__mocks__/jwt-service.mock';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { mockTokenService } from './__mocks__/token-service.mock';
 
 describe('RefreshTokenUseCase', () => {
   let useCase: RefreshTokenUseCase;
@@ -20,31 +20,12 @@ describe('RefreshTokenUseCase', () => {
       providers: [
         RefreshTokenUseCase,
         {
-          provide: AuthRepository,
+          provide: AUTH_TOKENS.IAuthRepository,
           useValue: mockAuthRepository,
         },
         {
-          provide: JwtService,
-          useValue: mockJwtService,
-        },
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn((key: string) => {
-              switch (key) {
-                case 'JWT_SECRET':
-                  return 'test-secret';
-                case 'JWT_REFRESH_SECRET':
-                  return 'test-refresh-secret';
-                case 'JWT_EXPIRATION_TIME':
-                  return '1h';
-                case 'JWT_REFRESH_EXPIRATION_TIME':
-                  return '7d';
-                default:
-                  return undefined;
-              }
-            }),
-          },
+          provide: AUTH_TOKENS.ITokenService,
+          useValue: mockTokenService,
         },
       ],
     }).compile();
@@ -62,15 +43,15 @@ describe('RefreshTokenUseCase', () => {
   describe('execute', () => {
     it('should successfully refresh tokens', async () => {
       // Arrange
-      mockJwtService.verify.mockReturnValue(mockRefreshTokenPayload);
+      mockTokenService.verifyRefreshToken.mockReturnValue(
+        mockRefreshTokenPayload,
+      );
       mockAuthRepository.findById.mockResolvedValue(mockUser);
-      mockJwtService.signAsync.mockImplementation(
-        (payload: { type?: string }) => {
-          if (payload.type === 'refresh') {
-            return Promise.resolve('new_refresh_token');
-          }
-          return Promise.resolve('new_access_token');
-        },
+      mockTokenService.generateAccessToken.mockResolvedValue(
+        'new_access_token',
+      );
+      mockTokenService.generateRefreshToken.mockResolvedValue(
+        'new_refresh_token',
       );
 
       // Act
@@ -81,45 +62,48 @@ describe('RefreshTokenUseCase', () => {
         access_token: 'new_access_token',
         refresh_token: 'new_refresh_token',
       });
-      expect(mockJwtService.verify).toHaveBeenCalledWith(mockRefreshToken, {
-        secret: expect.any(String) as string,
-      });
+      expect(mockTokenService.verifyRefreshToken).toHaveBeenCalledWith(
+        mockRefreshToken,
+      );
       expect(mockAuthRepository.findById).toHaveBeenCalledWith(
         mockRefreshTokenPayload.sub,
       );
-      expect(mockJwtService.signAsync).toHaveBeenCalledTimes(2);
+      expect(mockTokenService.generateAccessToken).toHaveBeenCalledTimes(1);
+      expect(mockTokenService.generateRefreshToken).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw UnauthorizedException when user is not found', async () => {
+    it('should throw UserNotFoundException when user is not found', async () => {
       // Arrange
-      mockJwtService.verify.mockReturnValue(mockRefreshTokenPayload);
+      mockTokenService.verifyRefreshToken.mockReturnValue(
+        mockRefreshTokenPayload,
+      );
       mockAuthRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
       await expect(useCase.execute(mockRefreshToken)).rejects.toThrow(
-        UnauthorizedException,
+        UserNotFoundException,
       );
-      expect(mockJwtService.verify).toHaveBeenCalledWith(mockRefreshToken, {
-        secret: expect.any(String) as string,
-      });
+      expect(mockTokenService.verifyRefreshToken).toHaveBeenCalledWith(
+        mockRefreshToken,
+      );
       expect(mockAuthRepository.findById).toHaveBeenCalledWith(
         mockRefreshTokenPayload.sub,
       );
     });
 
-    it('should throw UnauthorizedException when refresh token is invalid', async () => {
+    it('should throw InvalidCredentialsException when refresh token is invalid', async () => {
       // Arrange
-      mockJwtService.verify.mockImplementation(() => {
+      mockTokenService.verifyRefreshToken.mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
       // Act & Assert
       await expect(useCase.execute(mockRefreshToken)).rejects.toThrow(
-        UnauthorizedException,
+        InvalidCredentialsException,
       );
-      expect(mockJwtService.verify).toHaveBeenCalledWith(mockRefreshToken, {
-        secret: expect.any(String) as string,
-      });
+      expect(mockTokenService.verifyRefreshToken).toHaveBeenCalledWith(
+        mockRefreshToken,
+      );
       expect(mockAuthRepository.findById).not.toHaveBeenCalled();
     });
   });

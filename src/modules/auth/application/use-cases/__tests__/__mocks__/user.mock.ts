@@ -37,7 +37,7 @@ export const mockRefreshToken = 'mock.refresh.token';
 
 export const mockRefreshTokenPayload = {
   sub: '1',
-  type: 'refresh',
+  type: 'refresh' as const,
   jti: 'mock-jti',
 };
 

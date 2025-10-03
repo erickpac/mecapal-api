@@ -1,11 +1,13 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import { UserNotFoundException } from '../../../domain/exceptions/user-not-found.exception';
+import { InvalidPasswordException } from '../../../domain/exceptions/invalid-password.exception';
 import { ChangePasswordUseCase } from '../change-password.use-case';
-import { AuthRepository } from '../../../infrastructure/repositories/auth.repository';
+import { AUTH_TOKENS } from '../../../domain/constants/injection-tokens';
 import { mockChangePasswordDto } from './__mocks__/user.mock';
 import { mockUser } from './__mocks__/user.mock';
 import { mockAuthRepository } from './__mocks__/auth-repository.mock';
-import * as bcrypt from 'bcrypt';
+import { mockPasswordHasher } from './__mocks__/password-hasher.mock';
 
 describe('ChangePasswordUseCase', () => {
   let useCase: ChangePasswordUseCase;
@@ -15,8 +17,12 @@ describe('ChangePasswordUseCase', () => {
       providers: [
         ChangePasswordUseCase,
         {
-          provide: AuthRepository,
+          provide: AUTH_TOKENS.IAuthRepository,
           useValue: mockAuthRepository,
+        },
+        {
+          provide: AUTH_TOKENS.IPasswordHasher,
+          useValue: mockPasswordHasher,
         },
       ],
     }).compile();
@@ -35,8 +41,8 @@ describe('ChangePasswordUseCase', () => {
     it('should successfully change password', async () => {
       // Arrange
       mockAuthRepository.findById.mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (bcrypt.hash as jest.Mock).mockResolvedValue('newHashedPassword');
+      mockPasswordHasher.compare.mockResolvedValue(true);
+      mockPasswordHasher.hash.mockResolvedValue('newHashedPassword');
       mockAuthRepository.update.mockResolvedValue({
         ...mockUser,
         password: 'newHashedPassword',
@@ -47,43 +53,42 @@ describe('ChangePasswordUseCase', () => {
 
       // Assert
       expect(mockAuthRepository.findById).toHaveBeenCalledWith(mockUser.id);
-      expect(bcrypt.compare).toHaveBeenCalledWith(
+      expect(mockPasswordHasher.compare).toHaveBeenCalledWith(
         mockChangePasswordDto.current_password,
         mockUser.password,
       );
-      expect(bcrypt.hash).toHaveBeenCalledWith(
+      expect(mockPasswordHasher.hash).toHaveBeenCalledWith(
         mockChangePasswordDto.new_password,
-        10,
       );
       expect(mockAuthRepository.update).toHaveBeenCalledWith(mockUser.id, {
         password: 'newHashedPassword',
       });
     });
 
-    it('should throw UnauthorizedException when user is not found', async () => {
+    it('should throw UserNotFoundException when user is not found', async () => {
       // Arrange
       mockAuthRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
       await expect(
         useCase.execute(mockUser.id, mockChangePasswordDto),
-      ).rejects.toThrow(UnauthorizedException);
+      ).rejects.toThrow(UserNotFoundException);
       expect(mockAuthRepository.findById).toHaveBeenCalledWith(mockUser.id);
-      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(mockPasswordHasher.compare).not.toHaveBeenCalled();
       expect(mockAuthRepository.update).not.toHaveBeenCalled();
     });
 
-    it('should throw UnauthorizedException when current password is incorrect', async () => {
+    it('should throw InvalidPasswordException when current password is incorrect', async () => {
       // Arrange
       mockAuthRepository.findById.mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      mockPasswordHasher.compare.mockResolvedValue(false);
 
       // Act & Assert
       await expect(
         useCase.execute(mockUser.id, mockChangePasswordDto),
-      ).rejects.toThrow(UnauthorizedException);
+      ).rejects.toThrow(InvalidPasswordException);
       expect(mockAuthRepository.findById).toHaveBeenCalledWith(mockUser.id);
-      expect(bcrypt.compare).toHaveBeenCalledWith(
+      expect(mockPasswordHasher.compare).toHaveBeenCalledWith(
         mockChangePasswordDto.current_password,
         mockUser.password,
       );
