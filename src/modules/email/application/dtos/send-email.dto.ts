@@ -2,7 +2,9 @@ import { IsString, IsEmail, IsOptional, IsArray } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class SendEmailDto {
-  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
+  @Transform(({ value }: { value: string | string[] }) =>
+    Array.isArray(value) ? value : [value],
+  )
   @IsEmail({}, { each: true })
   to: string | string[];
 

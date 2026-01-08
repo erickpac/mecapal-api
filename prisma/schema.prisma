@@ -59,6 +59,12 @@ enum RejectionCategory {
   OTHER
 }
 
+enum ZonePreference {
+  PREFERRED
+  NEUTRAL
+  EXCLUDED
+}
+
 model User {
   id                 String              @id @default(uuid()) @db.Uuid
   cognitoSub         String              @unique
@@ -78,6 +84,7 @@ model User {
   vehicles           Vehicle[]
   reviewedValidations ValidationLog[]    @relation("ReviewedValidations")
   transporterValidations ValidationLog[] @relation("TransporterValidations")
+  zonePreferences    TransporterZonePreference[] @relation("TransporterZonePreferences")
 
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -204,4 +211,103 @@ model ValidationLog {
   @@index([entityType, entityId])
   @@index([transporterId])
   @@index([reviewedBy])
+}
+
+// ==================== LOCATION MODELS ====================
+
+model Country {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  code      String   @unique @db.VarChar(3)
+  isActive  Boolean  @default(true)
+
+  states    State[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model State {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  code      String   @db.VarChar(10)
+  isActive  Boolean  @default(true)
+
+  countryId String   @db.Uuid
+  country   Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+  municipalities Municipality[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([countryId, code])
+  @@unique([countryId, name])
+  @@index([countryId])
+  @@index([isActive])
+}
+
+model Municipality {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  code      String   @db.VarChar(10)
+  isActive  Boolean  @default(true)
+
+  stateId   String   @db.Uuid
+  state     State    @relation(fields: [stateId], references: [id], onDelete: Cascade)
+
+  zones     Zone[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([stateId, code])
+  @@unique([stateId, name])
+  @@index([stateId])
+  @@index([isActive])
+}
+
+model Zone {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  code           String   @db.VarChar(10)
+  latitude       Float?
+  longitude      Float?
+  polygon        Json?
+  isActive       Boolean  @default(true)
+
+  municipalityId String   @db.Uuid
+  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+
+  transporterPreferences TransporterZonePreference[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([municipalityId, code])
+  @@unique([municipalityId, name])
+  @@index([municipalityId])
+  @@index([isActive])
+}
+
+model TransporterZonePreference {
+  id            String         @id @default(uuid()) @db.Uuid
+  preference    ZonePreference @default(NEUTRAL)
+
+  transporterId String         @db.Uuid
+  transporter   User           @relation("TransporterZonePreferences", fields: [transporterId], references: [id], onDelete: Cascade)
+
+  zoneId        String         @db.Uuid
+  zone          Zone           @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([transporterId, zoneId])
+  @@index([transporterId])
+  @@index([zoneId])
+  @@index([preference])
 }

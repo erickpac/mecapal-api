@@ -7,6 +7,8 @@ import { AddressModule } from './modules/address/address.module';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { BackofficeModule } from './modules/backoffice/backoffice.module';
+import { LocationModule } from './modules/location/location.module';
+import { ZonePreferenceModule } from './modules/zone-preference/zone-preference.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { BackofficeModule } from './modules/backoffice/backoffice.module';
     VehicleModule,
     UploadModule,
     BackofficeModule,
+    LocationModule,
+    ZonePreferenceModule,
   ],
   controllers: [],
   providers: [],
