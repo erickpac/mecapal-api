@@ -33,7 +33,7 @@ export class TemplateRenderer {
       validationApprovalSubject(data as ValidationApprovalData),
     [EmailTemplate.VALIDATION_REJECTION]: (data) =>
       validationRejectionSubject(data as ValidationRejectionData),
-    [EmailTemplate.WELCOME]: () => 'Bienvenido a Mecapal',
+    [EmailTemplate.WELCOME]: () => 'Bienvenido a Mekapal',
   };
 
   render(template: EmailTemplate, data: Record<string, unknown>): string {
@@ -52,7 +52,7 @@ export class TemplateRenderer {
   private renderWelcome(data: Record<string, unknown>): string {
     const name = (data.name as string) || 'Usuario';
     const content = `
-      <h2>Bienvenido a Mecapal, ${name}!</h2>
+      <h2>Bienvenido a Mekapal, ${name}!</h2>
       <p>Gracias por unirte a nuestra plataforma de logística.</p>
       <p>Estamos emocionados de tenerte con nosotros.</p>
     `;

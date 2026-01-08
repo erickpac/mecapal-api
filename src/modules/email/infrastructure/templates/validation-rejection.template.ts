@@ -60,7 +60,7 @@ export const validationRejectionTemplate = (
 
     <p>Si tienes alguna duda, no dudes en contactarnos.</p>
 
-    <p>Saludos,<br>El equipo de Mecapal</p>
+    <p>Saludos,<br>El equipo de Mekapal</p>
   `;
 
   return baseTemplate(content);
@@ -70,5 +70,5 @@ export const validationRejectionSubject = (
   data: ValidationRejectionData,
 ): string => {
   const entityLabel = entityTypeLabels[data.entityType] || data.entityType;
-  return `Tu ${entityLabel} requiere correcciones - Mecapal`;
+  return `Tu ${entityLabel} requiere correcciones - Mekapal`;
 };

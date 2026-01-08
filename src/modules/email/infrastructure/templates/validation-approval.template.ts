@@ -45,9 +45,9 @@ export const validationApprovalTemplate = (
       <li>Revisa tu perfil para verificar que todos los datos estén correctos</li>
     </ul>
 
-    <p>Gracias por ser parte de Mecapal.</p>
+    <p>Gracias por ser parte de Mekapal.</p>
 
-    <p>Saludos,<br>El equipo de Mecapal</p>
+    <p>Saludos,<br>El equipo de Mekapal</p>
   `;
 
   return baseTemplate(content);
@@ -57,5 +57,5 @@ export const validationApprovalSubject = (
   data: ValidationApprovalData,
 ): string => {
   const entityLabel = entityTypeLabels[data.entityType] || data.entityType;
-  return `Tu ${entityLabel} ha sido aprobado - Mecapal`;
+  return `Tu ${entityLabel} ha sido aprobado - Mekapal`;
 };

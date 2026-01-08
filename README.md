@@ -1,4 +1,4 @@
-# Mecapal API
+# Mekapal API
 
 <p align="center">
   <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" />
@@ -6,7 +6,7 @@
 
 ## Description
 
-Mecapal API is the backend service powering the Mecapal App — a location-based directory that connects users with available truck drivers based on service type, routes, and vehicle availability. Built with NestJS, it provides secure authentication, profile management, route configuration, and real-time service tracking between users and transporters.
+Mekapal API is the backend service powering the Mekapal App — a location-based directory that connects users with available truck drivers based on service type, routes, and vehicle availability. Built with NestJS, it provides secure authentication, profile management, route configuration, and real-time service tracking between users and transporters.
 
 ## Key Features
 

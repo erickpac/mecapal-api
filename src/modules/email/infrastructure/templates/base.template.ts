@@ -1,4 +1,4 @@
-export const baseTemplate = (content: string, companyName = 'Mecapal') => `
+export const baseTemplate = (content: string, companyName = 'Mekapal') => `
 <!DOCTYPE html>
 <html>
 <head>

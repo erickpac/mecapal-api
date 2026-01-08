@@ -24,7 +24,7 @@ export class SesEmailService implements IEmailService {
     });
     this.fromEmail = this.configService.get<string>(
       'AWS_SES_FROM_EMAIL',
-      'noreply@mecapal.com',
+      'noreply@mekapal.com',
     );
   }
 
