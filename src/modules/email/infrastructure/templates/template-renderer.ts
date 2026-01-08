@@ -1,17 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { EmailTemplate } from '../../domain/types/email.types';
 import {
+  validationApprovalTemplate,
+  validationApprovalSubject,
+  ValidationApprovalData,
+} from './validation-approval.template';
+import {
   validationRejectionTemplate,
   validationRejectionSubject,
   ValidationRejectionData,
 } from './validation-rejection.template';
 import { baseTemplate } from './base.template';
 
-type TemplateData = ValidationRejectionData | Record<string, unknown>;
+type TemplateData =
+  | ValidationApprovalData
+  | ValidationRejectionData
+  | Record<string, unknown>;
 
 @Injectable()
 export class TemplateRenderer {
   private templates: Record<EmailTemplate, (data: TemplateData) => string> = {
+    [EmailTemplate.VALIDATION_APPROVAL]: (data) =>
+      validationApprovalTemplate(data as ValidationApprovalData),
     [EmailTemplate.VALIDATION_REJECTION]: (data) =>
       validationRejectionTemplate(data as ValidationRejectionData),
     [EmailTemplate.WELCOME]: (data) =>
@@ -19,6 +29,8 @@ export class TemplateRenderer {
   };
 
   private subjects: Record<EmailTemplate, (data: TemplateData) => string> = {
+    [EmailTemplate.VALIDATION_APPROVAL]: (data) =>
+      validationApprovalSubject(data as ValidationApprovalData),
     [EmailTemplate.VALIDATION_REJECTION]: (data) =>
       validationRejectionSubject(data as ValidationRejectionData),
     [EmailTemplate.WELCOME]: () => 'Bienvenido a Mecapal',

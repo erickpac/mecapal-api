@@ -1,4 +1,4 @@
-import { IsBoolean, IsObject, ValidateNested } from 'class-validator';
+import { IsBoolean, IsObject, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class ValidationChecklistDto {
@@ -26,4 +26,8 @@ export class ApproveValidationDto {
   @ValidateNested()
   @Type(() => ValidationChecklistDto)
   checklist: ValidationChecklistDto;
+
+  @IsBoolean()
+  @IsOptional()
+  sendEmail?: boolean;
 }

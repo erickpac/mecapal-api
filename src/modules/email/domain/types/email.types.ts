@@ -33,6 +33,7 @@ export interface EmailResult {
 }
 
 export enum EmailTemplate {
+  VALIDATION_APPROVAL = 'validation-approval',
   VALIDATION_REJECTION = 'validation-rejection',
   WELCOME = 'welcome',
 }
