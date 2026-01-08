@@ -16,7 +16,7 @@ export class GetUserUseCase {
   async execute(userId: string): Promise<User> {
     this.logger.log(`Fetching user with ID: ${userId}`);
 
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userRepository.findByIdWithProfile(userId);
 
     if (!user) {
       this.logger.warn(`User not found with ID: ${userId}`);

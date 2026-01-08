@@ -3,6 +3,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { IUserRepository } from '../../domain/repositories/user.repository';
 import { User } from '../../../cognito/domain/entities/user.entity';
 import { UserRole } from '../../../cognito/domain/enums/user-role.enum';
+import { TransporterProfile } from '../../domain/entities/transporter-profile.entity';
+import { TransporterStatus } from '../../domain/enums/transporter-status.enum';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -18,6 +20,26 @@ export class UserRepository implements IUserRepository {
     return new User({
       ...user,
       role: user.role as UserRole,
+    });
+  }
+
+  async findByIdWithProfile(id: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { transporterProfile: true },
+    });
+
+    if (!user) return null;
+
+    return new User({
+      ...user,
+      role: user.role as UserRole,
+      transporterProfile: user.transporterProfile
+        ? new TransporterProfile({
+            ...user.transporterProfile,
+            status: user.transporterProfile.status as TransporterStatus,
+          })
+        : null,
     });
   }
 

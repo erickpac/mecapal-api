@@ -1,4 +1,5 @@
 import { UserRole } from '../enums/user-role.enum';
+import { TransporterProfile } from '../../../user/domain/entities/transporter-profile.entity';
 
 export class User {
   id: string;
@@ -10,6 +11,7 @@ export class User {
   role: UserRole;
   companyName: string | null;
   taxId: string | null;
+  transporterProfile?: TransporterProfile | null;
   createdAt: Date;
   updatedAt: Date;
 
