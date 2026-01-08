@@ -27,6 +27,25 @@ enum TransporterStatus {
   SUSPENDED
 }
 
+enum VehicleType {
+  CAR
+  VAN
+  TRUCK
+  MOTORCYCLE
+}
+
+enum LoadType {
+  LIGHT
+  HEAVY
+  BOTH
+}
+
+enum VehicleStatus {
+  PENDING_REVIEW
+  ACTIVE
+  SUSPENDED
+}
+
 model User {
   id                 String              @id @default(uuid()) @db.Uuid
   cognitoSub         String              @unique
@@ -43,6 +62,7 @@ model User {
   // Relations
   transporterProfile TransporterProfile?
   addresses          Address[]
+  vehicles           Vehicle[]
 
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -101,6 +121,47 @@ model Address {
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Vehicle {
+  id                  String        @id @default(uuid()) @db.Uuid
+
+  // Basic Info
+  brand               String
+  model               String
+  year                Int
+  licensePlate        String        @unique
+  vin                 String        @unique @db.VarChar(17)
+  color               String
+  vehicleType         VehicleType
+
+  // Capacity
+  loadType            LoadType
+  maxWeightKg         Float
+  maxVolumeM3         Float
+
+  // Photos
+  frontPhotoUrl       String
+  rearPhotoUrl        String
+  sidePhotoUrl        String
+  interiorPhotoUrl    String
+
+  // Documents
+  registrationDocUrl  String
+  insuranceDocUrl     String
+  insuranceExpiration DateTime
+
+  // Status
+  status              VehicleStatus @default(PENDING_REVIEW)
+
+  // Relation
+  userId              String        @db.Uuid
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   @@index([userId])
 }
