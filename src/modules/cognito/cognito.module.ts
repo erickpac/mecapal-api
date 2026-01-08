@@ -7,6 +7,7 @@ import { CognitoService } from './infrastructure/services/cognito.service';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 import { CognitoAuthGuard } from './infrastructure/guards/cognito-auth.guard';
 import { RolesGuard } from './infrastructure/guards/roles.guard';
+import { TransporterStatusGuard } from './infrastructure/guards/transporter-status.guard';
 import { CognitoExceptionFilter } from './infrastructure/filters/cognito-exception.filter';
 import { AuthController } from './infrastructure/controllers/auth.controller';
 import {
@@ -43,6 +44,7 @@ import {
     // Guards
     CognitoAuthGuard,
     RolesGuard,
+    TransporterStatusGuard,
     // Use Cases
     SignUpUseCase,
     ConfirmSignUpUseCase,
@@ -59,6 +61,7 @@ import {
     COGNITO_TOKENS.IUserRepository,
     CognitoAuthGuard,
     RolesGuard,
+    TransporterStatusGuard,
   ],
 })
 export class CognitoModule {}
