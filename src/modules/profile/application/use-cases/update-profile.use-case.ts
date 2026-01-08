@@ -3,7 +3,7 @@ import { IProfileRepository } from '../../domain/repositories/profile.repository
 import { PROFILE_TOKENS } from '../../domain/constants/injection-tokens';
 import { EmailAlreadyTakenException } from '../../domain/exceptions/email-already-taken.exception';
 import { UpdateProfileDto } from '../dtos/update-profile.dto';
-import { User } from '../../../auth/domain/entities/user.entity';
+import { User } from '../../../cognito/domain/entities/user.entity';
 
 @Injectable()
 export class UpdateProfileUseCase {
@@ -17,7 +17,7 @@ export class UpdateProfileUseCase {
   async execute(
     userId: string,
     updateProfileDto: UpdateProfileDto,
-  ): Promise<Omit<User, 'password'>> {
+  ): Promise<User> {
     this.logger.log(`Updating profile for user ID: ${userId}`);
 
     // Check if email is being updated and if it's already taken
@@ -38,8 +38,6 @@ export class UpdateProfileUseCase {
       updateProfileDto,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = updatedUser;
-    return userWithoutPassword;
+    return updatedUser;
   }
 }

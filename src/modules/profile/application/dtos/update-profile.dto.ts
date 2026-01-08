@@ -8,7 +8,7 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(10)
+  @MinLength(8)
   phone?: string;
 
   @IsOptional()

@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../app.module';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from '../modules/auth/auth.module';
+import { CognitoModule } from '../modules/cognito/cognito.module';
 import { PrismaModule } from '../modules/prisma/prisma.module';
-import { CloudinaryModule } from '../modules/cloudinary/cloudinary.module';
+// TODO: Replace with S3 - Cloudinary module removed
+// import { CloudinaryModule } from '../modules/cloudinary/cloudinary.module';
 import { ProfileModule } from '../modules/profile/profile.module';
 import { PrismaService } from '../modules/prisma/prisma.service';
 import { INestApplication } from '@nestjs/common';
+import { COGNITO_TOKENS } from '../modules/cognito/domain/constants/injection-tokens';
 
 // Mock PrismaService for AppModule tests
 const mockPrismaService = {
@@ -14,6 +16,31 @@ const mockPrismaService = {
   onModuleDestroy: jest.fn().mockResolvedValue(undefined),
   $connect: jest.fn().mockResolvedValue(undefined),
   $disconnect: jest.fn().mockResolvedValue(undefined),
+  user: {
+    findUnique: jest.fn().mockResolvedValue(null),
+  },
+};
+
+// Mock CognitoService for AppModule tests
+const mockCognitoService = {
+  signUp: jest.fn(),
+  confirmSignUp: jest.fn(),
+  signIn: jest.fn(),
+  refreshToken: jest.fn(),
+  forgotPassword: jest.fn(),
+  confirmForgotPassword: jest.fn(),
+  changePassword: jest.fn(),
+  signOut: jest.fn(),
+  getUser: jest.fn(),
+  verifyToken: jest.fn(),
+};
+
+// Mock UserRepository for AppModule tests
+const mockUserRepository = {
+  findByCognitoSub: jest.fn().mockResolvedValue(null),
+  findByEmail: jest.fn().mockResolvedValue(null),
+  create: jest.fn(),
+  update: jest.fn(),
 };
 
 describe('AppModule', () => {
@@ -26,6 +53,10 @@ describe('AppModule', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(mockPrismaService)
+      .overrideProvider(COGNITO_TOKENS.ICognitoService)
+      .useValue(mockCognitoService)
+      .overrideProvider(COGNITO_TOKENS.IUserRepository)
+      .useValue(mockUserRepository)
       .compile();
     app = module.createNestApplication();
     await app.init();
@@ -49,15 +80,16 @@ describe('AppModule', () => {
     expect(prismaModule).toBeDefined();
   });
 
-  it('should import AuthModule', () => {
-    const authModule = module.select(AuthModule);
-    expect(authModule).toBeDefined();
+  it('should import CognitoModule', () => {
+    const cognitoModule = module.select(CognitoModule);
+    expect(cognitoModule).toBeDefined();
   });
 
-  it('should import CloudinaryModule', () => {
-    const cloudinaryModule = module.select(CloudinaryModule);
-    expect(cloudinaryModule).toBeDefined();
-  });
+  // TODO: Replace with S3 - Re-enable when S3 module is implemented
+  // it('should import CloudinaryModule', () => {
+  //   const cloudinaryModule = module.select(CloudinaryModule);
+  //   expect(cloudinaryModule).toBeDefined();
+  // });
 
   it('should import ProfileModule', () => {
     const profileModule = module.select(ProfileModule);

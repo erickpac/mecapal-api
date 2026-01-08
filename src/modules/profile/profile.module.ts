@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { PrismaModule } from '../prisma/prisma.module';
-import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { CognitoModule } from '../cognito/cognito.module';
+// TODO: Replace with S3 - Cloudinary module removed
+// import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { ProfileRepository } from './infrastructure/repositories/profile.repository';
 import { VehicleRepository } from './infrastructure/repositories/vehicle.repository';
 import { VehiclePhotoRepository } from './infrastructure/repositories/vehicle-photo.repository';
@@ -21,7 +23,7 @@ import { DomainExceptionFilter } from './infrastructure/filters/domain-exception
 import { PROFILE_TOKENS } from './domain/constants/injection-tokens';
 
 @Module({
-  imports: [PrismaModule, CloudinaryModule],
+  imports: [PrismaModule, CognitoModule], // TODO: Replace with S3 - Add S3Module when implemented
   controllers: [ProfileController, VehicleController],
   providers: [
     // Exception Filter

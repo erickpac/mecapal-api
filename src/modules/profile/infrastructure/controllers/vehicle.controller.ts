@@ -19,15 +19,18 @@ import { FindAllVehiclesUseCase } from '../../application/use-cases/find-all-veh
 import { FindVehicleByIdUseCase } from '../../application/use-cases/find-vehicle-by-id.use-case';
 import { UpdateVehicleUseCase } from '../../application/use-cases/update-vehicle.use-case';
 import { DeleteVehicleUseCase } from '../../application/use-cases/delete-vehicle.use-case';
-import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
-import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
-import { User } from '../../../auth/domain/entities/user.entity';
-import { RolesGuard } from '../../../auth/infrastructure/guards/roles.guard';
-import { Roles } from '../../../auth/infrastructure/decorators/roles.decorator';
-import { UserRole } from '../../../auth/domain/enums/user-role.enum';
+import {
+  CognitoAuthGuard,
+  CurrentUser,
+  User,
+  RolesGuard,
+  Roles,
+  UserRole,
+} from '../../../cognito';
 import { UploadVehicleImageUseCase } from '../../application/use-cases/upload-vehicle-image.use-case';
-import { imageUploadOptions } from '../../../cloudinary/constants/upload-options';
-import { UploadedFileType } from '../../../cloudinary/types/file-upload.type';
+// TODO: Replace with S3 - Cloudinary upload options removed
+// import { imageUploadOptions } from '../../../cloudinary/constants/upload-options';
+// import { UploadedFileType } from '../../../cloudinary/types/file-upload.type';
 import { VehiclePhotoResponseDto } from '../../application/dtos/vehicle-photo-response.dto';
 import { SetMainVehiclePhotoUseCase } from '../../application/use-cases/set-main-vehicle-photo.use-case';
 import { DeleteVehiclePhotoUseCase } from '../../application/use-cases/delete-vehicle-photo.use-case';
@@ -35,7 +38,7 @@ import { VehicleResponseDto } from '../../application/dtos/responses/vehicle-res
 import { VehicleMapper } from '../mappers/vehicle.mapper';
 
 @Controller('profile/vehicles')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(CognitoAuthGuard, RolesGuard)
 @Roles(UserRole.TRANSPORTER)
 export class VehicleController {
   constructor(
@@ -93,10 +96,11 @@ export class VehicleController {
   }
 
   @Post(':vehicleId/photo')
-  @UseInterceptors(FileInterceptor('file', imageUploadOptions))
+  // TODO: Replace with S3 - Add proper file upload configuration
+  @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
     @Param('vehicleId') id: string,
-    @UploadedFile() file: UploadedFileType,
+    @UploadedFile() file: Express.Multer.File,
   ): Promise<VehiclePhotoResponseDto> {
     return this.uploadVehicleImageUseCase.execute(id, file.buffer);
   }

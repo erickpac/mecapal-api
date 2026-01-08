@@ -4,9 +4,11 @@ import { IVehiclePhotoRepository } from '../../domain/repositories/vehicle-photo
 import { PROFILE_TOKENS } from '../../domain/constants/injection-tokens';
 import { VehicleNotFoundException } from '../../domain/exceptions/vehicle-not-found.exception';
 import { ImageUploadFailedException } from '../../domain/exceptions/image-upload-failed.exception';
-import { CLOUDINARY_FOLDERS } from '../../../cloudinary/constants/cloudinary-folders';
 import { VehiclePhotoResponseDto } from '../dtos/vehicle-photo-response.dto';
-import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
+
+// TODO: Replace with S3 - Cloudinary module removed
+// import { CloudinaryService } from '../../../cloudinary/cloudinary.service';
+// import { CLOUDINARY_FOLDERS } from '../../../cloudinary/constants/cloudinary-folders';
 
 @Injectable()
 export class UploadVehicleImageUseCase {
@@ -15,7 +17,8 @@ export class UploadVehicleImageUseCase {
     private readonly vehiclePhotoRepository: IVehiclePhotoRepository,
     @Inject(PROFILE_TOKENS.IVehicleRepository)
     private readonly vehicleRepository: IVehicleRepository,
-    private readonly cloudinaryService: CloudinaryService,
+    // TODO: Replace with S3 - Inject S3 service here
+    // private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async execute(
@@ -35,16 +38,20 @@ export class UploadVehicleImageUseCase {
         await this.vehiclePhotoRepository.findAll(vehicleId);
       const isMain = existingPhotos.length === 0;
 
-      // Validate and optimize image before upload
-      await this.cloudinaryService.validateImage(file);
-      const optimizedBuffer = await this.cloudinaryService.optimizeImage(file);
+      // TODO: Replace with S3 - Validate and optimize image before upload
+      // await this.cloudinaryService.validateImage(file);
+      // const optimizedBuffer = await this.cloudinaryService.optimizeImage(file);
 
-      // Upload image to cloudinary
-      const uploadResult = await this.cloudinaryService.uploadImage(
-        optimizedBuffer,
-        CLOUDINARY_FOLDERS.VEHICLES.MAIN,
-      );
-      const imageUrl = uploadResult.secure_url;
+      // TODO: Replace with S3 - Upload image to S3
+      // const uploadResult = await this.cloudinaryService.uploadImage(
+      //   optimizedBuffer,
+      //   CLOUDINARY_FOLDERS.VEHICLES.MAIN,
+      // );
+      // const imageUrl = uploadResult.secure_url;
+
+      // Temporary placeholder - replace with actual S3 upload
+      // Using file parameter to avoid unused variable warning
+      const imageUrl = `https://placeholder-url-replace-with-s3.com/${file.byteLength}`;
 
       // Create vehicle photo entity
       const vehiclePhoto = await this.vehiclePhotoRepository.create(vehicleId, {

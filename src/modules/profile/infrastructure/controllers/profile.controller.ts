@@ -10,12 +10,10 @@ import {
 import { GetProfileUseCase } from '../../application/use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from '../../application/use-cases/update-profile.use-case';
 import { UpdateProfileDto } from '../../application/dtos/update-profile.dto';
-import { User } from '../../../auth/domain/entities/user.entity';
-import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
-import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
+import { CognitoAuthGuard, CurrentUser, User } from '../../../cognito';
 
 @Controller('profile')
-@UseGuards(JwtAuthGuard)
+@UseGuards(CognitoAuthGuard)
 export class ProfileController {
   constructor(
     private readonly getProfileUseCase: GetProfileUseCase,
@@ -23,7 +21,7 @@ export class ProfileController {
   ) {}
 
   @Get('me')
-  async getProfile(@CurrentUser() user: User): Promise<Omit<User, 'password'>> {
+  async getProfile(@CurrentUser() user: User): Promise<User> {
     return this.getProfileUseCase.execute(user.id);
   }
 
@@ -32,7 +30,7 @@ export class ProfileController {
   async updateProfile(
     @CurrentUser() user: User,
     @Body() updateProfileDto: UpdateProfileDto,
-  ): Promise<Omit<User, 'password'>> {
+  ): Promise<User> {
     return this.updateProfileUseCase.execute(user.id, updateProfileDto);
   }
 }

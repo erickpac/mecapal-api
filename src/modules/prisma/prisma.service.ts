@@ -12,6 +12,7 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   private readonly logger = new Logger(PrismaService.name);
+
   async onModuleInit() {
     await this.$connect();
     this.logger.log('Prisma service initialized');

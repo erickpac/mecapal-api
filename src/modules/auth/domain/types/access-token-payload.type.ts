@@ -1,7 +1,0 @@
-import { UserRole } from '../enums/user-role.enum';
-
-export interface AccessTokenPayload {
-  sub: string;
-  email: string;
-  role: UserRole;
-}

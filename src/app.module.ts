@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './modules/auth/auth.module';
+import { CognitoModule } from './modules/cognito/cognito.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
-import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
-import { ResendModule } from './modules/resend/resend.module';
+// TODO: Replace with S3 - Cloudinary module removed
+// import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     PrismaModule,
-    AuthModule,
-    CloudinaryModule,
+    CognitoModule,
+    // TODO: Replace with S3 - Add S3Module when implemented
+    // CloudinaryModule,
     ProfileModule,
-    ResendModule,
   ],
   controllers: [],
   providers: [],

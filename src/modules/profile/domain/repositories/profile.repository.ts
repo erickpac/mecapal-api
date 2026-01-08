@@ -1,4 +1,4 @@
-import { User } from '../../../auth/domain/entities/user.entity';
+import { User } from '../../../cognito/domain/entities/user.entity';
 
 export interface IProfileRepository {
   findById(id: string): Promise<User | null>;
