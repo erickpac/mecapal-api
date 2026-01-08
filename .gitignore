@@ -43,6 +43,10 @@ lerna-debug.log*
 .cursor/
 .cursorrules
 
+# Claude Code
+.claude/
+CLAUDE.md
+
 
 # dotenv environment variable files
 .env
