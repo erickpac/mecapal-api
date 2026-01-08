@@ -40,10 +40,14 @@ export class UserRepository implements IUserRepository {
     const user = await this.prisma.user.create({
       data: {
         cognitoSub: userData.cognitoSub,
-        name: userData.name,
         email: userData.email,
         phone: userData.phone,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
         role: userData.role,
+        companyName: userData.companyName,
+        taxId: userData.taxId,
+        termsAcceptedAt: userData.termsAcceptedAt,
       },
     });
 
@@ -57,9 +61,12 @@ export class UserRepository implements IUserRepository {
     const user = await this.prisma.user.update({
       where: { id },
       data: {
-        name: data.name,
         phone: data.phone,
+        firstName: data.firstName,
+        lastName: data.lastName,
         role: data.role,
+        companyName: data.companyName,
+        taxId: data.taxId,
       },
     });
 

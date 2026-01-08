@@ -38,8 +38,11 @@ export class ProfileRepository implements IProfileRepository {
     const user = await this.prisma.user.update({
       where: { id },
       data: {
-        name: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
         phone: data.phone,
+        companyName: data.companyName,
+        taxId: data.taxId,
       },
     });
 

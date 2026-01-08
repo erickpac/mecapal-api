@@ -35,9 +35,12 @@ export class SignInUseCase {
         id: user.id,
         cognitoSub: user.cognitoSub,
         email: user.email,
-        name: user.name,
         phone: user.phone,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
+        companyName: user.companyName,
+        taxId: user.taxId,
       },
     };
   }

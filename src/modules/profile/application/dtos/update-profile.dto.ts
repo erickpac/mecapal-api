@@ -1,17 +1,27 @@
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   @MinLength(2)
-  name?: string;
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  lastName?: string;
 
   @IsOptional()
   @IsString()
   @MinLength(8)
   phone?: string;
 
+  // Client-specific
   @IsOptional()
-  @IsEmail()
-  email?: string;
+  @IsString()
+  companyName?: string;
+
+  @IsOptional()
+  @IsString()
+  taxId?: string;
 }

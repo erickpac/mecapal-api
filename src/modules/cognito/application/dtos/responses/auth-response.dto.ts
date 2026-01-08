@@ -4,9 +4,12 @@ export class AuthUserDto {
   id: string;
   cognitoSub: string;
   email: string;
-  name: string;
-  phone: string | null;
+  phone: string;
+  firstName: string;
+  lastName: string;
   role: UserRole;
+  companyName: string | null;
+  taxId: string | null;
 }
 
 export class AuthResponseDto {

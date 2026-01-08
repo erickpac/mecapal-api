@@ -26,9 +26,13 @@ export class SignUpUseCase {
     const user = await this.userRepository.create({
       cognitoSub: cognitoResult.userSub,
       email: dto.email,
-      name: dto.name,
-      phone: dto.phone ?? null,
-      role: dto.role ?? UserRole.USER,
+      phone: dto.phone,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      role: dto.role ?? UserRole.CLIENT,
+      companyName: dto.companyName ?? null,
+      taxId: dto.taxId ?? null,
+      termsAcceptedAt: dto.termsAccepted ? new Date() : null,
     });
 
     return {
@@ -36,9 +40,12 @@ export class SignUpUseCase {
         id: user.id,
         cognitoSub: user.cognitoSub,
         email: user.email,
-        name: user.name,
         phone: user.phone,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
+        companyName: user.companyName,
+        taxId: user.taxId,
       },
       message: cognitoResult.userConfirmed
         ? 'User registered successfully'

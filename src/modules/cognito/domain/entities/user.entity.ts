@@ -3,10 +3,14 @@ import { UserRole } from '../enums/user-role.enum';
 export class User {
   id: string;
   cognitoSub: string;
-  name: string;
   email: string;
-  phone: string | null;
+  phone: string;
+  firstName: string;
+  lastName: string;
   role: UserRole;
+  companyName: string | null;
+  taxId: string | null;
+  termsAcceptedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 
