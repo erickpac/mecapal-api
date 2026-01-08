@@ -47,7 +47,6 @@ export class UserRepository implements IUserRepository {
         role: userData.role,
         companyName: userData.companyName,
         taxId: userData.taxId,
-        termsAcceptedAt: userData.termsAcceptedAt,
       },
     });
 

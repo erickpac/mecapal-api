@@ -4,7 +4,6 @@ import {
   MinLength,
   IsOptional,
   IsEnum,
-  IsBoolean,
 } from 'class-validator';
 import { UserRole } from '../../domain/enums/user-role.enum';
 
@@ -38,7 +37,4 @@ export class SignUpDto {
   @IsString()
   @IsOptional()
   taxId?: string;
-
-  @IsBoolean()
-  termsAccepted: boolean;
 }

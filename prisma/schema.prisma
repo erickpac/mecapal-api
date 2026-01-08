@@ -47,9 +47,6 @@ model User {
   companyName        String?
   taxId              String?
 
-  // Terms
-  termsAcceptedAt    DateTime?
-
   // Relations
   vehicles           Vehicle[]
   transporterProfile TransporterProfile?

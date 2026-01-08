@@ -10,7 +10,6 @@ export class User {
   role: UserRole;
   companyName: string | null;
   taxId: string | null;
-  termsAcceptedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 
