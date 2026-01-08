@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
+import { EmailModule } from '../email/email.module';
 import { ValidationController } from './infrastructure/controllers/validation.controller';
 import { ValidationRepository } from './infrastructure/repositories/validation.repository';
 import { BACKOFFICE_TOKENS } from './domain/constants/injection-tokens';
@@ -13,7 +14,7 @@ import { ApproveTransporterProfileUseCase } from './application/use-cases/approv
 import { RejectTransporterProfileUseCase } from './application/use-cases/reject-transporter-profile.use-case';
 
 @Module({
-  imports: [PrismaModule, CognitoModule],
+  imports: [PrismaModule, CognitoModule, EmailModule],
   controllers: [ValidationController],
   providers: [
     // Repository

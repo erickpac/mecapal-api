@@ -4,12 +4,14 @@ import { IValidationRepository } from '../../domain/repositories/validation.repo
 import { ValidationEntityType } from '../../domain/enums/validation-entity-type.enum';
 import { ValidationLog } from '../../domain/entities/validation-log.entity';
 import { RejectValidationDto } from '../dtos/reject-validation.dto';
+import { SendValidationRejectionEmailUseCase } from '../../../email/application/use-cases/send-validation-rejection-email.use-case';
 
 @Injectable()
 export class RejectVehicleUseCase {
   constructor(
     @Inject(BACKOFFICE_TOKENS.IValidationRepository)
     private readonly validationRepository: IValidationRepository,
+    private readonly sendValidationRejectionEmail: SendValidationRejectionEmailUseCase,
   ) {}
 
   async execute(
@@ -17,7 +19,7 @@ export class RejectVehicleUseCase {
     reviewerId: string,
     dto: RejectValidationDto,
   ): Promise<ValidationLog> {
-    const vehicle = await this.validationRepository.findVehicleById(vehicleId) as { userId: string } | null;
+    const vehicle = await this.validationRepository.findVehicleById(vehicleId);
 
     if (!vehicle) {
       throw new NotFoundException(`Vehicle with ID ${vehicleId} not found`);
@@ -25,6 +27,8 @@ export class RejectVehicleUseCase {
 
     // Update vehicle status to SUSPENDED
     await this.validationRepository.updateVehicleStatus(vehicleId, 'SUSPENDED');
+
+    const shouldSendEmail = dto.sendEmail ?? true;
 
     // Create validation log
     const validationLog = await this.validationRepository.createValidationLog({
@@ -35,10 +39,20 @@ export class RejectVehicleUseCase {
       rejectionDetails: dto.details,
       reviewedBy: reviewerId,
       transporterId: vehicle.userId,
-      emailSent: dto.sendEmail ?? true,
+      emailSent: shouldSendEmail,
     });
 
-    // TODO: Send email notification if dto.sendEmail is true
+    // Send email notification if enabled
+    if (shouldSendEmail) {
+      await this.sendValidationRejectionEmail.execute({
+        transporterEmail: vehicle.user.email,
+        transporterName: `${vehicle.user.firstName} ${vehicle.user.lastName}`,
+        entityType: 'vehicle',
+        rejectionCategory: dto.category,
+        rejectionDetails: dto.details,
+        entitySummary: `${vehicle.brand} ${vehicle.model} ${vehicle.year} - ${vehicle.licensePlate}`,
+      });
+    }
 
     return validationLog;
   }

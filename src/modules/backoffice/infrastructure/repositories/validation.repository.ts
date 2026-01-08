@@ -6,6 +6,8 @@ import {
   PendingValidationsQuery,
   CreateValidationLogData,
   PendingValidationItem,
+  VehicleWithTransporter,
+  TransporterProfileWithUser,
 } from '../../domain/repositories/validation.repository';
 import { ValidationLog } from '../../domain/entities/validation-log.entity';
 import { ValidationEntityType } from '../../domain/enums/validation-entity-type.enum';
@@ -148,8 +150,8 @@ export class ValidationRepository implements IValidationRepository {
     };
   }
 
-  async findVehicleById(id: string): Promise<unknown> {
-    return this.prisma.vehicle.findUnique({
+  async findVehicleById(id: string): Promise<VehicleWithTransporter | null> {
+    const vehicle = await this.prisma.vehicle.findUnique({
       where: { id },
       include: {
         user: {
@@ -163,10 +165,23 @@ export class ValidationRepository implements IValidationRepository {
         },
       },
     });
+
+    if (!vehicle) return null;
+
+    return {
+      id: vehicle.id,
+      userId: vehicle.userId,
+      brand: vehicle.brand,
+      model: vehicle.model,
+      year: vehicle.year,
+      licensePlate: vehicle.licensePlate,
+      status: vehicle.status,
+      user: vehicle.user,
+    };
   }
 
-  async findTransporterProfileById(id: string): Promise<unknown> {
-    return this.prisma.transporterProfile.findUnique({
+  async findTransporterProfileById(id: string): Promise<TransporterProfileWithUser | null> {
+    const profile = await this.prisma.transporterProfile.findUnique({
       where: { id },
       include: {
         user: {
@@ -180,6 +195,18 @@ export class ValidationRepository implements IValidationRepository {
         },
       },
     });
+
+    if (!profile) return null;
+
+    return {
+      id: profile.id,
+      userId: profile.userId,
+      licenseNumber: profile.licenseNumber,
+      city: profile.city,
+      state: profile.state,
+      status: profile.status,
+      user: profile.user,
+    };
   }
 
   async updateVehicleStatus(id: string, status: string): Promise<void> {
