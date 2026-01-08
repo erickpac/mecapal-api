@@ -42,6 +42,7 @@ model User {
 
   // Relations
   transporterProfile TransporterProfile?
+  addresses          Address[]
 
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -78,4 +79,28 @@ model TransporterProfile {
 
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
+}
+
+model Address {
+  id           String   @id @default(uuid()) @db.Uuid
+  alias        String
+  street       String
+  city         String
+  state        String
+  postalCode   String
+  country      String   @default("Guatemala")
+  latitude     Float?
+  longitude    Float?
+  contactName  String?
+  contactPhone String?
+  isDefault    Boolean  @default(false)
+
+  // Relation
+  userId       String   @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
 }
