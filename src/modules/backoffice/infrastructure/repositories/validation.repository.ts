@@ -40,9 +40,10 @@ export class ValidationRepository implements IValidationRepository {
       Object.assign(profileWhere, searchCondition);
     }
 
-    const orderBy = sort === 'oldest'
-      ? { createdAt: 'asc' as const }
-      : { createdAt: 'desc' as const };
+    const orderBy =
+      sort === 'oldest'
+        ? { createdAt: 'asc' as const }
+        : { createdAt: 'desc' as const };
 
     const results: PendingValidationItem[] = [];
     let total = 0;
@@ -105,7 +106,10 @@ export class ValidationRepository implements IValidationRepository {
           },
           orderBy,
           skip: type === ValidationEntityType.TRANSPORTER_PROFILE ? skip : 0,
-          take: type === ValidationEntityType.TRANSPORTER_PROFILE ? limit : undefined,
+          take:
+            type === ValidationEntityType.TRANSPORTER_PROFILE
+              ? limit
+              : undefined,
         }),
         this.prisma.transporterProfile.count({ where: profileWhere }),
       ]);
@@ -129,7 +133,8 @@ export class ValidationRepository implements IValidationRepository {
     // Sort combined results if no type filter
     if (!type) {
       results.sort((a, b) => {
-        const comparison = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        const comparison =
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         return sort === 'oldest' ? -comparison : comparison;
       });
     }
@@ -180,7 +185,9 @@ export class ValidationRepository implements IValidationRepository {
     };
   }
 
-  async findTransporterProfileById(id: string): Promise<TransporterProfileWithUser | null> {
+  async findTransporterProfileById(
+    id: string,
+  ): Promise<TransporterProfileWithUser | null> {
     const profile = await this.prisma.transporterProfile.findUnique({
       where: { id },
       include: {
@@ -216,14 +223,25 @@ export class ValidationRepository implements IValidationRepository {
     });
   }
 
-  async updateTransporterProfileStatus(id: string, status: string): Promise<void> {
+  async updateTransporterProfileStatus(
+    id: string,
+    status: string,
+  ): Promise<void> {
     await this.prisma.transporterProfile.update({
       where: { id },
-      data: { status: status as 'PENDING_DOCUMENTS' | 'PENDING_REVIEW' | 'ACTIVE' | 'SUSPENDED' },
+      data: {
+        status: status as
+          | 'PENDING_DOCUMENTS'
+          | 'PENDING_REVIEW'
+          | 'ACTIVE'
+          | 'SUSPENDED',
+      },
     });
   }
 
-  async createValidationLog(data: CreateValidationLogData): Promise<ValidationLog> {
+  async createValidationLog(
+    data: CreateValidationLogData,
+  ): Promise<ValidationLog> {
     const log = await this.prisma.validationLog.create({
       data: {
         entityType: data.entityType,
@@ -241,7 +259,8 @@ export class ValidationRepository implements IValidationRepository {
     return new ValidationLog({
       ...log,
       entityType: log.entityType as ValidationEntityType,
-      rejectionCategory: log.rejectionCategory as ValidationLog['rejectionCategory'],
+      rejectionCategory:
+        log.rejectionCategory as ValidationLog['rejectionCategory'],
       checklist: log.checklist as ValidationLog['checklist'],
     });
   }

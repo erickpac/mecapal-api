@@ -40,7 +40,9 @@ export class SesEmailService implements IEmailService {
         Subject: { Data: options.subject, Charset: 'UTF-8' },
         Body: {
           Html: { Data: options.html, Charset: 'UTF-8' },
-          Text: options.text ? { Data: options.text, Charset: 'UTF-8' } : undefined,
+          Text: options.text
+            ? { Data: options.text, Charset: 'UTF-8' }
+            : undefined,
         },
       },
       ReplyToAddresses: options.replyTo ? [options.replyTo] : undefined,

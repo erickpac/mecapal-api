@@ -19,14 +19,20 @@ export class RejectTransporterProfileUseCase {
     reviewerId: string,
     dto: RejectValidationDto,
   ): Promise<ValidationLog> {
-    const profile = await this.validationRepository.findTransporterProfileById(profileId);
+    const profile =
+      await this.validationRepository.findTransporterProfileById(profileId);
 
     if (!profile) {
-      throw new NotFoundException(`Transporter profile with ID ${profileId} not found`);
+      throw new NotFoundException(
+        `Transporter profile with ID ${profileId} not found`,
+      );
     }
 
     // Update profile status to SUSPENDED
-    await this.validationRepository.updateTransporterProfileStatus(profileId, 'SUSPENDED');
+    await this.validationRepository.updateTransporterProfileStatus(
+      profileId,
+      'SUSPENDED',
+    );
 
     const shouldSendEmail = dto.sendEmail ?? true;
 

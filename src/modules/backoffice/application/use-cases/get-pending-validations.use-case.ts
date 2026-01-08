@@ -13,7 +13,9 @@ export class GetPendingValidationsUseCase {
     private readonly validationRepository: IValidationRepository,
   ) {}
 
-  async execute(query: PendingValidationsQueryDto): Promise<PendingValidationsResult> {
+  async execute(
+    query: PendingValidationsQueryDto,
+  ): Promise<PendingValidationsResult> {
     return this.validationRepository.findPendingValidations({
       type: query.type,
       search: query.search,

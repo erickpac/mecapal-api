@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { BACKOFFICE_TOKENS } from '../../domain/constants/injection-tokens';
 import { IValidationRepository } from '../../domain/repositories/validation.repository';
 import { ValidationEntityType } from '../../domain/enums/validation-entity-type.enum';
@@ -28,7 +33,9 @@ export class ApproveVehicleUseCase {
     // Validate all checklist items are true
     const checklistValues = Object.values(dto.checklist);
     if (!checklistValues.every((value) => value === true)) {
-      throw new BadRequestException('All checklist items must be checked to approve');
+      throw new BadRequestException(
+        'All checklist items must be checked to approve',
+      );
     }
 
     // Update vehicle status to ACTIVE

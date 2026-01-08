@@ -1,4 +1,7 @@
-import { ValidationLog, ValidationChecklist } from '../entities/validation-log.entity';
+import {
+  ValidationLog,
+  ValidationChecklist,
+} from '../entities/validation-log.entity';
 import { ValidationEntityType } from '../enums/validation-entity-type.enum';
 import { RejectionCategory } from '../enums/rejection-category.enum';
 
@@ -76,9 +79,13 @@ export interface CreateValidationLogData {
 }
 
 export interface IValidationRepository {
-  findPendingValidations(query: PendingValidationsQuery): Promise<PendingValidationsResult>;
+  findPendingValidations(
+    query: PendingValidationsQuery,
+  ): Promise<PendingValidationsResult>;
   findVehicleById(id: string): Promise<VehicleWithTransporter | null>;
-  findTransporterProfileById(id: string): Promise<TransporterProfileWithUser | null>;
+  findTransporterProfileById(
+    id: string,
+  ): Promise<TransporterProfileWithUser | null>;
   updateVehicleStatus(id: string, status: string): Promise<void>;
   updateTransporterProfileStatus(id: string, status: string): Promise<void>;
   createValidationLog(data: CreateValidationLogData): Promise<ValidationLog>;

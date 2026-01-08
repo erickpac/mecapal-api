@@ -10,10 +10,13 @@ export class GetProfileValidationDetailsUseCase {
   ) {}
 
   async execute(profileId: string): Promise<unknown> {
-    const profile = await this.validationRepository.findTransporterProfileById(profileId);
+    const profile =
+      await this.validationRepository.findTransporterProfileById(profileId);
 
     if (!profile) {
-      throw new NotFoundException(`Transporter profile with ID ${profileId} not found`);
+      throw new NotFoundException(
+        `Transporter profile with ID ${profileId} not found`,
+      );
     }
 
     return profile;
