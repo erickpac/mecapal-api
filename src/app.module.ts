@@ -6,6 +6,7 @@ import { UserModule } from './modules/user/user.module';
 import { AddressModule } from './modules/address/address.module';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { BackofficeModule } from './modules/backoffice/backoffice.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UploadModule } from './modules/upload/upload.module';
     AddressModule,
     VehicleModule,
     UploadModule,
+    BackofficeModule,
   ],
   controllers: [],
   providers: [],

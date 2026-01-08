@@ -46,6 +46,19 @@ enum VehicleStatus {
   SUSPENDED
 }
 
+enum ValidationEntityType {
+  VEHICLE
+  TRANSPORTER_PROFILE
+}
+
+enum RejectionCategory {
+  POOR_QUALITY_PHOTOS
+  EXPIRED_DOCUMENTS
+  INFORMATION_MISMATCH
+  ADDITIONAL_DOCUMENTATION_REQUIRED
+  OTHER
+}
+
 model User {
   id                 String              @id @default(uuid()) @db.Uuid
   cognitoSub         String              @unique
@@ -63,6 +76,8 @@ model User {
   transporterProfile TransporterProfile?
   addresses          Address[]
   vehicles           Vehicle[]
+  reviewedValidations ValidationLog[]    @relation("ReviewedValidations")
+  transporterValidations ValidationLog[] @relation("TransporterValidations")
 
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -164,4 +179,29 @@ model Vehicle {
   updatedAt           DateTime      @updatedAt
 
   @@index([userId])
+}
+
+model ValidationLog {
+  id                String               @id @default(uuid()) @db.Uuid
+  entityType        ValidationEntityType
+  entityId          String               @db.Uuid
+  action            String               // APPROVED, REJECTED
+  rejectionCategory RejectionCategory?
+  rejectionDetails  String?
+  checklist         Json?
+
+  // Reviewer (BACKOFFICE/ADMIN)
+  reviewedBy        String               @db.Uuid
+  reviewer          User                 @relation("ReviewedValidations", fields: [reviewedBy], references: [id])
+
+  // Transporter being validated
+  transporterId     String               @db.Uuid
+  transporter       User                 @relation("TransporterValidations", fields: [transporterId], references: [id])
+
+  emailSent         Boolean              @default(false)
+  createdAt         DateTime             @default(now())
+
+  @@index([entityType, entityId])
+  @@index([transporterId])
+  @@index([reviewedBy])
 }
