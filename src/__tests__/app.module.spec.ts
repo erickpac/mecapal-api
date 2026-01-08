@@ -3,9 +3,7 @@ import { AppModule } from '../app.module';
 import { ConfigModule } from '@nestjs/config';
 import { CognitoModule } from '../modules/cognito/cognito.module';
 import { PrismaModule } from '../modules/prisma/prisma.module';
-// TODO: Replace with S3 - Cloudinary module removed
-// import { CloudinaryModule } from '../modules/cloudinary/cloudinary.module';
-import { ProfileModule } from '../modules/profile/profile.module';
+import { UserModule } from '../modules/user/user.module';
 import { PrismaService } from '../modules/prisma/prisma.service';
 import { INestApplication } from '@nestjs/common';
 import { COGNITO_TOKENS } from '../modules/cognito/domain/constants/injection-tokens';
@@ -85,15 +83,9 @@ describe('AppModule', () => {
     expect(cognitoModule).toBeDefined();
   });
 
-  // TODO: Replace with S3 - Re-enable when S3 module is implemented
-  // it('should import CloudinaryModule', () => {
-  //   const cloudinaryModule = module.select(CloudinaryModule);
-  //   expect(cloudinaryModule).toBeDefined();
-  // });
-
-  it('should import ProfileModule', () => {
-    const profileModule = module.select(ProfileModule);
-    expect(profileModule).toBeDefined();
+  it('should import UserModule', () => {
+    const userModule = module.select(UserModule);
+    expect(userModule).toBeDefined();
   });
 
   it('should have no controllers', () => {
