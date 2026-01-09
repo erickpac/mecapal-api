@@ -61,7 +61,7 @@ async function main() {
     { name: 'Zona 4', code: 'Z04', lat: 14.6225, lng: -90.5228 },
     { name: 'Zona 5', code: 'Z05', lat: 14.6239, lng: -90.5042 },
     { name: 'Zona 6', code: 'Z06', lat: 14.6542, lng: -90.4928 },
-    { name: 'Zona 7', code: 'Z07', lat: 14.6350, lng: -90.5458 },
+    { name: 'Zona 7', code: 'Z07', lat: 14.635, lng: -90.5458 },
     { name: 'Zona 8', code: 'Z08', lat: 14.6131, lng: -90.5247 },
     { name: 'Zona 9', code: 'Z09', lat: 14.6089, lng: -90.5136 },
     { name: 'Zona 10', code: 'Z10', lat: 14.5953, lng: -90.5064 },
