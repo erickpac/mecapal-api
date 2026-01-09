@@ -11,6 +11,11 @@ import {
   GlobalSignOutCommand,
   GetUserCommand,
   AuthFlowType,
+  AdminCreateUserCommand,
+  AdminInitiateAuthCommand,
+  RespondToAuthChallengeCommand,
+  ChallengeNameType,
+  MessageActionType,
 } from '@aws-sdk/client-cognito-identity-provider';
 import * as jwt from 'jsonwebtoken';
 import { JwksClient } from 'jwks-rsa';
@@ -19,6 +24,8 @@ import {
   CognitoTokens,
   CognitoUser,
   SignUpResult,
+  AdminSignInResult,
+  AdminCreateUserResult,
 } from '../../domain/types/cognito.types';
 import {
   InvalidCredentialsException,
@@ -98,6 +105,110 @@ export class CognitoService implements ICognitoService {
         AuthParameters: {
           USERNAME: email,
           PASSWORD: password,
+        },
+      });
+
+      const response = await this.client.send(command);
+      const result = response.AuthenticationResult;
+
+      if (!result) {
+        throw new InvalidCredentialsException();
+      }
+
+      return {
+        accessToken: result.AccessToken ?? '',
+        refreshToken: result.RefreshToken ?? '',
+        idToken: result.IdToken ?? '',
+        expiresIn: result.ExpiresIn ?? 3600,
+      };
+    } catch (error) {
+      this.handleCognitoError(error);
+    }
+  }
+
+  async adminSignIn(
+    email: string,
+    password: string,
+  ): Promise<AdminSignInResult> {
+    try {
+      const command = new AdminInitiateAuthCommand({
+        UserPoolId: this.userPoolId,
+        ClientId: this.clientId,
+        AuthFlow: AuthFlowType.ADMIN_USER_PASSWORD_AUTH,
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+        },
+      });
+
+      const response = await this.client.send(command);
+
+      if (response.ChallengeName === ChallengeNameType.NEW_PASSWORD_REQUIRED) {
+        return {
+          challengeName: 'NEW_PASSWORD_REQUIRED',
+          session: response.Session ?? '',
+        };
+      }
+
+      const result = response.AuthenticationResult;
+
+      if (!result) {
+        throw new InvalidCredentialsException();
+      }
+
+      return {
+        tokens: {
+          accessToken: result.AccessToken ?? '',
+          refreshToken: result.RefreshToken ?? '',
+          idToken: result.IdToken ?? '',
+          expiresIn: result.ExpiresIn ?? 3600,
+        },
+      };
+    } catch (error) {
+      this.handleCognitoError(error);
+    }
+  }
+
+  async adminCreateUser(
+    email: string,
+    temporaryPassword?: string,
+  ): Promise<AdminCreateUserResult> {
+    try {
+      const command = new AdminCreateUserCommand({
+        UserPoolId: this.userPoolId,
+        Username: email,
+        UserAttributes: [
+          { Name: 'email', Value: email },
+          { Name: 'email_verified', Value: 'true' },
+        ],
+        TemporaryPassword: temporaryPassword,
+        DesiredDeliveryMediums: ['EMAIL'],
+      });
+
+      const response = await this.client.send(command);
+
+      return {
+        userSub:
+          response.User?.Attributes?.find((a) => a.Name === 'sub')?.Value ?? '',
+      };
+    } catch (error) {
+      this.handleCognitoError(error);
+    }
+  }
+
+  async respondToNewPasswordChallenge(
+    email: string,
+    newPassword: string,
+    session: string,
+  ): Promise<CognitoTokens> {
+    try {
+      const command = new RespondToAuthChallengeCommand({
+        ClientId: this.clientId,
+        ChallengeName: ChallengeNameType.NEW_PASSWORD_REQUIRED,
+        Session: session,
+        ChallengeResponses: {
+          USERNAME: email,
+          NEW_PASSWORD: newPassword,
         },
       });
 

@@ -58,3 +58,18 @@ export class InvalidTokenException extends CognitoException {
     super('Invalid or expired token', 'INVALID_TOKEN');
   }
 }
+
+export class UnauthorizedRoleException extends CognitoException {
+  constructor() {
+    super(
+      'User role is not authorized for this application',
+      'UNAUTHORIZED_ROLE',
+    );
+  }
+}
+
+export class NewPasswordRequiredException extends CognitoException {
+  constructor(public readonly session: string) {
+    super('New password required', 'NEW_PASSWORD_REQUIRED');
+  }
+}

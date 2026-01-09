@@ -10,7 +10,7 @@ import {
 import {
   SignUpUseCase,
   ConfirmSignUpUseCase,
-  SignInUseCase,
+  MobileSignInUseCase,
   RefreshTokenUseCase,
   ForgotPasswordUseCase,
   ConfirmForgotPasswordUseCase,
@@ -35,7 +35,7 @@ export class AuthController {
   constructor(
     private readonly signUpUseCase: SignUpUseCase,
     private readonly confirmSignUpUseCase: ConfirmSignUpUseCase,
-    private readonly signInUseCase: SignInUseCase,
+    private readonly mobileSignInUseCase: MobileSignInUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
     private readonly confirmForgotPasswordUseCase: ConfirmForgotPasswordUseCase,
@@ -58,7 +58,7 @@ export class AuthController {
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
   async signIn(@Body() dto: SignInDto) {
-    return this.signInUseCase.execute(dto);
+    return this.mobileSignInUseCase.execute(dto);
   }
 
   @Post('refresh')

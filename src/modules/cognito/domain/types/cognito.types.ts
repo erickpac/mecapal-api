@@ -15,3 +15,13 @@ export interface SignUpResult {
   userSub: string;
   userConfirmed: boolean;
 }
+
+export interface AdminSignInResult {
+  tokens?: CognitoTokens;
+  challengeName?: 'NEW_PASSWORD_REQUIRED';
+  session?: string;
+}
+
+export interface AdminCreateUserResult {
+  userSub: string;
+}

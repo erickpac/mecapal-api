@@ -10,21 +10,26 @@ import { RolesGuard } from './infrastructure/guards/roles.guard';
 import { TransporterStatusGuard } from './infrastructure/guards/transporter-status.guard';
 import { CognitoExceptionFilter } from './infrastructure/filters/cognito-exception.filter';
 import { AuthController } from './infrastructure/controllers/auth.controller';
+import { AdminAuthController } from './infrastructure/controllers/admin-auth.controller';
 import {
   SignUpUseCase,
   ConfirmSignUpUseCase,
   SignInUseCase,
+  MobileSignInUseCase,
+  AdminSignInUseCase,
   RefreshTokenUseCase,
   ForgotPasswordUseCase,
   ConfirmForgotPasswordUseCase,
   ChangePasswordUseCase,
   SignOutUseCase,
   GetUserUseCase,
+  CreateAdminUserUseCase,
+  CompleteNewPasswordUseCase,
 } from './application/use-cases';
 
 @Module({
   imports: [ConfigModule, PrismaModule],
-  controllers: [AuthController],
+  controllers: [AuthController, AdminAuthController],
   providers: [
     // Exception Filter
     {
@@ -49,12 +54,16 @@ import {
     SignUpUseCase,
     ConfirmSignUpUseCase,
     SignInUseCase,
+    MobileSignInUseCase,
+    AdminSignInUseCase,
     RefreshTokenUseCase,
     ForgotPasswordUseCase,
     ConfirmForgotPasswordUseCase,
     ChangePasswordUseCase,
     SignOutUseCase,
     GetUserUseCase,
+    CreateAdminUserUseCase,
+    CompleteNewPasswordUseCase,
   ],
   exports: [
     COGNITO_TOKENS.ICognitoService,

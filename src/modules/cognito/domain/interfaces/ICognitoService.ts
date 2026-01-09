@@ -2,12 +2,24 @@ import {
   CognitoTokens,
   CognitoUser,
   SignUpResult,
+  AdminSignInResult,
+  AdminCreateUserResult,
 } from '../types/cognito.types';
 
 export interface ICognitoService {
   signUp(email: string, password: string): Promise<SignUpResult>;
   confirmSignUp(email: string, code: string): Promise<void>;
   signIn(email: string, password: string): Promise<CognitoTokens>;
+  adminSignIn(email: string, password: string): Promise<AdminSignInResult>;
+  adminCreateUser(
+    email: string,
+    temporaryPassword?: string,
+  ): Promise<AdminCreateUserResult>;
+  respondToNewPasswordChallenge(
+    email: string,
+    newPassword: string,
+    session: string,
+  ): Promise<CognitoTokens>;
   refreshToken(refreshToken: string): Promise<CognitoTokens>;
   forgotPassword(email: string): Promise<void>;
   confirmForgotPassword(

@@ -15,6 +15,8 @@ import {
   InvalidPasswordException,
   UserNotFoundException,
   InvalidTokenException,
+  UnauthorizedRoleException,
+  NewPasswordRequiredException,
 } from '../../domain/exceptions/cognito.exceptions';
 
 @Catch(CognitoException)
@@ -25,11 +27,17 @@ export class CognitoExceptionFilter implements ExceptionFilter {
 
     const status = this.getHttpStatus(exception);
 
-    response.status(status).json({
+    const responseBody: Record<string, unknown> = {
       statusCode: status,
       error: exception.code,
       message: exception.message,
-    });
+    };
+
+    if (exception instanceof NewPasswordRequiredException) {
+      responseBody.session = exception.session;
+    }
+
+    response.status(status).json(responseBody);
   }
 
   private getHttpStatus(exception: CognitoException): number {
@@ -38,6 +46,10 @@ export class CognitoExceptionFilter implements ExceptionFilter {
       exception instanceof InvalidTokenException
     ) {
       return HttpStatus.UNAUTHORIZED;
+    }
+
+    if (exception instanceof UnauthorizedRoleException) {
+      return HttpStatus.FORBIDDEN;
     }
 
     if (exception instanceof UserNotFoundException) {
@@ -52,7 +64,8 @@ export class CognitoExceptionFilter implements ExceptionFilter {
       exception instanceof UserNotConfirmedException ||
       exception instanceof InvalidCodeException ||
       exception instanceof ExpiredCodeException ||
-      exception instanceof InvalidPasswordException
+      exception instanceof InvalidPasswordException ||
+      exception instanceof NewPasswordRequiredException
     ) {
       return HttpStatus.BAD_REQUEST;
     }
