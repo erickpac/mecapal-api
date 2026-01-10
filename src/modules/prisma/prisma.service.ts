@@ -14,8 +14,27 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
 
   async onModuleInit() {
-    await this.$connect();
-    this.logger.log('Prisma service initialized');
+    const maxRetries = 2;
+    const retryDelay = 2000; // 2 seconds
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        this.logger.log(
+          `Attempting database connection (${attempt}/${maxRetries})...`,
+        );
+        await this.$connect();
+        this.logger.log('Prisma service initialized');
+        return;
+      } catch (error) {
+        this.logger.error(
+          `Database connection attempt ${attempt} failed: ${error}`,
+        );
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      }
+    }
   }
 
   async onModuleDestroy() {

@@ -9,6 +9,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { BackofficeModule } from './modules/backoffice/backoffice.module';
 import { LocationModule } from './modules/location/location.module';
 import { ZonePreferenceModule } from './modules/zone-preference/zone-preference.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { ZonePreferenceModule } from './modules/zone-preference/zone-preference.
     LocationModule,
     ZonePreferenceModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

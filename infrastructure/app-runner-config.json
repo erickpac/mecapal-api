@@ -1,0 +1,31 @@
+{
+  "ImageRepository": {
+    "ImageIdentifier": "<ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/mekapal-api-<ENV>:latest",
+    "ImageRepositoryType": "ECR",
+    "ImageConfiguration": {
+      "Port": "8080",
+      "RuntimeEnvironmentVariables": {
+        "NODE_ENV": "<development|production>",
+        "PORT": "8080",
+        "DATABASE_URL": "<postgresql://user:pass@host:5432/db>",
+        "AWS_REGION": "<us-east-1>",
+        "AWS_COGNITO_USER_POOL_ID": "<us-east-1_xxxxxxx>",
+        "AWS_COGNITO_CLIENT_ID": "<cognito-client-id>",
+        "AWS_S3_REGION": "<us-east-1>",
+        "AWS_S3_BUCKET": "<mekapal-uploads-env>",
+        "AWS_ACCESS_KEY_ID": "<from-mekapal-app-user>",
+        "AWS_SECRET_ACCESS_KEY": "<from-mekapal-app-user>"
+      }
+    }
+  },
+  "AutoDeploymentsEnabled": false,
+  "AuthenticationConfiguration": {
+    "AccessRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/AppRunnerECRAccessRole"
+  },
+  "_comments": {
+    "note": "This is a TEMPLATE. Do not commit actual secrets.",
+    "AutoDeploymentsEnabled": "Set to false - GitHub Actions handles deployments",
+    "instance_config": "Use Cpu: 512, Memory: 1024 for NestJS + Prisma apps",
+    "health_check": "Path: /api/health, Interval: 10, Timeout: 5"
+  }
+}
