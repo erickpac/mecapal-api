@@ -59,6 +59,12 @@ Create a file named `ci-cd-policy.json`:
         "apprunner:UpdateService"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "PassRoleToAppRunner",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::*:role/AppRunnerECRAccessRole"
     }
   ]
 }
