@@ -15,7 +15,6 @@ import {
   AdminInitiateAuthCommand,
   RespondToAuthChallengeCommand,
   ChallengeNameType,
-  MessageActionType,
 } from '@aws-sdk/client-cognito-identity-provider';
 import * as jwt from 'jsonwebtoken';
 import { JwksClient } from 'jwks-rsa';

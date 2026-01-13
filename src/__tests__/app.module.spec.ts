@@ -7,6 +7,7 @@ import { UserModule } from '../modules/user/user.module';
 import { PrismaService } from '../modules/prisma/prisma.service';
 import { INestApplication } from '@nestjs/common';
 import { COGNITO_TOKENS } from '../modules/cognito/domain/constants/injection-tokens';
+import { HealthController } from '../health.controller';
 
 // Mock PrismaService for AppModule tests
 const mockPrismaService = {
@@ -88,11 +89,11 @@ describe('AppModule', () => {
     expect(userModule).toBeDefined();
   });
 
-  it('should have no controllers', () => {
+  it('should have HealthController', () => {
     const controllers = Reflect.getMetadata('controllers', AppModule) as
       | unknown[]
       | undefined;
-    expect(controllers).toEqual([]);
+    expect(controllers).toEqual([HealthController]);
   });
 
   it('should have no providers', () => {

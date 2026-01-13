@@ -9,6 +9,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { BackofficeModule } from './modules/backoffice/backoffice.module';
 import { LocationModule } from './modules/location/location.module';
 import { ZonePreferenceModule } from './modules/zone-preference/zone-preference.module';
+import { DeliveryModule } from './modules/delivery/delivery.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -23,6 +24,7 @@ import { HealthController } from './health.controller';
     BackofficeModule,
     LocationModule,
     ZonePreferenceModule,
+    DeliveryModule,
   ],
   controllers: [HealthController],
   providers: [],

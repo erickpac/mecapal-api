@@ -54,10 +54,11 @@ describe('PrismaService', () => {
 
     it('should handle connection errors gracefully', async () => {
       const error = new Error('Connection failed');
-      connectSpy.mockRejectedValueOnce(error);
+      // Mock all retry attempts to fail (maxRetries = 2)
+      connectSpy.mockRejectedValue(error);
 
       await expect(service.onModuleInit()).rejects.toThrow('Connection failed');
-      expect(connectSpy).toHaveBeenCalledTimes(1);
+      expect(connectSpy).toHaveBeenCalledTimes(2);
     });
 
     it('should complete successfully when connection works', async () => {

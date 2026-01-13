@@ -65,6 +65,25 @@ enum ZonePreference {
   EXCLUDED
 }
 
+enum DeliveryRequestStatus {
+  DRAFT
+  PUBLISHED
+  OFFERS_RECEIVED
+  ACCEPTED
+  IN_PROGRESS
+  PICKED_UP
+  DELIVERED
+  CANCELLED
+}
+
+enum DeliveryOfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
 model User {
   id                 String              @id @default(uuid()) @db.Uuid
   cognitoSub         String              @unique
@@ -85,6 +104,10 @@ model User {
   reviewedValidations ValidationLog[]    @relation("ReviewedValidations")
   transporterValidations ValidationLog[] @relation("TransporterValidations")
   zonePreferences    TransporterZonePreference[] @relation("TransporterZonePreferences")
+
+  // Delivery relations
+  clientDeliveryRequests DeliveryRequest[] @relation("ClientDeliveryRequests")
+  transporterOffers      DeliveryOffer[]   @relation("TransporterOffers")
 
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -141,6 +164,10 @@ model Address {
   userId       String   @db.Uuid
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Delivery relations
+  pickupRequests   DeliveryRequest[] @relation("PickupAddress")
+  deliveryRequests DeliveryRequest[] @relation("DeliveryAddress")
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -181,6 +208,9 @@ model Vehicle {
   // Relation
   userId              String        @db.Uuid
   user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Delivery relations
+  deliveryOffers      DeliveryOffer[]
 
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
@@ -310,4 +340,92 @@ model TransporterZonePreference {
   @@index([transporterId])
   @@index([zoneId])
   @@index([preference])
+}
+
+// ==================== DELIVERY MODELS ====================
+
+model DeliveryRequest {
+  id                   String                @id @default(uuid()) @db.Uuid
+
+  // Load type
+  loadType             LoadType
+
+  // Addresses
+  pickupAddressId      String                @db.Uuid
+  pickupAddress        Address               @relation("PickupAddress", fields: [pickupAddressId], references: [id])
+  deliveryAddressId    String                @db.Uuid
+  deliveryAddress      Address               @relation("DeliveryAddress", fields: [deliveryAddressId], references: [id])
+  calculatedDistanceKm Float
+
+  // Package details
+  estimatedWeightKg    Float
+  estimatedVolumeM3    Float?
+  packageDescription   String                @db.VarChar(500)
+  declaredValue        Float?
+  isFragile            Boolean               @default(false)
+  requiresSignature    Boolean               @default(false)
+  specialInstructions  String?               @db.VarChar(300)
+
+  // Scheduling
+  pickupDate           DateTime              @db.Date
+  pickupTimeStart      DateTime              @db.Time(0)
+  pickupTimeEnd        DateTime              @db.Time(0)
+  deliveryDeadline     DateTime
+  offerWindowMinutes   Int                   @default(60)
+  offerExpiresAt       DateTime
+
+  // Status
+  status               DeliveryRequestStatus @default(DRAFT)
+
+  // Relations
+  clientId             String                @db.Uuid
+  client               User                  @relation("ClientDeliveryRequests", fields: [clientId], references: [id])
+
+  acceptedOfferId      String?               @unique @db.Uuid
+
+  offers               DeliveryOffer[]       @relation("RequestOffers")
+
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+  @@index([offerExpiresAt])
+}
+
+model DeliveryOffer {
+  id                    String              @id @default(uuid()) @db.Uuid
+
+  // Offer details
+  offeredPrice          Float
+  estimatedTimeMinutes  Int
+  estimatedPickupTime   DateTime
+  estimatedDeliveryTime DateTime
+  notes                 String?             @db.VarChar(500)
+
+  // Platform fee (15%)
+  platformFeePercent    Float               @default(15)
+  platformFee           Float
+  netEarnings           Float
+
+  // Status
+  status                DeliveryOfferStatus @default(PENDING)
+
+  // Relations
+  deliveryRequestId     String              @db.Uuid
+  deliveryRequest       DeliveryRequest     @relation("RequestOffers", fields: [deliveryRequestId], references: [id])
+
+  transporterId         String              @db.Uuid
+  transporter           User                @relation("TransporterOffers", fields: [transporterId], references: [id])
+
+  vehicleId             String              @db.Uuid
+  vehicle               Vehicle             @relation(fields: [vehicleId], references: [id])
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@unique([deliveryRequestId, transporterId])
+  @@index([deliveryRequestId])
+  @@index([transporterId])
+  @@index([status])
 }
