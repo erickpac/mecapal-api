@@ -180,14 +180,33 @@ jobs:
           echo "::group::Waiting for deployment to complete"
           echo "Service ARN: $SERVICE_ARN"
 
-          if aws apprunner wait service-running --service-arn "$SERVICE_ARN"; then
-            echo "::endgroup::"
-            echo "::notice::Deployment completed successfully!"
-          else
-            echo "::endgroup::"
-            echo "::error::Deployment failed or timed out"
-            exit 1
-          fi
+          MAX_ATTEMPTS=60
+          SLEEP_TIME=10
+
+          for ((i=1; i<=MAX_ATTEMPTS; i++)); do
+            STATUS=$(aws apprunner describe-service \
+              --service-arn "$SERVICE_ARN" \
+              --query 'Service.Status' \
+              --output text)
+
+            echo "Attempt $i/$MAX_ATTEMPTS: Status = $STATUS"
+
+            if [ "$STATUS" = "RUNNING" ]; then
+              echo "::endgroup::"
+              echo "::notice::Deployment completed successfully!"
+              exit 0
+            elif [ "$STATUS" = "CREATE_FAILED" ] || [ "$STATUS" = "DELETE_FAILED" ] || [ "$STATUS" = "UPDATE_FAILED" ]; then
+              echo "::endgroup::"
+              echo "::error::Deployment failed with status: $STATUS"
+              exit 1
+            fi
+
+            sleep $SLEEP_TIME
+          done
+
+          echo "::endgroup::"
+          echo "::error::Deployment timed out after $((MAX_ATTEMPTS * SLEEP_TIME)) seconds"
+          exit 1
 
       - name: Get service URL
         id: get-url
