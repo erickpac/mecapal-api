@@ -4,12 +4,12 @@ Configure GitHub repository secrets for CI/CD deployments.
 
 ## Overview
 
-Los GitHub Actions workflows usan dos tipos de secrets:
+GitHub Actions workflows use two types of secrets:
 
-1. **Repository Secrets** - Compartidos entre todos los environments (credenciales CI/CD)
-2. **Environment Secrets** - Específicos por environment (dev/prod tienen valores diferentes)
+1. **Repository Secrets** - Shared between all environments (CI/CD credentials)
+2. **Environment Secrets** - Specific per environment (dev/prod have different values)
 
-> **Nota:** El workflow detecta automáticamente si el servicio App Runner existe. Si no existe, lo crea; si existe, lo actualiza. No necesitas configurar el ARN del servicio.
+> **Important:** The workflow **only updates** existing App Runner services. Services must be created beforehand using infrastructure scripts (`infrastructure/scripts/06-app-runner.sh`) or manually via AWS Console.
 
 ## 1. Access Repository Settings
 
@@ -19,7 +19,7 @@ Los GitHub Actions workflows usan dos tipos de secrets:
 
 ## 2. Create Repository Secrets
 
-Estos secrets son compartidos y usados por ambos workflows (dev y prod).
+These secrets are shared and used by both workflows (dev and prod).
 
 Click **New repository secret** and add:
 
@@ -36,17 +36,17 @@ Click **New repository secret** and add:
 2. Click **New environment**
 3. Name: `development`
 4. Click **Configure environment**
-5. Add **environment secrets** (estos valores son específicos para DEV):
+5. Add **environment secrets** (these values are specific to DEV):
 
 | Secret Name | Value | Example |
 |-------------|-------|---------|
-| `APP_RUNNER_ECR_ROLE_ARN` | ARN del rol ECR access | `arn:aws:iam::ACCOUNT:role/AppRunnerECRAccessRole` |
-| `DATABASE_URL` | Connection string de RDS DEV | `postgresql://user:pass@mekapal-dev.xxx.rds.amazonaws.com:5432/mekapal` |
-| `AWS_COGNITO_USER_POOL_ID` | User Pool ID DEV | `us-east-1_xxxxxxx` |
-| `AWS_COGNITO_CLIENT_ID` | App Client ID DEV | `xxxxxxxxxxxxxxxxx` |
-| `AWS_S3_BUCKET` | Bucket name DEV | `mekapal-uploads-dev` |
-| `APP_AWS_ACCESS_KEY_ID` | Access key del usuario `mekapal-app` | `AKIA...` |
-| `APP_AWS_SECRET_ACCESS_KEY` | Secret key del usuario `mekapal-app` | `xxx...` |
+| `APP_RUNNER_ECR_ROLE_ARN` | ECR access role ARN | `arn:aws:iam::ACCOUNT:role/AppRunnerECRAccessRole` |
+| `DATABASE_URL` | DEV RDS connection string | `postgresql://user:pass@mekapal-dev.xxx.rds.amazonaws.com:5432/mekapal` |
+| `AWS_COGNITO_USER_POOL_ID` | DEV User Pool ID | `us-east-1_xxxxxxx` |
+| `AWS_COGNITO_CLIENT_ID` | DEV App Client ID | `xxxxxxxxxxxxxxxxx` |
+| `AWS_S3_BUCKET` | DEV bucket name | `mekapal-uploads-dev` |
+| `APP_AWS_ACCESS_KEY_ID` | Access key from `mekapal-app` user | `AKIA...` |
+| `APP_AWS_SECRET_ACCESS_KEY` | Secret key from `mekapal-app` user | `xxx...` |
 
 6. **Deployment branches**:
    - Selected branches → Add `develop`
@@ -56,17 +56,17 @@ Click **New repository secret** and add:
 1. Click **New environment**
 2. Name: `production`
 3. Click **Configure environment**
-4. Add **environment secrets** (estos valores son específicos para PROD):
+4. Add **environment secrets** (these values are specific to PROD):
 
 | Secret Name | Value | Example |
 |-------------|-------|---------|
-| `APP_RUNNER_ECR_ROLE_ARN` | ARN del rol ECR access | `arn:aws:iam::ACCOUNT:role/AppRunnerECRAccessRole` |
-| `DATABASE_URL` | Connection string de RDS PROD | `postgresql://user:pass@mekapal-prod.xxx.rds.amazonaws.com:5432/mekapal` |
-| `AWS_COGNITO_USER_POOL_ID` | User Pool ID PROD | `us-east-1_yyyyyyy` |
-| `AWS_COGNITO_CLIENT_ID` | App Client ID PROD | `yyyyyyyyyyyyyyyyy` |
-| `AWS_S3_BUCKET` | Bucket name PROD | `mekapal-uploads-prod` |
-| `APP_AWS_ACCESS_KEY_ID` | Access key del usuario `mekapal-app` | `AKIA...` |
-| `APP_AWS_SECRET_ACCESS_KEY` | Secret key del usuario `mekapal-app` | `xxx...` |
+| `APP_RUNNER_ECR_ROLE_ARN` | ECR access role ARN | `arn:aws:iam::ACCOUNT:role/AppRunnerECRAccessRole` |
+| `DATABASE_URL` | PROD RDS connection string | `postgresql://user:pass@mekapal-prod.xxx.rds.amazonaws.com:5432/mekapal` |
+| `AWS_COGNITO_USER_POOL_ID` | PROD User Pool ID | `us-east-1_yyyyyyy` |
+| `AWS_COGNITO_CLIENT_ID` | PROD App Client ID | `yyyyyyyyyyyyyyyyy` |
+| `AWS_S3_BUCKET` | PROD bucket name | `mekapal-uploads-prod` |
+| `APP_AWS_ACCESS_KEY_ID` | Access key from `mekapal-app` user | `AKIA...` |
+| `APP_AWS_SECRET_ACCESS_KEY` | Secret key from `mekapal-app` user | `xxx...` |
 
 5. **Environment protection rules** (Recommended):
    - Required reviewers: Add yourself or team members
@@ -77,42 +77,43 @@ Click **New repository secret** and add:
 
 ## 4. How Environment Secrets Work
 
-Los workflows especifican qué environment usar:
+Workflows specify which environment to use:
 
 ```yaml
 # deploy-dev.yml
 jobs:
   deploy:
-    environment: development  # ← Usa secrets de "development"
+    environment: development  # ← Uses secrets from "development"
 ```
 
 ```yaml
 # deploy-prod.yml
 jobs:
   deploy:
-    environment: production  # ← Usa secrets de "production"
+    environment: production  # ← Uses secrets from "production"
 ```
 
-Cuando el workflow accede a `${{ secrets.DATABASE_URL }}`:
-- En `development` environment → Usa el `DATABASE_URL` de dev
-- En `production` environment → Usa el `DATABASE_URL` de prod
+When the workflow accesses `${{ secrets.DATABASE_URL }}`:
+- In `development` environment → Uses the DEV `DATABASE_URL`
+- In `production` environment → Uses the PROD `DATABASE_URL`
 
-**Mismo nombre, diferentes valores por environment.**
+**Same name, different values per environment.**
 
 ## 5. How the Workflow Works
 
-El workflow maneja automáticamente la creación y actualización del servicio:
+The workflow only updates existing services:
 
 ```
-1. Build & Push Docker image to ECR
-2. Check if App Runner service exists
-   ├── If NOT exists → Create new service
-   └── If exists → Update existing service
-3. Wait for deployment to complete
-4. Print service URL
+1. Run database migrations (Prisma)
+2. Build & Push Docker image to ECR
+3. Find existing App Runner service
+   └── If NOT exists → Fail with error message
+4. Update App Runner service with new image
+5. Wait for deployment to complete
+6. Print service URL
 ```
 
-**No necesitas crear el servicio manualmente.** El primer push a `develop` o `main` creará el servicio automáticamente.
+**Prerequisite:** The App Runner service must exist before the first deploy. Use infrastructure scripts or AWS Console to create it.
 
 ## 6. Get Values for Secrets
 
@@ -152,14 +153,14 @@ aws cognito-idp list-user-pool-clients \
 
 ### App User Credentials
 
-Estos son los access keys del usuario IAM `mekapal-app` (no el CI/CD user).
+These are the access keys from the IAM user `mekapal-app` (not the CI/CD user).
 
 ```bash
 # List access keys for mekapal-app user
 aws iam list-access-keys --user-name mekapal-app
 ```
 
-Si necesitas crear nuevas keys:
+If you need to create new keys:
 ```bash
 aws iam create-access-key --user-name mekapal-app
 ```
@@ -195,25 +196,26 @@ In **Settings → Secrets and variables → Actions**, you should see:
 
 ## 8. Workflow Files Reference
 
-Los workflows utilizan una arquitectura DRY con un workflow reutilizable:
+Workflows use a DRY architecture with a reusable workflow:
 
 ### `.github/workflows/_deploy-apprunner.yml` (Reusable Workflow)
-- Contiene toda la lógica de deployment
-- Recibe inputs: `environment`, `service_name`, `ecr_repository`, `node_env`
+- Contains all deployment logic
+- Receives inputs: `environment`, `service_name`, `ecr_repository`, `node_env`
 - Features:
-  - Docker layer caching para builds rápidos
-  - Concurrency control (previene deploys paralelos)
-  - GitHub Job Summary con detalles del deployment
-  - Manejo automático de create vs update del servicio
+  - Automatic Prisma migrations
+  - Docker layer caching for fast builds
+  - Concurrency control (prevents parallel deploys)
+  - GitHub Job Summary with deployment details
+  - Fails early if service doesn't exist
 
 ### `.github/workflows/deploy-dev.yml`
 - Triggers on push to `develop`
-- Llama al reusable workflow con configuración de desarrollo
+- Calls the reusable workflow with development configuration
 - Service: `mekapal-api-dev`
 
 ### `.github/workflows/deploy-prod.yml`
 - Triggers on push to `main`
-- Llama al reusable workflow con configuración de producción
+- Calls the reusable workflow with production configuration
 - Requires approval (if protection rules enabled)
 - Service: `mekapal-api-prod`
 
@@ -281,16 +283,16 @@ Environment: production (7 secrets)
 - Verify the branch name matches the workflow trigger
 - Check that the workflow file is in `.github/workflows/`
 
-### "Service creation failed"
+### "App Runner service not found"
 
-- Check that all environment secrets are configured
-- Verify DATABASE_URL is correct and RDS is accessible
-- Check CloudWatch logs for the App Runner service
+- The service must exist before running the workflow
+- Create the service using `infrastructure/scripts/06-app-runner.sh`
+- Or create it manually via AWS Console ([see docs](./06-app-runner-setup.md))
 
-### First deployment takes too long
+### Deployment takes too long
 
-- First deployment creates the service (~5-10 minutes)
-- Subsequent deployments are faster (~2-5 minutes)
+- Deployments typically take ~2-5 minutes
+- Health check may add extra time if the app takes longer to start
 
 ## Next Step
 

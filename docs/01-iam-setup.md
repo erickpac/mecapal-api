@@ -54,10 +54,11 @@ Create a file named `ci-cd-policy.json`:
       "Sid": "AppRunnerDeploy",
       "Effect": "Allow",
       "Action": [
-        "apprunner:StartDeployment",
-        "apprunner:DescribeService"
+        "apprunner:ListServices",
+        "apprunner:DescribeService",
+        "apprunner:UpdateService"
       ],
-      "Resource": "arn:aws:apprunner:us-east-1:*:service/mekapal-api-*"
+      "Resource": "*"
     }
   ]
 }

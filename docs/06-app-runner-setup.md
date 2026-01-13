@@ -2,7 +2,7 @@
 
 AWS App Runner hosts the NestJS API with automatic scaling and HTTPS.
 
-> **Note:** GitHub Actions workflow handles deployments automatically. This guide is for initial setup or manual configuration only.
+> **Important:** App Runner services **must be created manually** before GitHub Actions can deploy to them. The CI/CD workflow only updates existing services - it does not create new ones. This ensures infrastructure is provisioned intentionally via scripts.
 
 ## Prerequisites
 

@@ -48,14 +48,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
-    # Prevent concurrent deployments to the same environment
     concurrency:
       group: deploy-${{ inputs.environment }}
       cancel-in-progress: false
 
     outputs:
       service_url: ${{ steps.get-url.outputs.service_url }}
-      image_tag: ${{ steps.build-image.outputs.image_tag }}
+      image_tag: ${{ steps.meta.outputs.image_tag }}
 
     steps:
       - name: Checkout code
@@ -90,6 +89,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Get App Runner service ARN
+        id: get-service
+        run: |
+          SERVICE_ARN=$(aws apprunner list-services \
+            --query "ServiceSummaryList[?ServiceName=='${{ inputs.service_name }}'].ServiceArn" \
+            --output text)
+
+          if [ -z "$SERVICE_ARN" ] || [ "$SERVICE_ARN" == "None" ]; then
+            echo "::error::App Runner service '${{ inputs.service_name }}' not found."
+            echo "::error::Please create the service first using infrastructure scripts."
+            exit 1
+          fi
+
+          echo "service_arn=$SERVICE_ARN" >> $GITHUB_OUTPUT
+          echo "::notice::Found service: $SERVICE_ARN"
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -105,7 +120,6 @@ jobs:
           echo "full_image=${{ steps.login-ecr.outputs.registry }}/${{ inputs.ecr_repository }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
-        id: build-image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -117,81 +131,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Check if App Runner service exists
-        id: check-service
-        run: |
-          SERVICE_ARN=$(aws apprunner list-services \
-            --query "ServiceSummaryList[?ServiceName=='${{ inputs.service_name }}'].ServiceArn" \
-            --output text)
-
-          if [ -n "$SERVICE_ARN" ] && [ "$SERVICE_ARN" != "None" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "service_arn=$SERVICE_ARN" >> $GITHUB_OUTPUT
-            echo "::notice::Service exists: $SERVICE_ARN"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "::notice::Service does not exist, will create new one"
-          fi
-
-      - name: Create App Runner service
-        if: steps.check-service.outputs.exists == 'false'
-        id: create-service
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ inputs.ecr_repository }}
-          SERVICE_NAME: ${{ inputs.service_name }}
-          NODE_ENV: ${{ inputs.node_env }}
-        run: |
-          # Create source configuration JSON
-          SOURCE_CONFIG=$(cat <<EOF
-          {
-            "ImageRepository": {
-              "ImageIdentifier": "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest",
-              "ImageRepositoryType": "ECR",
-              "ImageConfiguration": {
-                "Port": "8080",
-                "RuntimeEnvironmentVariables": {
-                  "NODE_ENV": "${NODE_ENV}",
-                  "PORT": "8080",
-                  "DATABASE_URL": "${{ secrets.DATABASE_URL }}",
-                  "AWS_REGION": "${{ env.AWS_REGION }}",
-                  "AWS_COGNITO_USER_POOL_ID": "${{ secrets.AWS_COGNITO_USER_POOL_ID }}",
-                  "AWS_COGNITO_CLIENT_ID": "${{ secrets.AWS_COGNITO_CLIENT_ID }}",
-                  "AWS_S3_BUCKET": "${{ secrets.AWS_S3_BUCKET }}",
-                  "AWS_S3_REGION": "${{ env.AWS_REGION }}",
-                  "AWS_ACCESS_KEY_ID": "${{ secrets.APP_AWS_ACCESS_KEY_ID }}",
-                  "AWS_SECRET_ACCESS_KEY": "${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}"
-                }
-              }
-            },
-            "AutoDeploymentsEnabled": false,
-            "AuthenticationConfiguration": {
-              "AccessRoleArn": "${{ secrets.APP_RUNNER_ECR_ROLE_ARN }}"
-            }
-          }
-          EOF
-          )
-
-          SERVICE_ARN=$(aws apprunner create-service \
-            --service-name "$SERVICE_NAME" \
-            --source-configuration "$SOURCE_CONFIG" \
-            --instance-configuration '{"Cpu": "512", "Memory": "1024"}' \
-            --health-check-configuration '{"Protocol": "HTTP", "Path": "/api/health", "Interval": 10, "Timeout": 5, "HealthyThreshold": 1, "UnhealthyThreshold": 5}' \
-            --query 'Service.ServiceArn' \
-            --output text)
-
-          echo "service_arn=$SERVICE_ARN" >> $GITHUB_OUTPUT
-          echo "::notice::Created service: $SERVICE_ARN"
-
       - name: Update App Runner service
-        if: steps.check-service.outputs.exists == 'true'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ inputs.ecr_repository }}
-          SERVICE_ARN: ${{ steps.check-service.outputs.service_arn }}
+          SERVICE_ARN: ${{ steps.get-service.outputs.service_arn }}
           NODE_ENV: ${{ inputs.node_env }}
         run: |
-          # Create source configuration JSON
           SOURCE_CONFIG=$(cat <<EOF
           {
             "ImageRepository": {
@@ -227,31 +173,18 @@ jobs:
 
           echo "::notice::Updated service: $SERVICE_ARN"
 
-      - name: Resolve service ARN
-        id: resolve-arn
-        run: |
-          if [ "${{ steps.check-service.outputs.exists }}" == "true" ]; then
-            echo "service_arn=${{ steps.check-service.outputs.service_arn }}" >> $GITHUB_OUTPUT
-          else
-            echo "service_arn=${{ steps.create-service.outputs.service_arn }}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Wait for deployment
-        id: wait-deploy
         env:
-          SERVICE_ARN: ${{ steps.resolve-arn.outputs.service_arn }}
+          SERVICE_ARN: ${{ steps.get-service.outputs.service_arn }}
         run: |
           echo "::group::Waiting for deployment to complete"
           echo "Service ARN: $SERVICE_ARN"
 
-          # Use AWS waiter with timeout
           if aws apprunner wait service-running --service-arn "$SERVICE_ARN"; then
             echo "::endgroup::"
-            echo "success=true" >> $GITHUB_OUTPUT
             echo "::notice::Deployment completed successfully!"
           else
             echo "::endgroup::"
-            echo "success=false" >> $GITHUB_OUTPUT
             echo "::error::Deployment failed or timed out"
             exit 1
           fi
@@ -259,7 +192,7 @@ jobs:
       - name: Get service URL
         id: get-url
         env:
-          SERVICE_ARN: ${{ steps.resolve-arn.outputs.service_arn }}
+          SERVICE_ARN: ${{ steps.get-service.outputs.service_arn }}
         run: |
           SERVICE_URL=$(aws apprunner describe-service \
             --service-arn "$SERVICE_ARN" \
