@@ -5,6 +5,7 @@ export interface BankAccountProps {
   bankName: string;
   accountHolderName: string;
   accountType: BankAccountType;
+  accountNumber: string;
   accountNumberLast4: string;
   status: BankAccountStatus;
   verificationDocUrl?: string;
@@ -21,6 +22,7 @@ export class BankAccount {
   readonly bankName: string;
   readonly accountHolderName: string;
   readonly accountType: BankAccountType;
+  readonly accountNumber: string;
   readonly accountNumberLast4: string;
   readonly status: BankAccountStatus;
   readonly verificationDocUrl?: string;
@@ -36,6 +38,7 @@ export class BankAccount {
     this.bankName = props.bankName;
     this.accountHolderName = props.accountHolderName;
     this.accountType = props.accountType;
+    this.accountNumber = props.accountNumber;
     this.accountNumberLast4 = props.accountNumberLast4;
     this.status = props.status;
     this.verificationDocUrl = props.verificationDocUrl;

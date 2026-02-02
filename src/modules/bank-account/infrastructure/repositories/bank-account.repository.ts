@@ -32,8 +32,8 @@ export class BankAccountRepository implements IBankAccountRepository {
         bankName: data.bankName,
         accountHolderName: data.accountHolderName,
         accountType: data.accountType as PrismaBankAccountType,
+        accountNumber: data.accountNumber,
         accountNumberLast4: data.accountNumberLast4,
-        accountNumberEncrypted: data.accountNumberEncrypted,
         verificationDocUrl: data.verificationDocUrl,
         isDefault: existingCount === 0, // First account is default
         transporterId,
@@ -139,12 +139,12 @@ export class BankAccountRepository implements IBankAccountRepository {
 
   async existsByAccountNumber(
     transporterId: string,
-    accountNumberEncrypted: string,
+    accountNumber: string,
   ): Promise<boolean> {
     const count = await this.prisma.bankAccount.count({
       where: {
         transporterId,
-        accountNumberEncrypted,
+        accountNumber,
       },
     });
 
@@ -157,6 +157,7 @@ export class BankAccountRepository implements IBankAccountRepository {
       bankName: bankAccount.bankName,
       accountHolderName: bankAccount.accountHolderName,
       accountType: bankAccount.accountType as BankAccountType,
+      accountNumber: bankAccount.accountNumber,
       accountNumberLast4: bankAccount.accountNumberLast4,
       status: bankAccount.status as BankAccountStatus,
       verificationDocUrl: bankAccount.verificationDocUrl ?? undefined,

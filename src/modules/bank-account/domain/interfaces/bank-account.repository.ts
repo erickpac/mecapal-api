@@ -5,8 +5,8 @@ export interface CreateBankAccountData {
   bankName: string;
   accountHolderName: string;
   accountType: BankAccountType;
+  accountNumber: string;
   accountNumberLast4: string;
-  accountNumberEncrypted: string;
   verificationDocUrl?: string;
 }
 
@@ -33,6 +33,6 @@ export interface IBankAccountRepository {
   delete(id: string): Promise<void>;
   existsByAccountNumber(
     transporterId: string,
-    accountNumberEncrypted: string,
+    accountNumber: string,
   ): Promise<boolean>;
 }

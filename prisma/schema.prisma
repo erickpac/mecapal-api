@@ -749,12 +749,8 @@ model BankAccount {
   bankName          String
   accountHolderName String
   accountType       BankAccountType @default(CHECKING)
-
-  // Account number (masked - only last 4 digits visible)
-  accountNumberLast4 String @db.VarChar(4)
-
-  // Encrypted full account number (AES-256)
-  accountNumberEncrypted String
+  accountNumber     String // Full account number (for admin to use in manual transfers)
+  accountNumberLast4 String @db.VarChar(4) // For display in lists
 
   // Verification
   status             BankAccountStatus @default(PENDING_VERIFICATION)

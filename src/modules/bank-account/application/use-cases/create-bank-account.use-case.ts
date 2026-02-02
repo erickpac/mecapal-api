@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { BANK_ACCOUNT_TOKENS } from '../../domain/constants';
-import { IBankAccountRepository, IEncryptionService } from '../../domain/interfaces';
+import { IBankAccountRepository } from '../../domain/interfaces';
 import { BankAccount } from '../../domain/entities';
 import { DuplicateBankAccountException } from '../../domain/exceptions';
 import { CreateBankAccountDto } from '../dtos';
@@ -10,21 +10,16 @@ export class CreateBankAccountUseCase {
   constructor(
     @Inject(BANK_ACCOUNT_TOKENS.IBankAccountRepository)
     private readonly bankAccountRepository: IBankAccountRepository,
-    @Inject(BANK_ACCOUNT_TOKENS.IEncryptionService)
-    private readonly encryptionService: IEncryptionService,
   ) {}
 
   async execute(
     transporterId: string,
     dto: CreateBankAccountDto,
   ): Promise<BankAccount> {
-    // Encrypt sensitive data
-    const accountNumberEncrypted = this.encryptionService.encrypt(dto.accountNumber);
-
     // Check for duplicates
     const exists = await this.bankAccountRepository.existsByAccountNumber(
       transporterId,
-      accountNumberEncrypted,
+      dto.accountNumber,
     );
 
     if (exists) {
@@ -40,8 +35,8 @@ export class CreateBankAccountUseCase {
       bankName: dto.bankName,
       accountHolderName: dto.accountHolderName,
       accountType: dto.accountType,
+      accountNumber: dto.accountNumber,
       accountNumberLast4,
-      accountNumberEncrypted,
       verificationDocUrl: dto.verificationDocUrl,
     });
 
