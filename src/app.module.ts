@@ -13,6 +13,7 @@ import { DeliveryModule } from './modules/delivery/delivery.module';
 import { CommissionModule } from './modules/commission/infrastructure/commission.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { OrderModule } from './modules/order/order.module';
+import { BankAccountModule } from './modules/bank-account/bank-account.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -31,6 +32,7 @@ import { HealthController } from './health.controller';
     CommissionModule,
     PaymentModule,
     OrderModule,
+    BankAccountModule,
   ],
   controllers: [HealthController],
   providers: [],

@@ -6,10 +6,10 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Progreso General** | ~55% |
-| **Módulos Completados** | 11/20 |
-| **Fase Actual** | Fase 4 (Pagos y Flujo Cliente) ✅ |
-| **Próxima Fase** | Fase 5 (Flujo Transportista) |
+| **Progreso General** | ~60% |
+| **Módulos Completados** | 12/20 |
+| **Fase Actual** | Fase 5 (Flujo Transportista) |
+| **Próxima Fase** | Fase 5 continúa (Settlement) |
 
 ---
 
@@ -30,6 +30,7 @@
 | **Commission** | Perfiles de facturación | ✅ 100% | BillingProfile con comisiones/taxes |
 | **Payment** | Integración Stripe | ✅ 100% | Métodos de pago, transacciones, Payment Intents |
 | **Order/Tracking** | Órdenes y tracking | ✅ 100% | 9 use cases, estados, tracking GPS, historial |
+| **Bank Account** | Cuentas bancarias ACH | ✅ 100% | 7 use cases, encriptación AES-256, verificación |
 
 ### En Progreso
 
@@ -44,8 +45,8 @@
 |----|--------|-------------|-----------|---------------|------|
 | #5 | **Payment** | Integración Stripe | ✅ Completado | - | 3-4 |
 | #6 | **Order/Tracking** | Órdenes y tracking | ✅ Completado | - | 4 |
-| #7 | **Bank Account** | Cuentas bancarias ACH | 🔴 Alta | - | 5 |
-| #8 | **Settlement** | Liquidaciones/Earnings | 🔴 Alta | #7 | 5-6 |
+| #7 | **Bank Account** | Cuentas bancarias ACH | ✅ Completado | - | 5 |
+| #8 | **Settlement** | Liquidaciones/Earnings | 🔴 Alta | - | 5-6 |
 | #9 | **Matching Service** | Algoritmo de matching | 🟡 Media | - | 3 |
 | #10 | **Rating** | Calificaciones | 🟡 Media | - | 7 |
 | #11 | **Notifications** | Push, SMS, Email | 🟡 Media | - | 5-7 |
@@ -65,7 +66,7 @@
 │                                                                  │
 │  ┌──────────────────┐     ┌──────────────────┐                  │
 │  │ #5 Payment ✅    │     │ #7 Bank Account  │                  │
-│  │    (Stripe)      │     │    (ACH)         │                  │
+│  │    (Stripe)      │     │    (ACH) ✅      │                  │
 │  └────────┬─────────┘     └────────┬─────────┘                  │
 │           │                        │                            │
 │           ▼                        │                            │
@@ -76,7 +77,7 @@
 │           │                                                      │
 │           ▼                                                      │
 │  ┌──────────────────┐                                           │
-│  │ #8 Settlement/   │◄──── Bloqueado por #7                     │
+│  │ #8 Settlement/   │◄──── Desbloqueado                         │
 │  │    Earnings      │                                           │
 │  └────────┬─────────┘                                           │
 │           │                                                      │
@@ -107,7 +108,7 @@
 | 2 | Vehículos, Zonas y Config | 75 hrs | ✅ 95% | Vehicle, Zone Preference, Commission |
 | 3 | Delivery y Ofertas | 75 hrs | ⚠️ 85% | Delivery, Payment completo. Falta: Matching, Expiration |
 | 4 | Pagos y Flujo Cliente | 75 hrs | ✅ 100% | Payment y Order/Tracking completados |
-| 5 | Flujo Transportista | 75 hrs | ❌ 5% | Falta: Bank Account, Settlement, Notifications |
+| 5 | Flujo Transportista | 75 hrs | ⚠️ 35% | Bank Account completo. Falta: Settlement, Notifications |
 | 6 | Panel Administrativo | 75 hrs | ❌ 15% | Falta: Compensation, Incidents, Reports |
 | 7 | Calificaciones y Landing | 60 hrs | ❌ 0% | Falta: Rating, Notifications completas |
 | 8 | QA y Deploy | 45 hrs | ⚠️ 30% | CI/CD configurado. Falta: tests, monitoring |
@@ -184,16 +185,35 @@ src/modules/order/
 
 ---
 
-### #7 - Bank Account (ACH)
-**Prioridad:** 🔴 Alta | **Fase:** 5 | **Dependencias:** Ninguna
+### #7 - Bank Account (ACH) ✅ COMPLETADO
+**Prioridad:** ✅ Completado | **Fase:** 5
 
 **Alcance:**
-- [ ] CRUD de cuentas bancarias
-- [ ] Encriptación AES-256 de datos sensibles
-- [ ] Validación de titularidad
-- [ ] Documento de verificación (void check)
-- [ ] Marcar cuenta principal
-- [ ] Solo mostrar últimos 4 dígitos
+- [x] CRUD de cuentas bancarias
+- [x] Encriptación AES-256-GCM de datos sensibles
+- [x] Documento de verificación (void check)
+- [x] Marcar cuenta principal
+- [x] Solo mostrar últimos 4 dígitos
+- [x] Verificación por admin (VERIFIED/REJECTED)
+
+**Archivos creados:**
+```
+src/modules/bank-account/
+├── domain/
+│   ├── entities/bank-account.entity.ts
+│   ├── enums/bank-account-type.enum.ts, bank-account-status.enum.ts
+│   ├── interfaces/bank-account.repository.ts, encryption.service.ts
+│   ├── exceptions/
+│   └── constants/injection-tokens.ts
+├── application/
+│   ├── use-cases/ (7 use cases)
+│   └── dtos/
+├── infrastructure/
+│   ├── controllers/bank-account.controller.ts
+│   ├── repositories/bank-account.repository.ts
+│   └── services/encryption.service.ts
+└── bank-account.module.ts
+```
 
 ---
 
@@ -320,6 +340,7 @@ src/modules/order/
 | 2026-02-02 | Módulo Delivery completado | - |
 | 2026-02-02 | Módulo Payment completado (Stripe) | - |
 | 2026-02-02 | Módulo Order/Tracking completado (9 use cases, tracking GPS) | - |
+| 2026-02-02 | Módulo Bank Account completado (7 use cases, AES-256 encryption) | - |
 
 ---
 
