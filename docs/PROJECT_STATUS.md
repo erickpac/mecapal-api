@@ -30,7 +30,7 @@
 | **Commission** | Perfiles de facturación | ✅ 100% | BillingProfile con comisiones/taxes |
 | **Payment** | Integración Stripe | ✅ 100% | Métodos de pago, transacciones, Payment Intents |
 | **Order/Tracking** | Órdenes y tracking | ✅ 100% | 9 use cases, estados, tracking GPS, historial |
-| **Bank Account** | Cuentas bancarias ACH | ✅ 100% | 7 use cases, encriptación AES-256, verificación |
+| **Bank Account** | Cuentas bancarias | ✅ 100% | 7 use cases, encriptación AES-256, verificación manual |
 
 ### En Progreso
 
@@ -45,7 +45,7 @@
 |----|--------|-------------|-----------|---------------|------|
 | #5 | **Payment** | Integración Stripe | ✅ Completado | - | 3-4 |
 | #6 | **Order/Tracking** | Órdenes y tracking | ✅ Completado | - | 4 |
-| #7 | **Bank Account** | Cuentas bancarias ACH | ✅ Completado | - | 5 |
+| #7 | **Bank Account** | Cuentas bancarias | ✅ Completado | - | 5 |
 | #8 | **Settlement** | Liquidaciones/Earnings | 🔴 Alta | - | 5-6 |
 | #9 | **Matching Service** | Algoritmo de matching | 🟡 Media | - | 3 |
 | #10 | **Rating** | Calificaciones | 🟡 Media | - | 7 |
@@ -66,7 +66,7 @@
 │                                                                  │
 │  ┌──────────────────┐     ┌──────────────────┐                  │
 │  │ #5 Payment ✅    │     │ #7 Bank Account  │                  │
-│  │    (Stripe)      │     │    (ACH) ✅      │                  │
+│  │    (Stripe)      │     │       ✅         │                  │
 │  └────────┬─────────┘     └────────┬─────────┘                  │
 │           │                        │                            │
 │           ▼                        │                            │
@@ -185,7 +185,7 @@ src/modules/order/
 
 ---
 
-### #7 - Bank Account (ACH) ✅ COMPLETADO
+### #7 - Bank Account ✅ COMPLETADO
 **Prioridad:** ✅ Completado | **Fase:** 5
 
 **Alcance:**

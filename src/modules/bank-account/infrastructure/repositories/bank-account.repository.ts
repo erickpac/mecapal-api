@@ -32,9 +32,7 @@ export class BankAccountRepository implements IBankAccountRepository {
         bankName: data.bankName,
         accountHolderName: data.accountHolderName,
         accountType: data.accountType as PrismaBankAccountType,
-        routingNumberLast4: data.routingNumberLast4,
         accountNumberLast4: data.accountNumberLast4,
-        routingNumberEncrypted: data.routingNumberEncrypted,
         accountNumberEncrypted: data.accountNumberEncrypted,
         verificationDocUrl: data.verificationDocUrl,
         isDefault: existingCount === 0, // First account is default
@@ -159,7 +157,6 @@ export class BankAccountRepository implements IBankAccountRepository {
       bankName: bankAccount.bankName,
       accountHolderName: bankAccount.accountHolderName,
       accountType: bankAccount.accountType as BankAccountType,
-      routingNumberLast4: bankAccount.routingNumberLast4,
       accountNumberLast4: bankAccount.accountNumberLast4,
       status: bankAccount.status as BankAccountStatus,
       verificationDocUrl: bankAccount.verificationDocUrl ?? undefined,

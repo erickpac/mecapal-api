@@ -5,7 +5,6 @@ export interface BankAccountProps {
   bankName: string;
   accountHolderName: string;
   accountType: BankAccountType;
-  routingNumberLast4: string;
   accountNumberLast4: string;
   status: BankAccountStatus;
   verificationDocUrl?: string;
@@ -22,7 +21,6 @@ export class BankAccount {
   readonly bankName: string;
   readonly accountHolderName: string;
   readonly accountType: BankAccountType;
-  readonly routingNumberLast4: string;
   readonly accountNumberLast4: string;
   readonly status: BankAccountStatus;
   readonly verificationDocUrl?: string;
@@ -38,7 +36,6 @@ export class BankAccount {
     this.bankName = props.bankName;
     this.accountHolderName = props.accountHolderName;
     this.accountType = props.accountType;
-    this.routingNumberLast4 = props.routingNumberLast4;
     this.accountNumberLast4 = props.accountNumberLast4;
     this.status = props.status;
     this.verificationDocUrl = props.verificationDocUrl;
@@ -60,9 +57,5 @@ export class BankAccount {
 
   getMaskedAccountNumber(): string {
     return `****${this.accountNumberLast4}`;
-  }
-
-  getMaskedRoutingNumber(): string {
-    return `****${this.routingNumberLast4}`;
   }
 }

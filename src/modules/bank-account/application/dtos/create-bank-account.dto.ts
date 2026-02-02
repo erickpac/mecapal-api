@@ -3,9 +3,9 @@ import {
   IsEnum,
   IsOptional,
   IsUrl,
-  Length,
-  Matches,
+  MinLength,
   MaxLength,
+  Matches,
 } from 'class-validator';
 import { BankAccountType } from '../../domain/enums';
 
@@ -22,13 +22,9 @@ export class CreateBankAccountDto {
   accountType: BankAccountType;
 
   @IsString()
-  @Length(9, 9, { message: 'Routing number must be exactly 9 digits' })
-  @Matches(/^\d{9}$/, { message: 'Routing number must contain only digits' })
-  routingNumber: string;
-
-  @IsString()
-  @Length(4, 17, { message: 'Account number must be between 4 and 17 digits' })
-  @Matches(/^\d+$/, { message: 'Account number must contain only digits' })
+  @MinLength(4, { message: 'Account number must be at least 4 characters' })
+  @MaxLength(30, { message: 'Account number must be at most 30 characters' })
+  @Matches(/^[\d\-]+$/, { message: 'Account number can only contain digits and hyphens' })
   accountNumber: string;
 
   @IsOptional()

@@ -19,7 +19,6 @@ export class CreateBankAccountUseCase {
     dto: CreateBankAccountDto,
   ): Promise<BankAccount> {
     // Encrypt sensitive data
-    const routingNumberEncrypted = this.encryptionService.encrypt(dto.routingNumber);
     const accountNumberEncrypted = this.encryptionService.encrypt(dto.accountNumber);
 
     // Check for duplicates
@@ -32,18 +31,16 @@ export class CreateBankAccountUseCase {
       throw new DuplicateBankAccountException();
     }
 
-    // Extract last 4 digits
-    const routingNumberLast4 = dto.routingNumber.slice(-4);
-    const accountNumberLast4 = dto.accountNumber.slice(-4);
+    // Extract last 4 characters (removing hyphens for display)
+    const cleanAccountNumber = dto.accountNumber.replace(/-/g, '');
+    const accountNumberLast4 = cleanAccountNumber.slice(-4);
 
     // Create the bank account
     const bankAccount = await this.bankAccountRepository.create(transporterId, {
       bankName: dto.bankName,
       accountHolderName: dto.accountHolderName,
       accountType: dto.accountType,
-      routingNumberLast4,
       accountNumberLast4,
-      routingNumberEncrypted,
       accountNumberEncrypted,
       verificationDocUrl: dto.verificationDocUrl,
     });

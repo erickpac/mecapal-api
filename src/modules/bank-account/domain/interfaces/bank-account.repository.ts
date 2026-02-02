@@ -5,9 +5,7 @@ export interface CreateBankAccountData {
   bankName: string;
   accountHolderName: string;
   accountType: BankAccountType;
-  routingNumberLast4: string;
   accountNumberLast4: string;
-  routingNumberEncrypted: string;
   accountNumberEncrypted: string;
   verificationDocUrl?: string;
 }

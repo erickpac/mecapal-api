@@ -745,24 +745,22 @@ enum BankAccountStatus {
 model BankAccount {
   id String @id @default(uuid()) @db.Uuid
 
-  // Bank details (encrypted fields stored as encrypted strings)
-  bankName           String
-  accountHolderName  String
-  accountType        BankAccountType @default(CHECKING)
+  // Bank details
+  bankName          String
+  accountHolderName String
+  accountType       BankAccountType @default(CHECKING)
 
-  // Masked account info (only last 4 digits visible)
-  routingNumberLast4 String @db.VarChar(4)
+  // Account number (masked - only last 4 digits visible)
   accountNumberLast4 String @db.VarChar(4)
 
-  // Encrypted full numbers (AES-256)
-  routingNumberEncrypted String
+  // Encrypted full account number (AES-256)
   accountNumberEncrypted String
 
   // Verification
-  status              BankAccountStatus @default(PENDING_VERIFICATION)
-  verificationDocUrl  String? // Void check image
-  verifiedAt          DateTime?
-  rejectionReason     String?
+  status             BankAccountStatus @default(PENDING_VERIFICATION)
+  verificationDocUrl String? // Bank statement or void check image
+  verifiedAt         DateTime?
+  rejectionReason    String?
 
   // User preference
   isDefault Boolean @default(false)
