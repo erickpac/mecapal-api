@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../prisma/prisma.module';
 import { DeliveryModule } from '../delivery/delivery.module';
+import { OrderModule } from '../order/order.module';
 import { PAYMENT_TOKENS } from './domain/constants';
 import { PaymentRepository } from './infrastructure/repositories/payment.repository';
 import { StripeService } from './infrastructure/services/stripe.service';
@@ -18,7 +19,7 @@ import {
 } from './application/use-cases';
 
 @Module({
-  imports: [ConfigModule, PrismaModule, DeliveryModule],
+  imports: [ConfigModule, PrismaModule, DeliveryModule, forwardRef(() => OrderModule)],
   controllers: [PaymentController],
   providers: [
     // Repository

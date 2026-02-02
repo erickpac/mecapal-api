@@ -13,6 +13,8 @@ import { IDeliveryOfferRepository } from '../../../delivery/domain/repositories/
 import { IDeliveryRequestRepository } from '../../../delivery/domain/repositories/delivery-request.repository';
 import { DeliveryOfferStatus } from '../../../delivery/domain/enums/delivery-offer-status.enum';
 import { DeliveryRequestStatus } from '../../../delivery/domain/enums/delivery-request-status.enum';
+import { ORDER_TOKENS } from '../../../order/domain/constants';
+import { IOrderRepository } from '../../../order/domain/interfaces';
 import { ConfirmPaymentDto } from '../dtos';
 
 @Injectable()
@@ -26,6 +28,8 @@ export class ConfirmPaymentUseCase {
     private readonly deliveryOfferRepository: IDeliveryOfferRepository,
     @Inject(DELIVERY_TOKENS.IDeliveryRequestRepository)
     private readonly deliveryRequestRepository: IDeliveryRequestRepository,
+    @Inject(ORDER_TOKENS.IOrderRepository)
+    private readonly orderRepository: IOrderRepository,
   ) {}
 
   async execute(userId: string, dto: ConfirmPaymentDto): Promise<Transaction> {
@@ -90,9 +94,13 @@ export class ConfirmPaymentUseCase {
       },
     );
 
-    // If payment succeeded, update delivery offer and request
+    // If payment succeeded, update delivery offer and request, and create order
     if (newStatus === TransactionStatus.SUCCEEDED) {
-      await this.handleSuccessfulPayment(transaction.deliveryOfferId);
+      await this.handleSuccessfulPayment(
+        transaction.deliveryOfferId,
+        updatedTransaction.id,
+        userId,
+      );
     } else if (newStatus === TransactionStatus.FAILED) {
       throw new PaymentFailedException(
         failureMessage || 'Payment failed',
@@ -105,6 +113,8 @@ export class ConfirmPaymentUseCase {
 
   private async handleSuccessfulPayment(
     deliveryOfferId: string,
+    transactionId: string,
+    clientId: string,
   ): Promise<void> {
     // Get the offer with its delivery request
     const offer =
@@ -136,5 +146,13 @@ export class ConfirmPaymentUseCase {
       deliveryOfferId,
       DeliveryOfferStatus.REJECTED,
     );
+
+    // Create the order
+    await this.orderRepository.create({
+      deliveryOfferId,
+      transactionId,
+      clientId,
+      transporterId: offer.transporterId,
+    });
   }
 }

@@ -123,6 +123,10 @@ model User {
   paymentMethods   PaymentMethod[] @relation("UserPaymentMethods")
   transactions     Transaction[]   @relation("UserTransactions")
 
+  // Order relations
+  clientOrders      Order[] @relation("ClientOrders")
+  transporterOrders Order[] @relation("TransporterOrders")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -454,6 +458,9 @@ model DeliveryOffer {
   // Payment relation
   transaction Transaction?
 
+  // Order relation (created after payment succeeds)
+  order Order?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -490,6 +497,16 @@ enum TransactionStatus {
 enum TransactionType {
   PAYMENT
   REFUND
+}
+
+enum OrderStatus {
+  CONFIRMED // Created after payment succeeds
+  IN_PROGRESS // Transporter started the delivery
+  PICKED_UP // Package picked up from origin
+  IN_TRANSIT // On the way to destination
+  DELIVERED // Delivered to destination
+  COMPLETED // Order closed (after rating/settlement)
+  CANCELLED // Order cancelled
 }
 
 model PaymentMethod {
@@ -554,6 +571,9 @@ model Transaction {
   deliveryOfferId String         @unique @db.Uuid
   deliveryOffer   DeliveryOffer  @relation(fields: [deliveryOfferId], references: [id])
 
+  // Order relation
+  order Order?
+
   // Metadata
   metadata Json?
 
@@ -595,4 +615,112 @@ model BillingProfile {
 
   @@index([isActive])
   @@index([isDefault])
+}
+
+// ==================== ORDER/TRACKING MODELS ====================
+
+model Order {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Order number for human reference (e.g., ORD-2026-000001)
+  orderNumber String @unique
+
+  // Status
+  status OrderStatus @default(CONFIRMED)
+
+  // Timestamps for each status
+  confirmedAt   DateTime  @default(now())
+  inProgressAt  DateTime?
+  pickedUpAt    DateTime?
+  inTransitAt   DateTime?
+  deliveredAt   DateTime?
+  completedAt   DateTime?
+  cancelledAt   DateTime?
+
+  // Delivery confirmation
+  deliveryPhotoUrl   String?
+  deliverySignature  String? // Base64 or URL
+  deliveryNotes      String? @db.VarChar(500)
+  receiverName       String?
+  deliveredToAddress String? // Actual delivery address if different
+
+  // Cancellation
+  cancellationReason String? @db.VarChar(500)
+  cancelledBy        String? @db.Uuid // User ID who cancelled
+
+  // Relations
+  deliveryOfferId String        @unique @db.Uuid
+  deliveryOffer   DeliveryOffer @relation(fields: [deliveryOfferId], references: [id])
+
+  transactionId String      @unique @db.Uuid
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  clientId String @db.Uuid
+  client   User   @relation("ClientOrders", fields: [clientId], references: [id])
+
+  transporterId String @db.Uuid
+  transporter   User   @relation("TransporterOrders", fields: [transporterId], references: [id])
+
+  // Status history
+  statusHistory OrderStatusHistory[]
+
+  // Location updates
+  locationUpdates OrderLocation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([transporterId])
+  @@index([status])
+  @@index([orderNumber])
+}
+
+model OrderStatusHistory {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Status change
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+
+  // Metadata
+  notes    String? @db.VarChar(500)
+  changedBy String? @db.Uuid // User ID who made the change
+
+  // Location at status change (optional)
+  latitude  Float?
+  longitude Float?
+
+  // Relation
+  orderId String @db.Uuid
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([toStatus])
+}
+
+model OrderLocation {
+  id String @id @default(uuid()) @db.Uuid
+
+  // GPS coordinates
+  latitude  Float
+  longitude Float
+
+  // Speed and heading (optional)
+  speed   Float? // km/h
+  heading Float? // degrees from north (0-360)
+
+  // Accuracy
+  accuracy Float? // meters
+
+  // Relation
+  orderId String @db.Uuid
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([createdAt])
 }

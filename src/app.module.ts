@@ -12,6 +12,7 @@ import { ZonePreferenceModule } from './modules/zone-preference/zone-preference.
 import { DeliveryModule } from './modules/delivery/delivery.module';
 import { CommissionModule } from './modules/commission/infrastructure/commission.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { OrderModule } from './modules/order/order.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -29,6 +30,7 @@ import { HealthController } from './health.controller';
     DeliveryModule,
     CommissionModule,
     PaymentModule,
+    OrderModule,
   ],
   controllers: [HealthController],
   providers: [],

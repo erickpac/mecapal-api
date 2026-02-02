@@ -6,10 +6,10 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Progreso General** | ~50% |
-| **Módulos Completados** | 10/20 |
-| **Fase Actual** | Fase 4 (Pagos y Flujo Cliente) |
-| **Próxima Fase** | Fase 4 continúa (Order/Tracking) |
+| **Progreso General** | ~55% |
+| **Módulos Completados** | 11/20 |
+| **Fase Actual** | Fase 4 (Pagos y Flujo Cliente) ✅ |
+| **Próxima Fase** | Fase 5 (Flujo Transportista) |
 
 ---
 
@@ -29,6 +29,7 @@
 | **Delivery** | Solicitudes y ofertas | ✅ 100% | 12 use cases implementados |
 | **Commission** | Perfiles de facturación | ✅ 100% | BillingProfile con comisiones/taxes |
 | **Payment** | Integración Stripe | ✅ 100% | Métodos de pago, transacciones, Payment Intents |
+| **Order/Tracking** | Órdenes y tracking | ✅ 100% | 9 use cases, estados, tracking GPS, historial |
 
 ### En Progreso
 
@@ -42,13 +43,13 @@
 | ID | Módulo | Descripción | Prioridad | Bloqueado Por | Fase |
 |----|--------|-------------|-----------|---------------|------|
 | #5 | **Payment** | Integración Stripe | ✅ Completado | - | 3-4 |
-| #6 | **Order/Tracking** | Órdenes y tracking | 🔴 Alta | - | 4 |
+| #6 | **Order/Tracking** | Órdenes y tracking | ✅ Completado | - | 4 |
 | #7 | **Bank Account** | Cuentas bancarias ACH | 🔴 Alta | - | 5 |
-| #8 | **Settlement** | Liquidaciones/Earnings | 🔴 Alta | #6, #7 | 5-6 |
+| #8 | **Settlement** | Liquidaciones/Earnings | 🔴 Alta | #7 | 5-6 |
 | #9 | **Matching Service** | Algoritmo de matching | 🟡 Media | - | 3 |
 | #10 | **Rating** | Calificaciones | 🟡 Media | - | 7 |
 | #11 | **Notifications** | Push, SMS, Email | 🟡 Media | - | 5-7 |
-| #12 | **Compensation** | Compensaciones manuales | 🟡 Media | #6, #8 | 6 |
+| #12 | **Compensation** | Compensaciones manuales | 🟡 Media | #8 | 6 |
 | #13 | **Incidents** | Gestión de incidentes | 🟢 Baja | - | 6 |
 | #14 | **Reports** | Reportes y analytics | 🟢 Baja | - | 6 |
 | #15 | **Offer Expiration** | Job de expiración | 🟡 Media | - | 3 |
@@ -63,19 +64,19 @@
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────────────┐     ┌──────────────────┐                  │
-│  │ #5 Payment       │     │ #7 Bank Account  │                  │
+│  │ #5 Payment ✅    │     │ #7 Bank Account  │                  │
 │  │    (Stripe)      │     │    (ACH)         │                  │
 │  └────────┬─────────┘     └────────┬─────────┘                  │
 │           │                        │                            │
 │           ▼                        │                            │
 │  ┌──────────────────┐              │                            │
-│  │ #6 Order/        │◄─────────────┘                            │
+│  │ #6 Order/ ✅     │◄─────────────┘                            │
 │  │    Tracking      │                                           │
 │  └────────┬─────────┘                                           │
 │           │                                                      │
 │           ▼                                                      │
 │  ┌──────────────────┐                                           │
-│  │ #8 Settlement/   │                                           │
+│  │ #8 Settlement/   │◄──── Bloqueado por #7                     │
 │  │    Earnings      │                                           │
 │  └────────┬─────────┘                                           │
 │           │                                                      │
@@ -104,8 +105,8 @@
 |------|-------------|------------|----------|----------|
 | 1 | Infraestructura y Módulos Base | 95 hrs | ✅ 90% | AWS, Upload, Location, Address |
 | 2 | Vehículos, Zonas y Config | 75 hrs | ✅ 95% | Vehicle, Zone Preference, Commission |
-| 3 | Delivery y Ofertas | 75 hrs | ⚠️ 70% | Delivery completo. Falta: Payment, Matching, Expiration |
-| 4 | Pagos y Flujo Cliente | 75 hrs | ❌ 10% | Falta: Payment, Order/Tracking |
+| 3 | Delivery y Ofertas | 75 hrs | ⚠️ 85% | Delivery, Payment completo. Falta: Matching, Expiration |
+| 4 | Pagos y Flujo Cliente | 75 hrs | ✅ 100% | Payment y Order/Tracking completados |
 | 5 | Flujo Transportista | 75 hrs | ❌ 5% | Falta: Bank Account, Settlement, Notifications |
 | 6 | Panel Administrativo | 75 hrs | ❌ 15% | Falta: Compensation, Incidents, Reports |
 | 7 | Calificaciones y Landing | 60 hrs | ❌ 0% | Falta: Rating, Notifications completas |
@@ -152,16 +153,34 @@ src/modules/payment/
 
 ---
 
-### #6 - Order/Tracking
-**Prioridad:** 🔴 Alta | **Fase:** 4 | **Bloqueado por:** #5 Payment
+### #6 - Order/Tracking ✅ COMPLETADO
+**Prioridad:** ✅ Completado | **Fase:** 4
 
 **Alcance:**
-- [ ] Entidad Order (se crea al confirmar pago)
-- [ ] Estados: CONFIRMED → IN_PROGRESS → PICKED_UP → IN_TRANSIT → DELIVERED → CLOSED
-- [ ] Tracking de ubicación en tiempo real
-- [ ] Historial de órdenes (cliente y transportista)
-- [ ] Confirmación de entrega con foto/firma
-- [ ] Webhooks/eventos para cambios de estado
+- [x] Entidad Order (se crea al confirmar pago)
+- [x] Estados: CONFIRMED → IN_PROGRESS → PICKED_UP → IN_TRANSIT → DELIVERED → COMPLETED
+- [x] Tracking de ubicación en tiempo real (OrderLocation)
+- [x] Historial de órdenes (cliente y transportista)
+- [x] Confirmación de entrega con foto/firma
+- [x] Historial de cambios de estado (OrderStatusHistory)
+
+**Archivos creados:**
+```
+src/modules/order/
+├── domain/
+│   ├── entities/order.entity.ts, order-status-history.entity.ts, order-location.entity.ts
+│   ├── enums/order-status.enum.ts
+│   ├── interfaces/order.repository.ts
+│   ├── exceptions/
+│   └── constants/injection-tokens.ts
+├── application/
+│   ├── use-cases/ (9 use cases)
+│   └── dtos/
+├── infrastructure/
+│   ├── controllers/client-order.controller.ts, transporter-order.controller.ts
+│   └── repositories/order.repository.ts
+└── order.module.ts
+```
 
 ---
 
@@ -300,6 +319,7 @@ src/modules/payment/
 | 2026-02-02 | Módulo Commission completado (BillingProfile) | - |
 | 2026-02-02 | Módulo Delivery completado | - |
 | 2026-02-02 | Módulo Payment completado (Stripe) | - |
+| 2026-02-02 | Módulo Order/Tracking completado (9 use cases, tracking GPS) | - |
 
 ---
 
