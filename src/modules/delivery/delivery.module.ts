@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
 import { VehicleModule } from '../vehicle/vehicle.module';
+import { CommissionModule } from '../commission/infrastructure/commission.module';
 
 // Controllers
 import { ClientDeliveryController } from './infrastructure/controllers/client-delivery.controller';
@@ -32,7 +33,7 @@ import { GetMyOffersUseCase } from './application/use-cases/transporter/get-my-o
 import { CancelOfferUseCase } from './application/use-cases/transporter/cancel-offer.use-case';
 
 @Module({
-  imports: [PrismaModule, CognitoModule, VehicleModule],
+  imports: [PrismaModule, CognitoModule, VehicleModule, CommissionModule],
   controllers: [ClientDeliveryController, TransporterDeliveryController],
   providers: [
     // Repositories

@@ -1,3 +1,4 @@
+import { CommissionType } from '@prisma/client';
 import { DeliveryOfferStatus } from '../enums/delivery-offer-status.enum';
 import { Vehicle } from '../../../vehicle/domain/entities/vehicle.entity';
 import { User } from '../../../cognito/domain/entities/user.entity';
@@ -12,9 +13,23 @@ export class DeliveryOffer {
   estimatedDeliveryTime: Date;
   notes?: string;
 
-  // Platform fee (15%)
-  platformFeePercent: number;
-  platformFee: number;
+  // Commission details
+  commissionType: CommissionType;
+  commissionPercent?: number | null;
+  commissionFixedAmount?: number | null;
+  commissionMinimum?: number | null;
+  commissionMaximum?: number | null;
+  commissionAmount: number;
+  commissionExempt: boolean;
+
+  // Tax details
+  taxPercent: number;
+  taxAmount: number;
+  taxExempt: boolean;
+
+  // Final prices
+  subtotal: number;
+  totalClientPrice: number;
   netEarnings: number;
 
   // Status

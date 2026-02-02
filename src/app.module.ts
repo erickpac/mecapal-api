@@ -10,6 +10,7 @@ import { BackofficeModule } from './modules/backoffice/backoffice.module';
 import { LocationModule } from './modules/location/location.module';
 import { ZonePreferenceModule } from './modules/zone-preference/zone-preference.module';
 import { DeliveryModule } from './modules/delivery/delivery.module';
+import { CommissionModule } from './modules/commission/infrastructure/commission.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -25,6 +26,7 @@ import { HealthController } from './health.controller';
     LocationModule,
     ZonePreferenceModule,
     DeliveryModule,
+    CommissionModule,
   ],
   controllers: [HealthController],
   providers: [],

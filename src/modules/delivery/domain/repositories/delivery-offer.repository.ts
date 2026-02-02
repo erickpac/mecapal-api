@@ -1,3 +1,4 @@
+import { CommissionType } from '@prisma/client';
 import { DeliveryOffer } from '../entities/delivery-offer.entity';
 import { DeliveryOfferStatus } from '../enums/delivery-offer-status.enum';
 
@@ -9,8 +10,24 @@ export interface CreateDeliveryOfferData {
   estimatedPickupTime: Date;
   estimatedDeliveryTime: Date;
   notes?: string;
-  platformFeePercent: number;
-  platformFee: number;
+
+  // Commission fields
+  commissionType: CommissionType;
+  commissionPercent?: number | null;
+  commissionFixedAmount?: number | null;
+  commissionMinimum?: number | null;
+  commissionMaximum?: number | null;
+  commissionAmount: number;
+  commissionExempt: boolean;
+
+  // Tax fields
+  taxPercent: number;
+  taxAmount: number;
+  taxExempt: boolean;
+
+  // Totals
+  subtotal: number;
+  totalClientPrice: number;
   netEarnings: number;
 }
 

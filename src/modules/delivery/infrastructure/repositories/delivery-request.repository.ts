@@ -228,9 +228,26 @@ export class DeliveryRequestRepository implements IDeliveryRequestRepository {
             estimatedPickupTime: offer.estimatedPickupTime,
             estimatedDeliveryTime: offer.estimatedDeliveryTime,
             notes: offer.notes ?? undefined,
-            platformFeePercent: offer.platformFeePercent,
-            platformFee: offer.platformFee,
+
+            // Commission details
+            commissionType: offer.commissionType,
+            commissionPercent: offer.commissionPercent,
+            commissionFixedAmount: offer.commissionFixedAmount,
+            commissionMinimum: offer.commissionMinimum,
+            commissionMaximum: offer.commissionMaximum,
+            commissionAmount: offer.commissionAmount,
+            commissionExempt: offer.commissionExempt,
+
+            // Tax details
+            taxPercent: offer.taxPercent,
+            taxAmount: offer.taxAmount,
+            taxExempt: offer.taxExempt,
+
+            // Final prices
+            subtotal: offer.subtotal,
+            totalClientPrice: offer.totalClientPrice,
             netEarnings: offer.netEarnings,
+
             status: offer.status as DeliveryOfferStatus,
             deliveryRequestId: offer.deliveryRequestId,
             transporterId: offer.transporterId,

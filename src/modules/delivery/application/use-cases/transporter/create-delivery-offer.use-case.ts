@@ -12,8 +12,7 @@ import { InvalidRequestStatusException } from '../../../domain/exceptions/invali
 import { OfferWindowExpiredException } from '../../../domain/exceptions/offer-window-expired.exception';
 import { DuplicateOfferException } from '../../../domain/exceptions/duplicate-offer.exception';
 import { CreateDeliveryOfferDto } from '../../dtos/create-delivery-offer.dto';
-
-const PLATFORM_FEE_PERCENT = 15;
+import { GetClientBillingProfileUseCase } from '../../../../commission/application/use-cases';
 
 const OFFERABLE_STATUSES = [
   DeliveryRequestStatus.PUBLISHED,
@@ -29,6 +28,7 @@ export class CreateDeliveryOfferUseCase {
     private readonly deliveryOfferRepository: IDeliveryOfferRepository,
     @Inject(VEHICLE_TOKENS.IVehicleRepository)
     private readonly vehicleRepository: IVehicleRepository,
+    private readonly getClientBillingProfileUseCase: GetClientBillingProfileUseCase,
   ) {}
 
   async execute(
@@ -79,9 +79,25 @@ export class CreateDeliveryOfferUseCase {
       throw new BadRequestException('Vehicle is not active');
     }
 
-    // Calculate platform fee and net earnings
-    const platformFee = (dto.offeredPrice * PLATFORM_FEE_PERCENT) / 100;
-    const netEarnings = dto.offeredPrice - platformFee;
+    // Get client's billing profile (commission + tax configuration)
+    const billing = await this.getClientBillingProfileUseCase.execute(
+      request.clientId,
+    );
+
+    // Calculate commission
+    const commissionAmount = billing.calculateCommission(dto.offeredPrice);
+
+    // Calculate subtotal (transporter price + commission)
+    const subtotal = dto.offeredPrice + commissionAmount;
+
+    // Calculate tax on subtotal
+    const taxAmount = billing.calculateTax(subtotal);
+
+    // Calculate total client price
+    const totalClientPrice = subtotal + taxAmount;
+
+    // Net earnings = offered price (transporter keeps their price, platform takes commission from client)
+    const netEarnings = dto.offeredPrice;
 
     const offer = await this.deliveryOfferRepository.create(transporterId, {
       deliveryRequestId: requestId,
@@ -91,8 +107,30 @@ export class CreateDeliveryOfferUseCase {
       estimatedPickupTime: new Date(dto.estimatedPickupTime),
       estimatedDeliveryTime: new Date(dto.estimatedDeliveryTime),
       notes: dto.notes,
-      platformFeePercent: PLATFORM_FEE_PERCENT,
-      platformFee,
+
+      // Commission details
+      commissionType: billing.commissionType,
+      commissionPercent:
+        billing.commissionType === 'PERCENTAGE'
+          ? billing.commissionValue
+          : null,
+      commissionFixedAmount:
+        billing.commissionType === 'FIXED_AMOUNT'
+          ? billing.commissionValue
+          : null,
+      commissionMinimum: billing.commissionMinimum,
+      commissionMaximum: billing.commissionMaximum,
+      commissionAmount,
+      commissionExempt: billing.isCommissionExempt,
+
+      // Tax details
+      taxPercent: billing.taxPercent,
+      taxAmount,
+      taxExempt: billing.isTaxExempt,
+
+      // Totals
+      subtotal,
+      totalClientPrice,
       netEarnings,
     });
 
