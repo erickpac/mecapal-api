@@ -118,6 +118,11 @@ model User {
   billingProfileId String?         @db.Uuid
   billingProfile   BillingProfile? @relation(fields: [billingProfileId], references: [id])
 
+  // Payment relations
+  stripeCustomerId String?         @unique
+  paymentMethods   PaymentMethod[] @relation("UserPaymentMethods")
+  transactions     Transaction[]   @relation("UserTransactions")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -446,6 +451,9 @@ model DeliveryOffer {
   vehicleId String  @db.Uuid
   vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
 
+  // Payment relation
+  transaction Transaction?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -453,6 +461,108 @@ model DeliveryOffer {
   @@index([deliveryRequestId])
   @@index([transporterId])
   @@index([status])
+}
+
+// ==================== PAYMENT MODELS ====================
+
+enum PaymentMethodType {
+  CARD
+}
+
+enum CardBrand {
+  VISA
+  MASTERCARD
+  AMEX
+  DISCOVER
+  OTHER
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  CANCELLED
+}
+
+enum TransactionType {
+  PAYMENT
+  REFUND
+}
+
+model PaymentMethod {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Stripe references
+  stripePaymentMethodId String @unique
+  stripeCustomerId      String
+
+  // Card details (non-sensitive, from Stripe)
+  type      PaymentMethodType @default(CARD)
+  cardBrand CardBrand
+  cardLast4 String            @db.VarChar(4)
+  cardExpMonth Int
+  cardExpYear  Int
+
+  // User preference
+  isDefault Boolean @default(false)
+
+  // Relations
+  userId       String        @db.Uuid
+  user         User          @relation("UserPaymentMethods", fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([stripeCustomerId])
+}
+
+model Transaction {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Stripe references
+  stripePaymentIntentId String  @unique
+  stripeChargeId        String?
+
+  // Transaction details
+  type     TransactionType   @default(PAYMENT)
+  status   TransactionStatus @default(PENDING)
+  amount   Float // Total amount charged
+  currency String            @default("USD") @db.VarChar(3)
+
+  // Fee breakdown (snapshot at payment time)
+  subtotal         Float // offeredPrice + commission
+  commissionAmount Float
+  taxAmount        Float
+
+  // Refund tracking
+  refundedAmount Float @default(0)
+
+  // Error handling
+  failureCode    String?
+  failureMessage String?
+
+  // Relations
+  userId          String         @db.Uuid
+  user            User           @relation("UserTransactions", fields: [userId], references: [id])
+  paymentMethodId String?        @db.Uuid
+  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  deliveryOfferId String         @unique @db.Uuid
+  deliveryOffer   DeliveryOffer  @relation(fields: [deliveryOfferId], references: [id])
+
+  // Metadata
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripePaymentIntentId])
 }
 
 // ==================== BILLING PROFILES ====================

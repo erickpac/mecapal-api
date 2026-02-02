@@ -11,6 +11,7 @@ import { LocationModule } from './modules/location/location.module';
 import { ZonePreferenceModule } from './modules/zone-preference/zone-preference.module';
 import { DeliveryModule } from './modules/delivery/delivery.module';
 import { CommissionModule } from './modules/commission/infrastructure/commission.module';
+import { PaymentModule } from './modules/payment/payment.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -27,6 +28,7 @@ import { HealthController } from './health.controller';
     ZonePreferenceModule,
     DeliveryModule,
     CommissionModule,
+    PaymentModule,
   ],
   controllers: [HealthController],
   providers: [],

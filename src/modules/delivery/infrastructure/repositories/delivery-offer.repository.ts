@@ -7,9 +7,12 @@ import {
   FindDeliveryOffersOptions,
 } from '../../domain/repositories/delivery-offer.repository';
 import { DeliveryOffer } from '../../domain/entities/delivery-offer.entity';
+import { DeliveryRequest } from '../../domain/entities/delivery-request.entity';
 import { DeliveryOfferStatus } from '../../domain/enums/delivery-offer-status.enum';
+import { DeliveryRequestStatus } from '../../domain/enums/delivery-request-status.enum';
 import { User } from '../../../cognito/domain/entities/user.entity';
 import { Vehicle } from '../../../vehicle/domain/entities/vehicle.entity';
+import { Address } from '../../../address/domain/entities/address.entity';
 import { VehicleType } from '../../../vehicle/domain/enums/vehicle-type.enum';
 import { LoadType } from '../../../vehicle/domain/enums/load-type.enum';
 import { VehicleStatus } from '../../../vehicle/domain/enums/vehicle-status.enum';
@@ -210,6 +213,41 @@ export class DeliveryOfferRepository implements IDeliveryOfferRepository {
 
       status: offer.status as DeliveryOfferStatus,
       deliveryRequestId: offer.deliveryRequestId,
+      deliveryRequest: offer.deliveryRequest
+        ? new DeliveryRequest({
+            id: offer.deliveryRequest.id,
+            loadType: offer.deliveryRequest.loadType as LoadType,
+            pickupAddressId: offer.deliveryRequest.pickupAddressId,
+            pickupAddress: offer.deliveryRequest.pickupAddress
+              ? new Address(offer.deliveryRequest.pickupAddress)
+              : undefined,
+            deliveryAddressId: offer.deliveryRequest.deliveryAddressId,
+            deliveryAddress: offer.deliveryRequest.deliveryAddress
+              ? new Address(offer.deliveryRequest.deliveryAddress)
+              : undefined,
+            calculatedDistanceKm: offer.deliveryRequest.calculatedDistanceKm,
+            estimatedWeightKg: offer.deliveryRequest.estimatedWeightKg,
+            estimatedVolumeM3:
+              offer.deliveryRequest.estimatedVolumeM3 ?? undefined,
+            packageDescription: offer.deliveryRequest.packageDescription,
+            declaredValue: offer.deliveryRequest.declaredValue ?? undefined,
+            isFragile: offer.deliveryRequest.isFragile,
+            requiresSignature: offer.deliveryRequest.requiresSignature,
+            specialInstructions:
+              offer.deliveryRequest.specialInstructions ?? undefined,
+            pickupDate: offer.deliveryRequest.pickupDate,
+            pickupTimeStart: offer.deliveryRequest.pickupTimeStart,
+            pickupTimeEnd: offer.deliveryRequest.pickupTimeEnd,
+            deliveryDeadline: offer.deliveryRequest.deliveryDeadline,
+            offerWindowMinutes: offer.deliveryRequest.offerWindowMinutes,
+            offerExpiresAt: offer.deliveryRequest.offerExpiresAt,
+            status: offer.deliveryRequest.status as DeliveryRequestStatus,
+            clientId: offer.deliveryRequest.clientId,
+            acceptedOfferId: offer.deliveryRequest.acceptedOfferId ?? undefined,
+            createdAt: offer.deliveryRequest.createdAt,
+            updatedAt: offer.deliveryRequest.updatedAt,
+          })
+        : undefined,
       transporterId: offer.transporterId,
       transporter: offer.transporter
         ? new User({

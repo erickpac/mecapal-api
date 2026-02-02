@@ -2,6 +2,7 @@ import { CommissionType } from '@prisma/client';
 import { DeliveryOfferStatus } from '../enums/delivery-offer-status.enum';
 import { Vehicle } from '../../../vehicle/domain/entities/vehicle.entity';
 import { User } from '../../../cognito/domain/entities/user.entity';
+import type { DeliveryRequest } from './delivery-request.entity';
 
 export class DeliveryOffer {
   id: string;
@@ -37,6 +38,7 @@ export class DeliveryOffer {
 
   // Relations
   deliveryRequestId: string;
+  deliveryRequest?: DeliveryRequest;
   transporterId: string;
   transporter?: User;
   vehicleId: string;
