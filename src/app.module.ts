@@ -16,6 +16,7 @@ import { OrderModule } from './modules/order/order.module';
 import { BankAccountModule } from './modules/bank-account/bank-account.module';
 import { SettlementModule } from './modules/settlement/settlement.module';
 import { ReviewModule } from './modules/review/review.module';
+import { MatchingModule } from './modules/matching/matching.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -37,6 +38,7 @@ import { HealthController } from './health.controller';
     BankAccountModule,
     SettlementModule,
     ReviewModule,
+    MatchingModule,
   ],
   controllers: [HealthController],
   providers: [],
