@@ -47,6 +47,7 @@ export interface IDeliveryRequestRepository {
   findAvailable(
     options?: FindDeliveryRequestsOptions,
   ): Promise<DeliveryRequest[]>;
+  findExpired(): Promise<DeliveryRequest[]>;
   countByClientId(clientId: string): Promise<number>;
   update(id: string, data: UpdateDeliveryRequestData): Promise<DeliveryRequest>;
   updateStatus(

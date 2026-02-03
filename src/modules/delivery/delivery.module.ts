@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
 import { VehicleModule } from '../vehicle/vehicle.module';
@@ -32,8 +33,17 @@ import { CreateDeliveryOfferUseCase } from './application/use-cases/transporter/
 import { GetMyOffersUseCase } from './application/use-cases/transporter/get-my-offers.use-case';
 import { CancelOfferUseCase } from './application/use-cases/transporter/cancel-offer.use-case';
 
+// Schedulers
+import { OfferExpirationScheduler } from './infrastructure/schedulers/offer-expiration.scheduler';
+
 @Module({
-  imports: [PrismaModule, CognitoModule, VehicleModule, CommissionModule],
+  imports: [
+    ScheduleModule.forRoot(),
+    PrismaModule,
+    CognitoModule,
+    VehicleModule,
+    CommissionModule,
+  ],
   controllers: [ClientDeliveryController, TransporterDeliveryController],
   providers: [
     // Repositories
@@ -62,6 +72,9 @@ import { CancelOfferUseCase } from './application/use-cases/transporter/cancel-o
     CreateDeliveryOfferUseCase,
     GetMyOffersUseCase,
     CancelOfferUseCase,
+
+    // Schedulers
+    OfferExpirationScheduler,
   ],
   exports: [
     DELIVERY_TOKENS.IDeliveryRequestRepository,

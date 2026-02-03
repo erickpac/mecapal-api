@@ -148,6 +148,24 @@ export class DeliveryRequestRepository implements IDeliveryRequestRepository {
     });
   }
 
+  async findExpired(): Promise<DeliveryRequest[]> {
+    const requests = await this.prisma.deliveryRequest.findMany({
+      where: {
+        status: {
+          in: [
+            DeliveryRequestStatus.PUBLISHED,
+            DeliveryRequestStatus.OFFERS_RECEIVED,
+          ],
+        },
+        offerExpiresAt: {
+          lte: new Date(),
+        },
+      },
+    });
+
+    return requests.map((request) => this.mapToEntity(request));
+  }
+
   async update(
     id: string,
     data: UpdateDeliveryRequestData,

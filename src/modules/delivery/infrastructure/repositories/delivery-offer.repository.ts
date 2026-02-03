@@ -183,6 +183,18 @@ export class DeliveryOfferRepository implements IDeliveryOfferRepository {
     });
   }
 
+  async expireAllPendingByRequestId(deliveryRequestId: string): Promise<number> {
+    const result = await this.prisma.deliveryOffer.updateMany({
+      where: {
+        deliveryRequestId,
+        status: DeliveryOfferStatus.PENDING,
+      },
+      data: { status: DeliveryOfferStatus.EXPIRED },
+    });
+
+    return result.count;
+  }
+
   private mapToEntity(offer: DeliveryOfferWithRelations): DeliveryOffer {
     return new DeliveryOffer({
       id: offer.id,

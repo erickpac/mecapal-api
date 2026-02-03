@@ -63,5 +63,6 @@ export interface IDeliveryOfferRepository {
     excludeOfferId: string,
     status: DeliveryOfferStatus,
   ): Promise<number>;
+  expireAllPendingByRequestId(deliveryRequestId: string): Promise<number>;
   delete(id: string): Promise<void>;
 }
