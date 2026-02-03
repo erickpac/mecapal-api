@@ -80,6 +80,18 @@ export class VehicleRepository implements IVehicleRepository {
     return count > 0;
   }
 
+  async isInUseByDeliveryOffer(id: string): Promise<boolean> {
+    const count = await this.prisma.deliveryOffer.count({
+      where: {
+        vehicleId: id,
+        status: {
+          in: ['PENDING', 'ACCEPTED'],
+        },
+      },
+    });
+    return count > 0;
+  }
+
   private mapToEntity(vehicle: PrismaVehicle): Vehicle {
     return new Vehicle({
       ...vehicle,

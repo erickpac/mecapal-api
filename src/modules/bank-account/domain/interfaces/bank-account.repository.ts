@@ -40,4 +40,5 @@ export interface IBankAccountRepository {
     transporterId: string,
     accountNumber: string,
   ): Promise<boolean>;
+  hasSettlements(id: string): Promise<boolean>;
 }

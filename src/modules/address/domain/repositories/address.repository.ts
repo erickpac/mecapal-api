@@ -25,4 +25,5 @@ export interface IAddressRepository {
   delete(id: string): Promise<void>;
   setDefault(id: string, userId: string): Promise<Address>;
   unsetDefaultForUser(userId: string): Promise<void>;
+  isInUseByDeliveryRequest(id: string): Promise<boolean>;
 }

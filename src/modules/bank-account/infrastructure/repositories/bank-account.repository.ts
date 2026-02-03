@@ -151,6 +151,14 @@ export class BankAccountRepository implements IBankAccountRepository {
     return count > 0;
   }
 
+  async hasSettlements(id: string): Promise<boolean> {
+    const count = await this.prisma.settlement.count({
+      where: { bankAccountId: id },
+    });
+
+    return count > 0;
+  }
+
   private mapToEntity(bankAccount: PrismaBankAccount): BankAccount {
     return new BankAccount({
       id: bankAccount.id,

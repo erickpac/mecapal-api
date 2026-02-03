@@ -8,6 +8,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "../docs/ERD.md"
+  theme    = "forest"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -315,7 +321,7 @@ model State {
   isActive Boolean @default(true)
 
   countryId String  @db.Uuid
-  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  country   Country @relation(fields: [countryId], references: [id], onDelete: Restrict)
 
   municipalities Municipality[]
 
@@ -335,7 +341,7 @@ model Municipality {
   isActive Boolean @default(true)
 
   stateId String @db.Uuid
-  state   State  @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  state   State  @relation(fields: [stateId], references: [id], onDelete: Restrict)
 
   zones Zone[]
 
@@ -358,7 +364,7 @@ model Zone {
   isActive  Boolean @default(true)
 
   municipalityId String       @db.Uuid
-  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Restrict)
 
   transporterPreferences TransporterZonePreference[]
 

@@ -79,4 +79,17 @@ export class AddressRepository implements IAddressRepository {
       data: { isDefault: false },
     });
   }
+
+  async isInUseByDeliveryRequest(id: string): Promise<boolean> {
+    const count = await this.prisma.deliveryRequest.count({
+      where: {
+        OR: [{ pickupAddressId: id }, { deliveryAddressId: id }],
+        status: {
+          notIn: ['CANCELLED', 'DELIVERED'],
+        },
+      },
+    });
+
+    return count > 0;
+  }
 }

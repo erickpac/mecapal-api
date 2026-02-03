@@ -35,4 +35,5 @@ export interface IVehicleRepository {
   delete(id: string): Promise<void>;
   existsByLicensePlate(licensePlate: string): Promise<boolean>;
   existsByVin(vin: string): Promise<boolean>;
+  isInUseByDeliveryOffer(id: string): Promise<boolean>;
 }
