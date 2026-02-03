@@ -143,6 +143,11 @@ model User {
   reviewsGiven    Review[] @relation("ReviewsGiven")
   reviewsReceived Review[] @relation("ReviewsReceived")
 
+  // Incident relations
+  incidentsReported Incident[] @relation("IncidentsReported")
+  incidentsAgainst  Incident[] @relation("IncidentsAgainst")
+  incidentsAssigned Incident[] @relation("IncidentsAssigned")
+
   // Rating stats (cached for performance)
   averageRating Float @default(0)
   totalReviews  Int   @default(0)
@@ -693,6 +698,9 @@ model Order {
   // Review relation
   reviews Review[]
 
+  // Incident relation
+  incidents Incident[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -872,5 +880,89 @@ model Review {
   @@index([reviewerId])
   @@index([revieweeId])
   @@index([orderId])
+  @@index([type])
+}
+
+// ==================== INCIDENT MODELS ====================
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentType {
+  DELAY
+  DAMAGE
+  LOSS
+  FRAUD
+  OTHER
+}
+
+enum IncidentResolution {
+  RESOLVED_SATISFACTORILY
+  CLOSED_WITHOUT_RESOLUTION
+}
+
+enum UserAction {
+  NONE
+  WARNING
+  SUSPENSION
+  BAN
+}
+
+model Incident {
+  id             String @id @default(uuid()) @db.Uuid
+  incidentNumber String @unique // Auto-generated like INC-20251217-001
+
+  // Incident details
+  type        IncidentType
+  severity    IncidentSeverity @default(MEDIUM)
+  status      IncidentStatus   @default(OPEN)
+  description String           @db.VarChar(2000)
+
+  // Evidence
+  evidenceUrls String[] // Array of S3 URLs
+
+  // Admin handling
+  internalNotes String? @db.VarChar(2000) // Only visible to admins
+
+  // Resolution
+  resolution      IncidentResolution?
+  resolutionNotes String?             @db.VarChar(2000)
+  refundAmount    Float?
+  userAction      UserAction          @default(NONE)
+  resolvedAt      DateTime?
+
+  // Relations
+  reportedById String @db.Uuid
+  reportedBy   User   @relation("IncidentsReported", fields: [reportedById], references: [id])
+
+  reportedAgainstId String @db.Uuid
+  reportedAgainst   User   @relation("IncidentsAgainst", fields: [reportedAgainstId], references: [id])
+
+  orderId String @db.Uuid
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  assignedToId String? @db.Uuid
+  assignedTo   User?   @relation("IncidentsAssigned", fields: [assignedToId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([reportedById])
+  @@index([reportedAgainstId])
+  @@index([orderId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([severity])
   @@index([type])
 }
