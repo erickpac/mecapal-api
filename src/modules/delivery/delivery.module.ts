@@ -3,7 +3,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
 import { VehicleModule } from '../vehicle/vehicle.module';
-import { CommissionModule } from '../commission/infrastructure/commission.module';
+import { CommissionModule } from '../commission/commission.module';
 
 // Controllers
 import { ClientDeliveryController } from './infrastructure/controllers/client-delivery.controller';

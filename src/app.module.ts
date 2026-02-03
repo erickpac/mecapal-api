@@ -10,7 +10,7 @@ import { BackofficeModule } from './modules/backoffice/backoffice.module';
 import { LocationModule } from './modules/location/location.module';
 import { ZonePreferenceModule } from './modules/zone-preference/zone-preference.module';
 import { DeliveryModule } from './modules/delivery/delivery.module';
-import { CommissionModule } from './modules/commission/infrastructure/commission.module';
+import { CommissionModule } from './modules/commission/commission.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { OrderModule } from './modules/order/order.module';
 import { BankAccountModule } from './modules/bank-account/bank-account.module';

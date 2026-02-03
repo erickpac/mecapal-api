@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../prisma/prisma.module';
-import { COMMISSION_INJECTION_TOKENS } from '../domain/constants/injection-tokens';
+import { PrismaModule } from '../prisma/prisma.module';
+import { COMMISSION_INJECTION_TOKENS } from './domain/constants/injection-tokens';
 
 // Repository
-import { BillingProfileRepository } from './repositories';
+import { BillingProfileRepository } from './infrastructure/repositories';
 
 // Controller
-import { BillingProfileController } from './controllers';
+import { BillingProfileController } from './infrastructure/controllers';
 
 // Use Cases
 import {
@@ -18,7 +18,7 @@ import {
   GetClientBillingProfileUseCase,
   AssignBillingProfileUseCase,
   RemoveBillingProfileUseCase,
-} from '../application/use-cases';
+} from './application/use-cases';
 
 const useCases = [
   CreateBillingProfileUseCase,
