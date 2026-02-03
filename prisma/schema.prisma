@@ -148,6 +148,9 @@ model User {
   incidentsAgainst  Incident[] @relation("IncidentsAgainst")
   incidentsAssigned Incident[] @relation("IncidentsAssigned")
 
+  // Notification relations
+  notifications Notification[] @relation("UserNotifications")
+
   // Rating stats (cached for performance)
   averageRating Float @default(0)
   totalReviews  Int   @default(0)
@@ -965,4 +968,83 @@ model Incident {
   @@index([status])
   @@index([severity])
   @@index([type])
+}
+
+// ==================== NOTIFICATION MODELS ====================
+
+enum NotificationType {
+  // Delivery related
+  NEW_DELIVERY_OPPORTUNITY
+  NEW_OFFER_RECEIVED
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  OFFER_EXPIRED
+
+  // Order related
+  ORDER_CONFIRMED
+  ORDER_PICKED_UP
+  ORDER_IN_TRANSIT
+  ORDER_DELIVERED
+  ORDER_COMPLETED
+  ORDER_CANCELLED
+
+  // Payment related
+  PAYMENT_RECEIVED
+  SETTLEMENT_PAID
+
+  // Incident related
+  INCIDENT_CREATED
+  INCIDENT_UPDATED
+  INCIDENT_RESOLVED
+
+  // General
+  SYSTEM_ANNOUNCEMENT
+  ACCOUNT_UPDATE
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  EMAIL
+  SMS
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  READ
+}
+
+model Notification {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Notification content
+  type    NotificationType
+  title   String           @db.VarChar(200)
+  message String           @db.VarChar(1000)
+  data    Json? // Additional data for the notification (e.g., orderId, offerId)
+
+  // Delivery channels
+  channels NotificationChannel[]
+
+  // Status tracking
+  status   NotificationStatus @default(PENDING)
+  sentAt   DateTime?
+  readAt   DateTime?
+  failedAt DateTime?
+  error    String?            @db.VarChar(500)
+
+  // Relations
+  userId String @db.Uuid
+  user   User   @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
 }
