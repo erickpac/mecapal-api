@@ -1,7 +1,11 @@
 import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
 import { ORDER_TOKENS } from '../../domain/constants';
 import { IOrderRepository } from '../../domain/interfaces';
-import { Order, OrderStatusHistory, OrderLocation } from '../../domain/entities';
+import {
+  Order,
+  OrderStatusHistory,
+  OrderLocation,
+} from '../../domain/entities';
 import { OrderNotFoundException } from '../../domain/exceptions';
 
 export interface OrderTrackingResult {
@@ -30,7 +34,11 @@ export class GetOrderTrackingUseCase {
     }
 
     // Check authorization
-    if (!isAdmin && order.clientId !== userId && order.transporterId !== userId) {
+    if (
+      !isAdmin &&
+      order.clientId !== userId &&
+      order.transporterId !== userId
+    ) {
       throw new ForbiddenException('You do not have access to this order');
     }
 

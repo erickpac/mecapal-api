@@ -19,7 +19,10 @@ export interface IReviewRepository {
   create(data: CreateReviewData): Promise<Review>;
   findById(id: string): Promise<Review | null>;
   findByOrderId(orderId: string): Promise<Review[]>;
-  findByOrderIdAndType(orderId: string, type: ReviewType): Promise<Review | null>;
+  findByOrderIdAndType(
+    orderId: string,
+    type: ReviewType,
+  ): Promise<Review | null>;
   findByReviewerId(reviewerId: string): Promise<Review[]>;
   findByRevieweeId(revieweeId: string): Promise<Review[]>;
   existsByOrderIdAndType(orderId: string, type: ReviewType): Promise<boolean>;

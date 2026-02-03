@@ -21,10 +21,7 @@ export class VerifyBankAccountUseCase {
     }
 
     // Validate rejection reason is provided when rejecting
-    if (
-      dto.status === BankAccountStatus.REJECTED &&
-      !dto.rejectionReason
-    ) {
+    if (dto.status === BankAccountStatus.REJECTED && !dto.rejectionReason) {
       throw new BadRequestException(
         'Rejection reason is required when rejecting a bank account',
       );

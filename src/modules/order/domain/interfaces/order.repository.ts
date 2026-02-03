@@ -58,16 +58,16 @@ export interface IOrderRepository {
   findActiveByTransporterId(transporterId: string): Promise<Order | null>;
 
   // Updates
-  updateStatus(
-    id: string,
-    data: UpdateOrderStatusData,
-  ): Promise<Order>;
+  updateStatus(id: string, data: UpdateOrderStatusData): Promise<Order>;
   confirmDelivery(id: string, data: ConfirmDeliveryData): Promise<Order>;
   cancelOrder(id: string, data: CancelOrderData): Promise<Order>;
   completeOrder(id: string): Promise<Order>;
 
   // Location tracking
-  addLocationUpdate(orderId: string, data: AddLocationData): Promise<OrderLocation>;
+  addLocationUpdate(
+    orderId: string,
+    data: AddLocationData,
+  ): Promise<OrderLocation>;
   getLocationUpdates(orderId: string, limit?: number): Promise<OrderLocation[]>;
   getLatestLocation(orderId: string): Promise<OrderLocation | null>;
 

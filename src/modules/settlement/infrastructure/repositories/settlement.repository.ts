@@ -95,7 +95,10 @@ export class SettlementRepository implements ISettlementRepository {
     return settlements.map((s) => this.mapToEntity(s));
   }
 
-  async recordPayment(id: string, data: RecordPaymentData): Promise<Settlement> {
+  async recordPayment(
+    id: string,
+    data: RecordPaymentData,
+  ): Promise<Settlement> {
     const settlement = await this.prisma.settlement.update({
       where: { id },
       data: {

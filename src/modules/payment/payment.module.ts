@@ -20,7 +20,13 @@ import {
 } from './application/use-cases';
 
 @Module({
-  imports: [ConfigModule, PrismaModule, CognitoModule, DeliveryModule, forwardRef(() => OrderModule)],
+  imports: [
+    ConfigModule,
+    PrismaModule,
+    CognitoModule,
+    DeliveryModule,
+    forwardRef(() => OrderModule),
+  ],
   controllers: [PaymentController],
   providers: [
     // Repository

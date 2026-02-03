@@ -2,7 +2,10 @@ import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
 import { ORDER_TOKENS } from '../../domain/constants';
 import { IOrderRepository } from '../../domain/interfaces';
 import { OrderLocation } from '../../domain/entities';
-import { OrderNotFoundException, InvalidOrderStatusException } from '../../domain/exceptions';
+import {
+  OrderNotFoundException,
+  InvalidOrderStatusException,
+} from '../../domain/exceptions';
 import { OrderStatus } from '../../domain/enums';
 import { AddLocationDto } from '../dtos';
 
@@ -26,7 +29,9 @@ export class AddLocationUpdateUseCase {
 
     // Verify transporter owns this order
     if (order.transporterId !== transporterId) {
-      throw new ForbiddenException('You are not the transporter for this order');
+      throw new ForbiddenException(
+        'You are not the transporter for this order',
+      );
     }
 
     // Only allow location updates for active orders

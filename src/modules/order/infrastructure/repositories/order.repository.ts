@@ -9,7 +9,11 @@ import {
   AddLocationData,
   OrderFilters,
 } from '../../domain/interfaces';
-import { Order, OrderStatusHistory, OrderLocation } from '../../domain/entities';
+import {
+  Order,
+  OrderStatusHistory,
+  OrderLocation,
+} from '../../domain/entities';
 import { OrderStatus } from '../../domain/enums';
 import {
   Order as PrismaOrder,
@@ -108,7 +112,10 @@ export class OrderRepository implements IOrderRepository {
     return this.mapToEntity(order);
   }
 
-  async findByClientId(clientId: string, filters?: OrderFilters): Promise<Order[]> {
+  async findByClientId(
+    clientId: string,
+    filters?: OrderFilters,
+  ): Promise<Order[]> {
     const where: Prisma.OrderWhereInput = { clientId };
 
     if (filters?.status) {
@@ -153,7 +160,9 @@ export class OrderRepository implements IOrderRepository {
     return orders.map((o) => this.mapToEntity(o));
   }
 
-  async findActiveByTransporterId(transporterId: string): Promise<Order | null> {
+  async findActiveByTransporterId(
+    transporterId: string,
+  ): Promise<Order | null> {
     const activeStatuses: PrismaOrderStatus[] = [
       PrismaOrderStatus.CONFIRMED,
       PrismaOrderStatus.IN_PROGRESS,

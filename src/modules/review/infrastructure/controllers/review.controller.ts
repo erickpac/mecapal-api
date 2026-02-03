@@ -52,13 +52,23 @@ export class ReviewController {
   }
 
   @Get('order/:orderId')
-  @Roles(UserRole.CLIENT, UserRole.TRANSPORTER, UserRole.ADMIN, UserRole.BACKOFFICE)
+  @Roles(
+    UserRole.CLIENT,
+    UserRole.TRANSPORTER,
+    UserRole.ADMIN,
+    UserRole.BACKOFFICE,
+  )
   async getOrderReviews(@Param('orderId', ParseUUIDPipe) orderId: string) {
     return this.getOrderReviewsUseCase.execute(orderId);
   }
 
   @Get('user/:userId/stats')
-  @Roles(UserRole.CLIENT, UserRole.TRANSPORTER, UserRole.ADMIN, UserRole.BACKOFFICE)
+  @Roles(
+    UserRole.CLIENT,
+    UserRole.TRANSPORTER,
+    UserRole.ADMIN,
+    UserRole.BACKOFFICE,
+  )
   async getUserStats(@Param('userId', ParseUUIDPipe) userId: string) {
     return this.getUserRatingStatsUseCase.execute(userId);
   }

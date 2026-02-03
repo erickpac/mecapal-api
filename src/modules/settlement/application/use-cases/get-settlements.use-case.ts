@@ -1,6 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { SETTLEMENT_TOKENS } from '../../domain/constants';
-import { ISettlementRepository, SettlementFilters } from '../../domain/interfaces';
+import {
+  ISettlementRepository,
+  SettlementFilters,
+} from '../../domain/interfaces';
 import { Settlement } from '../../domain/entities';
 import { SettlementQueryDto } from '../dtos';
 

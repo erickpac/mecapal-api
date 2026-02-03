@@ -29,12 +29,16 @@ export class ConfirmDeliveryUseCase {
 
     // Verify transporter owns this order
     if (order.transporterId !== transporterId) {
-      throw new ForbiddenException('You are not the transporter for this order');
+      throw new ForbiddenException(
+        'You are not the transporter for this order',
+      );
     }
 
     // Verify order is in IN_TRANSIT status
     if (order.status !== OrderStatus.IN_TRANSIT) {
-      throw new InvalidOrderStatusException(order.status, [OrderStatus.IN_TRANSIT]);
+      throw new InvalidOrderStatusException(order.status, [
+        OrderStatus.IN_TRANSIT,
+      ]);
     }
 
     // Confirm delivery and update status to DELIVERED

@@ -29,12 +29,21 @@ export class CancelOrderUseCase {
     }
 
     // Check authorization - only client, transporter, or admin can cancel
-    if (!isAdmin && order.clientId !== userId && order.transporterId !== userId) {
-      throw new ForbiddenException('You do not have permission to cancel this order');
+    if (
+      !isAdmin &&
+      order.clientId !== userId &&
+      order.transporterId !== userId
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to cancel this order',
+      );
     }
 
     // Verify order can be cancelled
-    const cancellableStatuses = [OrderStatus.CONFIRMED, OrderStatus.IN_PROGRESS];
+    const cancellableStatuses = [
+      OrderStatus.CONFIRMED,
+      OrderStatus.IN_PROGRESS,
+    ];
     if (!cancellableStatuses.includes(order.status)) {
       throw new InvalidOrderStatusException(order.status, cancellableStatuses);
     }

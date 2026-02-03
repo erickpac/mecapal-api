@@ -24,7 +24,9 @@ export class GetBankAccountUseCase {
 
     // Authorization check
     if (!isAdmin && bankAccount.transporterId !== transporterId) {
-      throw new ForbiddenException('You do not have access to this bank account');
+      throw new ForbiddenException(
+        'You do not have access to this bank account',
+      );
     }
 
     return bankAccount;

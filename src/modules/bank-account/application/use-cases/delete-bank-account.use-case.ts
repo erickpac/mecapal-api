@@ -19,7 +19,9 @@ export class DeleteBankAccountUseCase {
 
     // Authorization check
     if (bankAccount.transporterId !== transporterId) {
-      throw new ForbiddenException('You do not have access to this bank account');
+      throw new ForbiddenException(
+        'You do not have access to this bank account',
+      );
     }
 
     await this.bankAccountRepository.delete(id);

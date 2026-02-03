@@ -84,7 +84,10 @@ export class ReviewRepository implements IReviewRepository {
     return reviews.map((r) => this.mapToEntity(r));
   }
 
-  async existsByOrderIdAndType(orderId: string, type: ReviewType): Promise<boolean> {
+  async existsByOrderIdAndType(
+    orderId: string,
+    type: ReviewType,
+  ): Promise<boolean> {
     const count = await this.prisma.review.count({
       where: {
         orderId,

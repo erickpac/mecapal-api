@@ -49,10 +49,7 @@ export class BankAccountController {
 
   @Post()
   @Roles(UserRole.TRANSPORTER)
-  async create(
-    @CurrentUser() user: User,
-    @Body() dto: CreateBankAccountDto,
-  ) {
+  async create(@CurrentUser() user: User, @Body() dto: CreateBankAccountDto) {
     return this.createBankAccountUseCase.execute(user.id, dto);
   }
 

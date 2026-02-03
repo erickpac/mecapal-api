@@ -23,7 +23,11 @@ export class GetOrderUseCase {
     }
 
     // Check authorization
-    if (!isAdmin && order.clientId !== userId && order.transporterId !== userId) {
+    if (
+      !isAdmin &&
+      order.clientId !== userId &&
+      order.transporterId !== userId
+    ) {
       throw new ForbiddenException('You do not have access to this order');
     }
 
@@ -42,7 +46,11 @@ export class GetOrderUseCase {
     }
 
     // Check authorization
-    if (!isAdmin && order.clientId !== userId && order.transporterId !== userId) {
+    if (
+      !isAdmin &&
+      order.clientId !== userId &&
+      order.transporterId !== userId
+    ) {
       throw new ForbiddenException('You do not have access to this order');
     }
 

@@ -42,7 +42,9 @@ export class UpdateOrderStatusUseCase {
 
     // Verify transporter owns this order
     if (order.transporterId !== transporterId) {
-      throw new ForbiddenException('You are not the transporter for this order');
+      throw new ForbiddenException(
+        'You are not the transporter for this order',
+      );
     }
 
     // Validate status transition

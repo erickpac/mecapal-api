@@ -36,7 +36,9 @@ export class CreateReviewUseCase {
     }
 
     // Verify order is completed (DELIVERED or COMPLETED status)
-    if (![OrderStatus.DELIVERED, OrderStatus.COMPLETED].includes(order.status)) {
+    if (
+      ![OrderStatus.DELIVERED, OrderStatus.COMPLETED].includes(order.status)
+    ) {
       throw new OrderNotCompletedException();
     }
 
@@ -48,7 +50,10 @@ export class CreateReviewUseCase {
       // Client reviewing transporter
       reviewType = ReviewType.CLIENT_TO_TRANSPORTER;
       revieweeId = order.transporterId;
-    } else if (userRole === UserRole.TRANSPORTER && order.transporterId === userId) {
+    } else if (
+      userRole === UserRole.TRANSPORTER &&
+      order.transporterId === userId
+    ) {
       // Transporter reviewing client
       reviewType = ReviewType.TRANSPORTER_TO_CLIENT;
       revieweeId = order.clientId;

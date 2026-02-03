@@ -19,6 +19,8 @@ export class GetBankAccountsUseCase {
   }
 
   async getVerified(transporterId: string): Promise<BankAccount[]> {
-    return this.bankAccountRepository.findVerifiedByTransporterId(transporterId);
+    return this.bankAccountRepository.findVerifiedByTransporterId(
+      transporterId,
+    );
   }
 }
