@@ -89,6 +89,11 @@ enum CommissionType {
   FIXED_AMOUNT
 }
 
+enum ReviewType {
+  CLIENT_TO_TRANSPORTER
+  TRANSPORTER_TO_CLIENT
+}
+
 model User {
   id         String   @id @default(uuid()) @db.Uuid
   cognitoSub String   @unique
@@ -131,8 +136,16 @@ model User {
   bankAccounts BankAccount[] @relation("TransporterBankAccounts")
 
   // Settlement relations
-  transporterSettlements Settlement[] @relation("TransporterSettlements")
+  transporterSettlements  Settlement[] @relation("TransporterSettlements")
   settlementRegistrations Settlement[] @relation("SettlementRegistrations")
+
+  // Review relations
+  reviewsGiven    Review[] @relation("ReviewsGiven")
+  reviewsReceived Review[] @relation("ReviewsReceived")
+
+  // Rating stats (cached for performance)
+  averageRating Float @default(0)
+  totalReviews  Int   @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -677,6 +690,9 @@ model Order {
   // Settlement relation
   settlement Settlement?
 
+  // Review relation
+  reviews Review[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -825,4 +841,36 @@ model Settlement {
   @@index([transporterId])
   @@index([status])
   @@index([orderId])
+}
+
+// ==================== REVIEW MODELS ====================
+
+model Review {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Rating details
+  rating  Int // 1-5 stars
+  comment String? @db.VarChar(500)
+
+  // Review type (who is reviewing whom)
+  type ReviewType
+
+  // Relations
+  reviewerId String @db.Uuid
+  reviewer   User   @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+
+  revieweeId String @db.Uuid
+  reviewee   User   @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+
+  orderId String @db.Uuid
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, type]) // One review per type per order
+  @@index([reviewerId])
+  @@index([revieweeId])
+  @@index([orderId])
+  @@index([type])
 }
