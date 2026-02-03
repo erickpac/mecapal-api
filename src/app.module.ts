@@ -14,6 +14,7 @@ import { CommissionModule } from './modules/commission/infrastructure/commission
 import { PaymentModule } from './modules/payment/payment.module';
 import { OrderModule } from './modules/order/order.module';
 import { BankAccountModule } from './modules/bank-account/bank-account.module';
+import { SettlementModule } from './modules/settlement/settlement.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -33,6 +34,7 @@ import { HealthController } from './health.controller';
     PaymentModule,
     OrderModule,
     BankAccountModule,
+    SettlementModule,
   ],
   controllers: [HealthController],
   providers: [],

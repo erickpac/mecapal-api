@@ -76,4 +76,7 @@ export interface IOrderRepository {
 
   // Order number generation
   generateOrderNumber(): Promise<string>;
+
+  // Get net earnings for settlement
+  getNetEarnings(orderId: string): Promise<number>;
 }

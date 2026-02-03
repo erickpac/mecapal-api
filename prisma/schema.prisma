@@ -130,6 +130,10 @@ model User {
   // Bank account relations (for transporters)
   bankAccounts BankAccount[] @relation("TransporterBankAccounts")
 
+  // Settlement relations
+  transporterSettlements Settlement[] @relation("TransporterSettlements")
+  settlementRegistrations Settlement[] @relation("SettlementRegistrations")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -670,6 +674,9 @@ model Order {
   // Location updates
   locationUpdates OrderLocation[]
 
+  // Settlement relation
+  settlement Settlement?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -735,6 +742,11 @@ enum BankAccountType {
   SAVINGS
 }
 
+enum SettlementStatus {
+  PENDING // Order completed, waiting for admin to make transfer
+  PAID    // Admin has recorded the transfer
+}
+
 enum BankAccountStatus {
   PENDING_VERIFICATION
   VERIFIED
@@ -765,10 +777,52 @@ model BankAccount {
   transporterId String @db.Uuid
   transporter   User   @relation("TransporterBankAccounts", fields: [transporterId], references: [id], onDelete: Cascade)
 
+  // Settlement relation
+  settlements Settlement[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([transporterId])
   @@index([status])
   @@index([isDefault])
+}
+
+// ==================== SETTLEMENT MODELS ====================
+
+model Settlement {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Settlement amount (= netEarnings from the delivery offer)
+  amount Float
+
+  // Status
+  status SettlementStatus @default(PENDING)
+
+  // Payment details (filled when admin records the transfer)
+  transferDate      DateTime? @db.Date
+  transactionNumber String?
+  comment           String?   @db.VarChar(500)
+  screenshotUrl     String?
+  paidAt            DateTime? // When admin recorded the payment in system
+
+  // Relations
+  orderId String @unique @db.Uuid
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  transporterId String @db.Uuid
+  transporter   User   @relation("TransporterSettlements", fields: [transporterId], references: [id])
+
+  bankAccountId String?      @db.Uuid
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+
+  registeredBy     String? @db.Uuid // Admin who recorded the payment
+  registeredByUser User?   @relation("SettlementRegistrations", fields: [registeredBy], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([transporterId])
+  @@index([status])
+  @@index([orderId])
 }

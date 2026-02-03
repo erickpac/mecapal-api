@@ -1,5 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
+import { CognitoModule } from '../cognito/cognito.module';
+import { SettlementModule } from '../settlement/settlement.module';
 import { ORDER_TOKENS } from './domain/constants';
 import { OrderRepository } from './infrastructure/repositories/order.repository';
 import {
@@ -19,7 +21,7 @@ import {
 } from './application/use-cases';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CognitoModule, forwardRef(() => SettlementModule)],
   controllers: [ClientOrderController, TransporterOrderController],
   providers: [
     // Repository

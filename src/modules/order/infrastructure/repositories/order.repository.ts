@@ -364,6 +364,23 @@ export class OrderRepository implements IOrderRepository {
     return `${prefix}${nextNumber.toString().padStart(6, '0')}`;
   }
 
+  async getNetEarnings(orderId: string): Promise<number> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        deliveryOffer: {
+          select: { netEarnings: true },
+        },
+      },
+    });
+
+    if (!order || !order.deliveryOffer) {
+      return 0;
+    }
+
+    return order.deliveryOffer.netEarnings;
+  }
+
   private getTimestampField(status: OrderStatus): string | null {
     const mapping: Record<OrderStatus, string | null> = {
       [OrderStatus.CONFIRMED]: 'confirmedAt',

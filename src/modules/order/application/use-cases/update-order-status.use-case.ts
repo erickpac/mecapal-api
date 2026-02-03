@@ -8,6 +8,7 @@ import {
   InvalidStatusTransitionException,
 } from '../../domain/exceptions';
 import { UpdateOrderStatusDto } from '../dtos';
+import { CreateSettlementUseCase } from '../../../settlement/application/use-cases';
 
 // Valid status transitions for transporter
 const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -25,6 +26,7 @@ export class UpdateOrderStatusUseCase {
   constructor(
     @Inject(ORDER_TOKENS.IOrderRepository)
     private readonly orderRepository: IOrderRepository,
+    private readonly createSettlementUseCase: CreateSettlementUseCase,
   ) {}
 
   async execute(
@@ -50,12 +52,24 @@ export class UpdateOrderStatusUseCase {
     }
 
     // Update the status
-    return this.orderRepository.updateStatus(orderId, {
+    const updatedOrder = await this.orderRepository.updateStatus(orderId, {
       status: dto.status,
       notes: dto.notes,
       changedBy: transporterId,
       latitude: dto.latitude,
       longitude: dto.longitude,
     });
+
+    // Create settlement when order is completed
+    if (dto.status === OrderStatus.COMPLETED) {
+      const netEarnings = await this.orderRepository.getNetEarnings(orderId);
+      await this.createSettlementUseCase.execute(
+        orderId,
+        order.transporterId,
+        netEarnings,
+      );
+    }
+
+    return updatedOrder;
   }
 }
