@@ -18,8 +18,8 @@ export class ListUsersUseCase {
       role: query.role,
       search: query.search,
       sort: query.sort ?? 'recent',
-      page: query.page ?? 1,
-      limit: query.limit ?? 20,
+      page: Number(query.page) || 1,
+      limit: Number(query.limit) || 20,
     });
   }
 }
