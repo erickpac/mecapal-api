@@ -1,10 +1,11 @@
-# Logistics API Project
+# Mecapal Logistics API
 
 ## Tech Stack
 
 - NestJS with TypeScript (strict mode)
 - PostgreSQL with Prisma ORM
-- AWS (Lambda, SQS, S3, RDS, ECS)
+- AWS: App Runner (compute), RDS (database), S3 (storage), Cognito (auth), SES (email), CloudFront (CDN), WAF (security)
+- Stripe for payment processing
 - Docker for containerization
 - GitHub Actions for CI/CD
 
@@ -26,13 +27,21 @@ You are a senior backend engineer expert in:
 
 ## Domain Knowledge
 
-This is a logistics/transport API handling:
+Mecapal is a logistics marketplace (Guatemala) connecting clients who need to send packages with independent transporters who bid competitively. The platform handles:
 
-- Package delivery tracking
-- Route optimization
-- Driver management
-- Real-time shipment status
-- Warehouse inventory
+- **Delivery requests**: Clients create requests specifying pickup/delivery addresses, package details, and timeframes
+- **Competitive bidding**: Transporters submit offers with pricing and estimated times
+- **Payments**: Stripe integration — clients pay, platform takes commission, transporters receive settlements via ACH
+- **Commission engine**: Configurable billing profiles (percentage or fixed amount) with min/max bounds and tax calculation
+- **Order lifecycle**: CONFIRMED → IN_PROGRESS → PICKED_UP → IN_TRANSIT → DELIVERED → COMPLETED
+- **Admin backoffice**: Document validation, settlements management, incident resolution, analytics
+
+### User Roles
+
+- `CLIENT` — creates delivery requests, compares offers, pays
+- `TRANSPORTER` — registers vehicles, bids on requests, completes deliveries
+- `ADMIN` — full system access, user management, financial operations
+- `BACKOFFICE` — validations, settlements, incident management
 
 ## Clean Architecture Guidelines
 
@@ -54,7 +63,7 @@ Follow strict layer separation:
 
 - Repositories: Prisma implementations of domain interfaces
 - Controllers: HTTP adapters, only handle request/response
-- External services: AWS, third-party APIs
+- External services: AWS, Stripe, third-party APIs
 
 ### Rules
 
@@ -64,30 +73,28 @@ Follow strict layer separation:
 - DTOs validate input at controller level
 - Entities contain business rules and validations
 
-## File Structure
+## Module Structure
 
 ```
-src/
-├── modules/
-│   └── shipments/
-│       ├── domain/
-│       │   ├── entities/
-│       │   └── interfaces/
-│       ├── application/
-│       │   ├── use-cases/
-│       │   ├── dtos/
-│       │   └── mappers/
-│       └── infrastructure/
-│           ├── controllers/
-│           ├── repositories/
-│           └── shipments.module.ts
-├── common/
-│   ├── guards/
-│   ├── interceptors/
-│   ├── filters/
-│   └── decorators/
-└── config/
+src/modules/{module-name}/
+├── domain/
+│   ├── entities/
+│   ├── interfaces/
+│   └── enums/
+├── application/
+│   ├── use-cases/
+│   ├── dtos/
+│   └── mappers/
+└── infrastructure/
+    ├── controllers/
+    ├── repositories/
+    ├── services/
+    └── {module-name}.module.ts
 ```
+
+### Existing Modules
+
+cognito, user, address, vehicle, upload, backoffice, location, zone-preference, delivery, commission, payment, order, bank-account, settlement, review, matching, incident, reports, notification
 
 ## Prisma Guidelines
 
@@ -97,14 +104,17 @@ src/
 - Always use transactions for multi-table operations
 - Prefer `findUnique` over `findFirst` when possible
 - Use `select` or `include` to avoid over-fetching
+- **Generate a migration with every schema change** — never let schema drift from migrations
+- Run `npx prisma migrate dev --name descriptive_name` locally, commit the migration file
 
 ## Code Standards
 
 - Use Cases: One per file, named `{Action}{Entity}UseCase`
-- DTOs: Suffix with `Dto` (e.g., `CreateShipmentDto`)
-- Interfaces: Prefix with `I` (e.g., `IShipmentRepository`)
+- DTOs: Suffix with `Dto` (e.g., `CreateDeliveryRequestDto`)
+- Interfaces: Prefix with `I` (e.g., `IDeliveryRepository`)
 - Inject dependencies via constructor
 - Unit test Use Cases in isolation with mocked repositories
+- Use NestJS `Logger` class, never `console.log/warn/error`
 
 ## Commands
 
@@ -116,6 +126,31 @@ src/
 - `pnpm prisma migrate dev` - Create and run migration
 - `pnpm prisma migrate deploy` - Deploy migrations (prod)
 - `pnpm prisma studio` - Open Prisma Studio
+
+## Deployment
+
+- **Dev**: Push to `develop` → GitHub Actions builds Docker image → pushes to ECR → deploys to App Runner
+- **Prod**: Push to `main` → same pipeline targeting production service
+- **Workflow files**: `.github/workflows/deploy-dev.yml`, `deploy-prod.yml`, `_deploy-apprunner.yml`
+- **Docker**: Multi-stage build (`Dockerfile`), runs on port 8080
+- **Health check**: `GET /api/health`
+- **Environment variables** are passed via App Runner runtime config in the workflow
+
+## Environment Variables
+
+Key env vars (set in GitHub Secrets per environment):
+
+- `DATABASE_URL` — PostgreSQL connection string
+- `AWS_COGNITO_USER_POOL_ID`, `AWS_COGNITO_CLIENT_ID` — Auth
+- `AWS_S3_BUCKET`, `AWS_S3_REGION` — File storage
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — Payments (optional for dev)
+- `CORS_ORIGIN` — Comma-separated allowed origins
+- `PORT` — Server port (default 8080 in Docker, 3001 locally)
+
+## Related Projects
+
+- **Admin Console**: `../../../frontend/mekapal-web/apps/console/` — React + Vite + TailwindCSS SPA
+- **Landing Page**: `../../../frontend/mekapal-web/apps/landing/` — Astro static site
 
 ## Git Workflow
 
