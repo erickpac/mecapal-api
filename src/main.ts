@@ -8,6 +8,11 @@ export async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3001;
 
+  app.enableCors({
+    origin: configService.get<string>('CORS_ORIGIN', 'http://localhost:5173'),
+    credentials: true,
+  });
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
 
