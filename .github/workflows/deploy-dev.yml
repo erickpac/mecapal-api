@@ -23,3 +23,4 @@ jobs:
       AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
       APP_AWS_ACCESS_KEY_ID: ${{ secrets.APP_AWS_ACCESS_KEY_ID }}
       APP_AWS_SECRET_ACCESS_KEY: ${{ secrets.APP_AWS_SECRET_ACCESS_KEY }}
+      CORS_ORIGIN: ${{ secrets.CORS_ORIGIN }}
