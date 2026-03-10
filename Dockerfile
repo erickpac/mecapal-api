@@ -39,9 +39,11 @@ COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma
 
 # Install all dependencies, generate Prisma client, then prune dev dependencies
-RUN pnpm install --frozen-lockfile && \
+RUN mkdir -p docs && \
+    pnpm install --frozen-lockfile && \
     pnpm prisma generate && \
-    pnpm prune --prod
+    pnpm prune --prod && \
+    rm -rf docs
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
