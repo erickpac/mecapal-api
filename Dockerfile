@@ -15,8 +15,8 @@ RUN pnpm install --frozen-lockfile
 # Copy prisma schema first (needed for generate)
 COPY prisma ./prisma
 
-# Generate Prisma client
-RUN pnpm prisma generate
+# Generate Prisma client (mkdir docs for prisma-erd-generator)
+RUN mkdir -p docs && pnpm prisma generate
 
 # Copy source code
 COPY . .
