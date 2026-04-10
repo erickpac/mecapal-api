@@ -140,17 +140,19 @@ jobs:
           health-check-path: /api/health
           cpu: ${{ inputs.cpu }}
           memory: ${{ inputs.memory }}
-          environment-variables: |
-            NODE_ENV=${{ inputs.node_env }}
-            PORT=8080
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            AWS_REGION=${{ env.AWS_REGION }}
-            AWS_COGNITO_USER_POOL_ID=${{ secrets.AWS_COGNITO_USER_POOL_ID }}
-            AWS_COGNITO_CLIENT_ID=${{ secrets.AWS_COGNITO_CLIENT_ID }}
-            AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}
-            AWS_S3_REGION=${{ env.AWS_REGION }}
-            AWS_SES_REGION=${{ env.AWS_REGION }}
-            CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+          environment-variables: >-
+            [
+              {"name": "NODE_ENV", "value": "${{ inputs.node_env }}"},
+              {"name": "PORT", "value": "8080"},
+              {"name": "DATABASE_URL", "value": "${{ secrets.DATABASE_URL }}"},
+              {"name": "AWS_REGION", "value": "${{ env.AWS_REGION }}"},
+              {"name": "AWS_COGNITO_USER_POOL_ID", "value": "${{ secrets.AWS_COGNITO_USER_POOL_ID }}"},
+              {"name": "AWS_COGNITO_CLIENT_ID", "value": "${{ secrets.AWS_COGNITO_CLIENT_ID }}"},
+              {"name": "AWS_S3_BUCKET", "value": "${{ secrets.AWS_S3_BUCKET }}"},
+              {"name": "AWS_S3_REGION", "value": "${{ env.AWS_REGION }}"},
+              {"name": "AWS_SES_REGION", "value": "${{ env.AWS_REGION }}"},
+              {"name": "CORS_ORIGIN", "value": "${{ secrets.CORS_ORIGIN }}"}
+            ]
 
       - name: Create deployment summary
         run: |
