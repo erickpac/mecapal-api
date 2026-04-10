@@ -20,12 +20,6 @@ export class S3Service implements IS3Service {
 
     this.s3Client = new S3Client({
       region: this.region,
-      credentials: {
-        accessKeyId: this.configService.getOrThrow<string>('AWS_ACCESS_KEY_ID'),
-        secretAccessKey: this.configService.getOrThrow<string>(
-          'AWS_SECRET_ACCESS_KEY',
-        ),
-      },
     });
   }
 
