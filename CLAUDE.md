@@ -4,7 +4,7 @@
 
 - NestJS with TypeScript (strict mode)
 - PostgreSQL with Prisma ORM
-- AWS: App Runner (compute), RDS (database), S3 (storage), Cognito (auth), SES (email), CloudFront (CDN), WAF (security)
+- AWS: ECS Express Mode (compute), RDS (database), S3 (storage), Cognito (auth), SES (email), CloudFront (CDN), WAF (security)
 - Stripe for payment processing
 - Docker for containerization
 - GitHub Actions for CI/CD
@@ -129,12 +129,13 @@ cognito, user, address, vehicle, upload, backoffice, location, zone-preference, 
 
 ## Deployment
 
-- **Dev**: Push to `develop` → GitHub Actions builds Docker image → pushes to ECR → deploys to App Runner
+- **Dev**: Push to `develop` → GitHub Actions builds Docker image → pushes to ECR → deploys to ECS Express Mode
 - **Prod**: Push to `main` → same pipeline targeting production service
-- **Workflow files**: `.github/workflows/deploy-dev.yml`, `deploy-prod.yml`, `_deploy-apprunner.yml`
+- **Workflow files**: `.github/workflows/deploy-dev.yml`, `deploy-prod.yml`, `_deploy-ecs-express.yml`
 - **Docker**: Multi-stage build (`Dockerfile`), runs on port 8080
 - **Health check**: `GET /api/health`
-- **Environment variables** are passed via App Runner runtime config in the workflow
+- **Environment variables** are passed via the ECS Express deploy action in the workflow
+- **AWS credentials** for the app (S3, SES, Cognito) are provided via ECS task role, not access keys
 
 ## Environment Variables
 

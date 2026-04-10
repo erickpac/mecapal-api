@@ -8,10 +8,10 @@ Test the health endpoint:
 
 ```bash
 # Development
-curl https://YOUR_DEV_URL.us-east-1.awsapprunner.com/health
+curl https://mekapal-api-dev.ecs.us-east-1.on.aws/api/health
 
 # Production
-curl https://YOUR_PROD_URL.us-east-1.awsapprunner.com/health
+curl https://mekapal-api-prod.ecs.us-east-1.on.aws/api/health
 ```
 
 Expected response:
@@ -27,21 +27,20 @@ Expected response:
 Test database connectivity by accessing an endpoint that queries the database:
 
 ```bash
-# This should work if database is connected
-curl https://YOUR_DEV_URL.us-east-1.awsapprunner.com/locations/departments
+curl https://mekapal-api-dev.ecs.us-east-1.on.aws/locations/countries
 ```
 
 If you get data, the database is connected. If you get a 500 error, check:
 - DATABASE_URL is correct
-- RDS security group allows inbound traffic
-- RDS is publicly accessible (for dev)
+- RDS security group allows inbound from ECS security group
+- RDS is in the same VPC as the ECS service
 
 ## 3. Cognito Authentication
 
 ### Test Sign Up (Mobile)
 
 ```bash
-curl -X POST https://YOUR_DEV_URL.us-east-1.awsapprunner.com/auth/sign-up \
+curl -X POST https://mekapal-api-dev.ecs.us-east-1.on.aws/auth/sign-up \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -55,7 +54,7 @@ curl -X POST https://YOUR_DEV_URL.us-east-1.awsapprunner.com/auth/sign-up \
 ### Test Sign In (Mobile)
 
 ```bash
-curl -X POST https://YOUR_DEV_URL.us-east-1.awsapprunner.com/auth/sign-in \
+curl -X POST https://mekapal-api-dev.ecs.us-east-1.on.aws/auth/sign-in \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -68,7 +67,7 @@ Expected response includes `accessToken`, `refreshToken`, `idToken`, and `user`.
 ### Test Admin Sign In
 
 ```bash
-curl -X POST https://YOUR_DEV_URL.us-east-1.awsapprunner.com/auth/admin/sign-in \
+curl -X POST https://mekapal-api-dev.ecs.us-east-1.on.aws/auth/admin/sign-in \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@example.com",
@@ -85,7 +84,7 @@ Test file upload (requires authentication):
 TOKEN="your-access-token"
 
 # Test presigned URL generation
-curl -X POST https://YOUR_DEV_URL.us-east-1.awsapprunner.com/upload/presigned-url \
+curl -X POST https://mekapal-api-dev.ecs.us-east-1.on.aws/upload/presigned-url \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
@@ -95,21 +94,16 @@ curl -X POST https://YOUR_DEV_URL.us-east-1.awsapprunner.com/upload/presigned-ur
   }'
 ```
 
-## 5. App Runner Service Status
+## 5. ECS Service Status
 
 ```bash
-# Development
-aws apprunner describe-service \
-  --service-arn YOUR_DEV_SERVICE_ARN \
-  --query 'Service.{Status:Status,URL:ServiceUrl}'
-
-# Production
-aws apprunner describe-service \
-  --service-arn YOUR_PROD_SERVICE_ARN \
-  --query 'Service.{Status:Status,URL:ServiceUrl}'
+# Check service status
+aws ecs describe-express-gateway-services \
+  --service-names mekapal-api-dev \
+  --query 'services[0].{Status:status,URL:serviceUrl}'
 ```
 
-Status should be `RUNNING`.
+Status should be `ACTIVE`.
 
 ## 6. View Logs
 
@@ -117,15 +111,15 @@ Status should be `RUNNING`.
 
 ```bash
 # Development logs
-aws logs tail /aws/apprunner/mekapal-api-dev/service --follow
+aws logs tail /ecs/mekapal-api-dev --follow
 
 # Production logs
-aws logs tail /aws/apprunner/mekapal-api-prod/service --follow
+aws logs tail /ecs/mekapal-api-prod --follow
 ```
 
 ### Via Console
 
-1. Go to **App Runner → Your service**
+1. Go to **Amazon ECS → Services → Your service**
 2. Click **Logs** tab
 3. Select log stream to view
 
@@ -154,40 +148,40 @@ aws logs tail /aws/apprunner/mekapal-api-prod/service --follow
 Run through the complete user flow:
 
 ### Client User Flow
-1. ✅ Sign up as CLIENT
-2. ✅ Confirm email (check for confirmation code)
-3. ✅ Sign in
-4. ✅ Access protected endpoints
+1. Sign up as CLIENT
+2. Confirm email (check for confirmation code)
+3. Sign in
+4. Access protected endpoints
 
 ### Transporter User Flow
-1. ✅ Sign up as TRANSPORTER
-2. ✅ Confirm email
-3. ✅ Sign in
-4. ✅ Complete profile
-5. ✅ Add vehicle
-6. ✅ Upload vehicle photos
+1. Sign up as TRANSPORTER
+2. Confirm email
+3. Sign in
+4. Complete profile
+5. Add vehicle
+6. Upload vehicle photos
 
 ### Admin User Flow
-1. ✅ Create ADMIN user (via database or existing admin)
-2. ✅ Admin signs in via `/auth/admin/sign-in`
-3. ✅ Complete new password challenge
-4. ✅ Create BACKOFFICE user via `/auth/admin/users`
-5. ✅ BACKOFFICE signs in and changes password
+1. Create ADMIN user (via database or existing admin)
+2. Admin signs in via `/auth/admin/sign-in`
+3. Complete new password challenge
+4. Create BACKOFFICE user via `/auth/admin/users`
+5. BACKOFFICE signs in and changes password
 
 ## Troubleshooting
 
 ### Health check fails
 
-- Check App Runner logs
+- Check ECS CloudWatch logs
 - Verify PORT is set to 8080
-- Ensure health endpoint exists at `/health`
+- Ensure health endpoint exists at `/api/health`
 
 ### Database connection fails
 
 - Verify DATABASE_URL format
-- Check RDS security group
+- Check RDS security group allows inbound from ECS security group
 - Ensure RDS is in "Available" state
-- Test connection from local machine first
+- Verify both services are in the same VPC
 
 ### Cognito errors
 
@@ -198,24 +192,24 @@ Run through the complete user flow:
 ### S3 errors
 
 - Verify bucket exists
-- Check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-- Verify IAM user has S3 permissions
+- Check task role (`mekapalApiTaskRole`) has S3 permissions
+- No access keys needed — task role provides credentials automatically
 
 ### CI/CD fails
 
 - Check GitHub Actions logs
 - Verify all secrets are set correctly
-- Ensure App Runner service ARN is correct
+- Ensure ECS role ARNs are correct
 
 ## Monitoring Checklist
 
 ### Daily Checks
-- [ ] App Runner service status is RUNNING
+- [ ] ECS service status is ACTIVE
 - [ ] Health endpoint responds
-- [ ] No error spikes in logs
+- [ ] No error spikes in CloudWatch logs
 
 ### Weekly Checks
-- [ ] Review App Runner metrics
+- [ ] Review ECS service metrics (CPU, memory)
 - [ ] Check RDS storage usage
 - [ ] Review S3 storage costs
 - [ ] Check for failed deployments
@@ -223,15 +217,15 @@ Run through the complete user flow:
 ### Monthly Checks
 - [ ] Review AWS costs
 - [ ] Check for security updates
-- [ ] Review and rotate credentials if needed
+- [ ] Review and rotate CI/CD credentials if needed
 
 ## Summary
 
 If all verifications pass:
-- ✅ API is running and accessible
-- ✅ Database is connected
-- ✅ Authentication works
-- ✅ File uploads work
-- ✅ CI/CD is operational
+- API is running and accessible
+- Database is connected
+- Authentication works
+- File uploads work
+- CI/CD is operational
 
 Your infrastructure is ready for development!

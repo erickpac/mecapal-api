@@ -1,6 +1,6 @@
 # GitHub Secrets Setup
 
-Configure GitHub repository secrets for CI/CD deployments.
+Configure GitHub repository secrets for CI/CD deployments to ECS Express Mode.
 
 ## Overview
 
@@ -8,8 +8,6 @@ GitHub Actions workflows use two types of secrets:
 
 1. **Repository Secrets** - Shared between all environments (CI/CD credentials)
 2. **Environment Secrets** - Specific per environment (dev/prod have different values)
-
-> **Important:** The workflow **only updates** existing App Runner services. Services must be created beforehand using infrastructure scripts (`infrastructure/scripts/06-app-runner.sh`) or manually via AWS Console.
 
 ## 1. Access Repository Settings
 
@@ -40,13 +38,14 @@ Click **New repository secret** and add:
 
 | Secret Name | Value | Example |
 |-------------|-------|---------|
-| `APP_RUNNER_ECR_ROLE_ARN` | ECR access role ARN | `arn:aws:iam::ACCOUNT:role/AppRunnerECRAccessRole` |
+| `ECS_EXECUTION_ROLE_ARN` | Task execution role ARN | `arn:aws:iam::ACCOUNT:role/mekapalEcsTaskExecutionRole` |
+| `ECS_INFRASTRUCTURE_ROLE_ARN` | Infrastructure role ARN | `arn:aws:iam::ACCOUNT:role/mekapalEcsInfrastructureRole` |
+| `ECS_TASK_ROLE_ARN` | Task role ARN | `arn:aws:iam::ACCOUNT:role/mekapalApiTaskRole` |
 | `DATABASE_URL` | DEV RDS connection string | `postgresql://user:pass@mekapal-dev.xxx.rds.amazonaws.com:5432/mekapal` |
 | `AWS_COGNITO_USER_POOL_ID` | DEV User Pool ID | `us-east-1_xxxxxxx` |
 | `AWS_COGNITO_CLIENT_ID` | DEV App Client ID | `xxxxxxxxxxxxxxxxx` |
 | `AWS_S3_BUCKET` | DEV bucket name | `mekapal-uploads-dev` |
-| `APP_AWS_ACCESS_KEY_ID` | Access key from `mekapal-app` user | `AKIA...` |
-| `APP_AWS_SECRET_ACCESS_KEY` | Secret key from `mekapal-app` user | `xxx...` |
+| `CORS_ORIGIN` | Allowed origins | `http://localhost:3000` |
 
 6. **Deployment branches**:
    - Selected branches → Add `develop`
@@ -60,13 +59,14 @@ Click **New repository secret** and add:
 
 | Secret Name | Value | Example |
 |-------------|-------|---------|
-| `APP_RUNNER_ECR_ROLE_ARN` | ECR access role ARN | `arn:aws:iam::ACCOUNT:role/AppRunnerECRAccessRole` |
+| `ECS_EXECUTION_ROLE_ARN` | Task execution role ARN | `arn:aws:iam::ACCOUNT:role/mekapalEcsTaskExecutionRole` |
+| `ECS_INFRASTRUCTURE_ROLE_ARN` | Infrastructure role ARN | `arn:aws:iam::ACCOUNT:role/mekapalEcsInfrastructureRole` |
+| `ECS_TASK_ROLE_ARN` | Task role ARN | `arn:aws:iam::ACCOUNT:role/mekapalApiTaskRole` |
 | `DATABASE_URL` | PROD RDS connection string | `postgresql://user:pass@mekapal-prod.xxx.rds.amazonaws.com:5432/mekapal` |
 | `AWS_COGNITO_USER_POOL_ID` | PROD User Pool ID | `us-east-1_yyyyyyy` |
 | `AWS_COGNITO_CLIENT_ID` | PROD App Client ID | `yyyyyyyyyyyyyyyyy` |
 | `AWS_S3_BUCKET` | PROD bucket name | `mekapal-uploads-prod` |
-| `APP_AWS_ACCESS_KEY_ID` | Access key from `mekapal-app` user | `AKIA...` |
-| `APP_AWS_SECRET_ACCESS_KEY` | Secret key from `mekapal-app` user | `xxx...` |
+| `CORS_ORIGIN` | Allowed origins | `https://app.mekapal.com,https://console.mekapal.com` |
 
 5. **Environment protection rules** (Recommended):
    - Required reviewers: Add yourself or team members
@@ -101,26 +101,30 @@ When the workflow accesses `${{ secrets.DATABASE_URL }}`:
 
 ## 5. How the Workflow Works
 
-The workflow only updates existing services:
-
 ```
 1. Run database migrations (Prisma)
 2. Build & Push Docker image to ECR
-3. Find existing App Runner service
-   └── If NOT exists → Fail with error message
-4. Update App Runner service with new image
-5. Wait for deployment to complete
-6. Print service URL
+3. Deploy to ECS Express Mode
+   └── Creates service if new, updates if existing
+4. ECS provisions ALB, security groups, auto-scaling
+5. Print service URL in job summary
 ```
-
-**Prerequisite:** The App Runner service must exist before the first deploy. Use infrastructure scripts or AWS Console to create it.
 
 ## 6. Get Values for Secrets
 
-### App Runner ECR Role ARN
+### ECS Role ARNs
 
 ```bash
-aws iam get-role --role-name AppRunnerECRAccessRole \
+# Task Execution Role
+aws iam get-role --role-name mekapalEcsTaskExecutionRole \
+  --query 'Role.Arn' --output text
+
+# Infrastructure Role
+aws iam get-role --role-name mekapalEcsInfrastructureRole \
+  --query 'Role.Arn' --output text
+
+# Task Role
+aws iam get-role --role-name mekapalApiTaskRole \
   --query 'Role.Arn' --output text
 ```
 
@@ -151,20 +155,6 @@ aws cognito-idp list-user-pool-clients \
   --output text
 ```
 
-### App User Credentials
-
-These are the access keys from the IAM user `mekapal-app` (not the CI/CD user).
-
-```bash
-# List access keys for mekapal-app user
-aws iam list-access-keys --user-name mekapal-app
-```
-
-If you need to create new keys:
-```bash
-aws iam create-access-key --user-name mekapal-app
-```
-
 ## 7. Verify Configuration
 
 ### Check Secrets in GitHub
@@ -175,16 +165,17 @@ In **Settings → Secrets and variables → Actions**, you should see:
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 
-**Environment: development** (7 secrets):
-- `APP_RUNNER_ECR_ROLE_ARN`
+**Environment: development** (8 secrets):
+- `ECS_EXECUTION_ROLE_ARN`
+- `ECS_INFRASTRUCTURE_ROLE_ARN`
+- `ECS_TASK_ROLE_ARN`
 - `DATABASE_URL`
 - `AWS_COGNITO_USER_POOL_ID`
 - `AWS_COGNITO_CLIENT_ID`
 - `AWS_S3_BUCKET`
-- `APP_AWS_ACCESS_KEY_ID`
-- `APP_AWS_SECRET_ACCESS_KEY`
+- `CORS_ORIGIN`
 
-**Environment: production** (7 secrets):
+**Environment: production** (8 secrets):
 - Same secret names, different values
 
 ### Test Workflow
@@ -198,28 +189,37 @@ In **Settings → Secrets and variables → Actions**, you should see:
 
 Workflows use a DRY architecture with a reusable workflow:
 
-### `.github/workflows/_deploy-apprunner.yml` (Reusable Workflow)
+### `.github/workflows/_deploy-ecs-express.yml` (Reusable Workflow)
 - Contains all deployment logic
-- Receives inputs: `environment`, `service_name`, `ecr_repository`, `node_env`
+- Receives inputs: `environment`, `service_name`, `ecr_repository`, `node_env`, `cpu`, `memory`
 - Features:
   - Automatic Prisma migrations
   - Docker layer caching for fast builds
   - Concurrency control (prevents parallel deploys)
   - GitHub Job Summary with deployment details
-  - Fails early if service doesn't exist
 
 ### `.github/workflows/deploy-dev.yml`
 - Triggers on push to `develop`
 - Calls the reusable workflow with development configuration
-- Service: `mekapal-api-dev`
+- Service: `mekapal-api-dev` (512 CPU, 1024 MB)
 
 ### `.github/workflows/deploy-prod.yml`
 - Triggers on push to `main`
 - Calls the reusable workflow with production configuration
 - Requires approval (if protection rules enabled)
-- Service: `mekapal-api-prod`
+- Service: `mekapal-api-prod` (1024 CPU, 2048 MB)
 
-## 9. Branch Protection (Recommended)
+## 9. Secrets removed from App Runner migration
+
+The following secrets are **no longer needed** and can be removed:
+
+| Secret | Reason |
+|--------|--------|
+| `APP_RUNNER_ECR_ROLE_ARN` | Replaced by ECS roles |
+| `APP_AWS_ACCESS_KEY_ID` | Task role provides credentials automatically |
+| `APP_AWS_SECRET_ACCESS_KEY` | Task role provides credentials automatically |
+
+## 10. Branch Protection (Recommended)
 
 ### Develop Branch
 
@@ -229,7 +229,6 @@ Workflows use a DRY architecture with a reusable workflow:
 4. Enable:
    - Require a pull request before merging
    - Require status checks to pass
-   - Select: `build-test-quality` (from CI workflow)
 
 ### Main Branch
 
@@ -244,55 +243,47 @@ Workflows use a DRY architecture with a reusable workflow:
 
 ```
 Repository Secrets (shared):
-├── AWS_ACCESS_KEY_ID        → CI/CD user credentials
+├── AWS_ACCESS_KEY_ID         → CI/CD user credentials
 └── AWS_SECRET_ACCESS_KEY
 
-Environment: development (7 secrets)
-├── APP_RUNNER_ECR_ROLE_ARN  → ECR access role
-├── DATABASE_URL             → DEV database
-├── AWS_COGNITO_USER_POOL_ID → DEV Cognito Pool
-├── AWS_COGNITO_CLIENT_ID    → DEV Cognito Client
-├── AWS_S3_BUCKET            → DEV bucket
-├── APP_AWS_ACCESS_KEY_ID    → App user key
-└── APP_AWS_SECRET_ACCESS_KEY→ App user secret
+Environment: development (8 secrets)
+├── ECS_EXECUTION_ROLE_ARN    → Task execution role
+├── ECS_INFRASTRUCTURE_ROLE_ARN → Infrastructure role
+├── ECS_TASK_ROLE_ARN         → App task role (S3, SES, Cognito)
+├── DATABASE_URL              → DEV database
+├── AWS_COGNITO_USER_POOL_ID  → DEV Cognito Pool
+├── AWS_COGNITO_CLIENT_ID     → DEV Cognito Client
+├── AWS_S3_BUCKET             → DEV bucket
+└── CORS_ORIGIN               → DEV allowed origins
 
-Environment: production (7 secrets)
-├── APP_RUNNER_ECR_ROLE_ARN  → ECR access role
-├── DATABASE_URL             → PROD database
-├── AWS_COGNITO_USER_POOL_ID → PROD Cognito Pool
-├── AWS_COGNITO_CLIENT_ID    → PROD Cognito Client
-├── AWS_S3_BUCKET            → PROD bucket
-├── APP_AWS_ACCESS_KEY_ID    → App user key
-└── APP_AWS_SECRET_ACCESS_KEY→ App user secret
+Environment: production (8 secrets)
+├── ECS_EXECUTION_ROLE_ARN    → Task execution role
+├── ECS_INFRASTRUCTURE_ROLE_ARN → Infrastructure role
+├── ECS_TASK_ROLE_ARN         → App task role (S3, SES, Cognito)
+├── DATABASE_URL              → PROD database
+├── AWS_COGNITO_USER_POOL_ID  → PROD Cognito Pool
+├── AWS_COGNITO_CLIENT_ID     → PROD Cognito Client
+├── AWS_S3_BUCKET             → PROD bucket
+└── CORS_ORIGIN               → PROD allowed origins
 ```
 
 ## Troubleshooting
 
 ### "Resource not accessible by integration"
 
-- Ensure the IAM user has correct permissions
-- Check that `APP_RUNNER_ECR_ROLE_ARN` is correct
+- Ensure the CI/CD IAM user has ECS Express permissions
+- Check that role ARNs are correct
+- Verify `iam:PassRole` permission includes all three roles
 
 ### "Invalid credentials"
 
-- Double-check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+- Double-check `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 - Ensure they're from the `mekapal-ci-cd` user
 
 ### Workflow doesn't trigger
 
 - Verify the branch name matches the workflow trigger
 - Check that the workflow file is in `.github/workflows/`
-
-### "App Runner service not found"
-
-- The service must exist before running the workflow
-- Create the service using `infrastructure/scripts/06-app-runner.sh`
-- Or create it manually via AWS Console ([see docs](./06-app-runner-setup.md))
-
-### Deployment takes too long
-
-- Deployments typically take ~2-5 minutes
-- Health check may add extra time if the app takes longer to start
 
 ## Next Step
 

@@ -1,17 +1,19 @@
 # IAM Setup
 
-This guide covers creating the necessary IAM users and policies for the Mecapal API infrastructure.
+This guide covers creating the necessary IAM users and roles for the Mecapal API infrastructure.
 
 ## Overview
 
-You need to create two IAM users:
+You need to create:
 
-1. **mekapal-ci-cd**: Used by GitHub Actions for deployments
-2. **mekapal-app**: Used by the application to access AWS services (S3, SES, Cognito)
+1. **mekapal-ci-cd** (IAM user): Used by GitHub Actions for deployments
+2. **mekapalEcsTaskExecutionRole** (IAM role): Allows ECS to pull images from ECR and write logs
+3. **mekapalEcsInfrastructureRole** (IAM role): Allows ECS Express Mode to provision ALB, security groups, etc.
+4. **mekapalApiTaskRole** (IAM role): Grants the running application access to S3, SES, and Cognito
 
 ## 1. Create CI/CD User
 
-This user is used by GitHub Actions to push images to ECR and trigger App Runner deployments.
+This user is used by GitHub Actions to push images to ECR and deploy to ECS Express Mode.
 
 ### Create the user
 
@@ -51,20 +53,29 @@ Create a file named `ci-cd-policy.json`:
       ]
     },
     {
-      "Sid": "AppRunnerDeploy",
+      "Sid": "ECSExpressDeploy",
       "Effect": "Allow",
       "Action": [
-        "apprunner:ListServices",
-        "apprunner:DescribeService",
-        "apprunner:UpdateService"
+        "ecs:CreateExpressGatewayService",
+        "ecs:UpdateExpressGatewayService",
+        "ecs:DescribeExpressGatewayServices",
+        "ecs:DescribeServices",
+        "ecs:DescribeClusters",
+        "ecs:DescribeTaskDefinition",
+        "ecs:ListServices",
+        "ecs:ListClusters"
       ],
       "Resource": "*"
     },
     {
-      "Sid": "PassRoleToAppRunner",
+      "Sid": "PassRolesToECS",
       "Effect": "Allow",
       "Action": "iam:PassRole",
-      "Resource": "arn:aws:iam::*:role/AppRunnerECRAccessRole"
+      "Resource": [
+        "arn:aws:iam::*:role/mekapalEcsTaskExecutionRole",
+        "arn:aws:iam::*:role/mekapalEcsInfrastructureRole",
+        "arn:aws:iam::*:role/mekapalApiTaskRole"
+      ]
     }
   ]
 }
@@ -89,19 +100,84 @@ aws iam create-access-key --user-name mekapal-ci-cd
 - `AccessKeyId`
 - `SecretAccessKey`
 
-## 2. Create Application User
+## 2. Create ECS Task Execution Role
 
-This user is used by the running application to access S3, SES, and Cognito.
-
-### Create the user
+This role allows ECS to pull container images from ECR and send logs to CloudWatch.
 
 ```bash
-aws iam create-user --user-name mekapal-app
+# Create trust policy
+cat > ecs-trust-policy.json << 'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "Service": "ecs-tasks.amazonaws.com" },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+
+# Create role
+aws iam create-role \
+  --role-name mekapalEcsTaskExecutionRole \
+  --assume-role-policy-document file://ecs-trust-policy.json
+
+# Attach managed policy
+aws iam attach-role-policy \
+  --role-name mekapalEcsTaskExecutionRole \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+```
+
+Save the role ARN: `arn:aws:iam::<ACCOUNT_ID>:role/mekapalEcsTaskExecutionRole`
+
+## 3. Create ECS Infrastructure Role
+
+This role allows ECS Express Mode to provision resources (ALB, security groups, etc.) on your behalf.
+
+```bash
+# Create trust policy
+cat > ecs-infra-trust-policy.json << 'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "Service": "ecs.amazonaws.com" },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+
+# Create role
+aws iam create-role \
+  --role-name mekapalEcsInfrastructureRole \
+  --assume-role-policy-document file://ecs-infra-trust-policy.json
+
+# Attach managed policy
+aws iam attach-role-policy \
+  --role-name mekapalEcsInfrastructureRole \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRoleForExpressGatewayServices
+```
+
+Save the role ARN: `arn:aws:iam::<ACCOUNT_ID>:role/mekapalEcsInfrastructureRole`
+
+## 4. Create Application Task Role
+
+This role is assumed by the running application container. It replaces the need for AWS access keys as environment variables — the AWS SDK automatically picks up credentials from the task role.
+
+```bash
+# Create role (same trust policy as execution role — ecs-tasks.amazonaws.com)
+aws iam create-role \
+  --role-name mekapalApiTaskRole \
+  --assume-role-policy-document file://ecs-trust-policy.json
 ```
 
 ### Create the policy file
 
-Create a file named `app-policy.json`:
+Create a file named `task-role-policy.json`:
 
 ```json
 {
@@ -151,30 +227,26 @@ Create a file named `app-policy.json`:
 ### Attach the policy
 
 ```bash
-aws iam put-user-policy \
-  --user-name mekapal-app \
+aws iam put-role-policy \
+  --role-name mekapalApiTaskRole \
   --policy-name mekapal-app-policy \
-  --policy-document file://app-policy.json
+  --policy-document file://task-role-policy.json
 ```
 
-### Create access keys
-
-```bash
-aws iam create-access-key --user-name mekapal-app
-```
-
-**Important**: Save the output! You'll need these for App Runner environment variables:
-- `AccessKeyId` → `AWS_ACCESS_KEY_ID`
-- `SecretAccessKey` → `AWS_SECRET_ACCESS_KEY`
+Save the role ARN: `arn:aws:iam::<ACCOUNT_ID>:role/mekapalApiTaskRole`
 
 ## Summary
 
 After completing this guide, you should have:
 
-| User | Purpose | Credentials Stored In |
-|------|---------|----------------------|
-| `mekapal-ci-cd` | GitHub Actions deployments | GitHub Secrets |
-| `mekapal-app` | Application AWS access | App Runner env vars |
+| Resource | Type | Purpose | ARN needed for |
+|----------|------|---------|----------------|
+| `mekapal-ci-cd` | IAM user | GitHub Actions deployments | GitHub repo secrets |
+| `mekapalEcsTaskExecutionRole` | IAM role | ECS pulls images & writes logs | GitHub env secrets |
+| `mekapalEcsInfrastructureRole` | IAM role | ECS Express provisions infra | GitHub env secrets |
+| `mekapalApiTaskRole` | IAM role | App accesses S3, SES, Cognito | GitHub env secrets |
+
+> **Note:** The `mekapal-app` IAM user (with access keys) is no longer needed. The task role provides credentials automatically, which is more secure.
 
 ## Next Step
 

@@ -52,7 +52,7 @@ COPY --from=builder /app/dist ./dist
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Expose port (App Runner uses 8080 by default)
+# Expose port (ECS Express Mode forwards traffic to this port)
 EXPOSE 8080
 
 # Health check
