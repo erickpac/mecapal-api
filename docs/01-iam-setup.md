@@ -53,17 +53,58 @@ Create a file named `ci-cd-policy.json`:
       ]
     },
     {
-      "Sid": "ECSExpressDeploy",
+      "Sid": "ECSFullDeploy",
       "Effect": "Allow",
       "Action": [
-        "ecs:CreateExpressGatewayService",
-        "ecs:UpdateExpressGatewayService",
-        "ecs:DescribeExpressGatewayServices",
+        "ecs:CreateCluster",
+        "ecs:CreateService",
+        "ecs:UpdateService",
+        "ecs:DeleteService",
         "ecs:DescribeServices",
         "ecs:DescribeClusters",
         "ecs:DescribeTaskDefinition",
+        "ecs:RegisterTaskDefinition",
+        "ecs:DeregisterTaskDefinition",
         "ecs:ListServices",
-        "ecs:ListClusters"
+        "ecs:ListClusters",
+        "ecs:ListTaskDefinitions",
+        "ecs:TagResource",
+        "ecs:CreateExpressGatewayService",
+        "ecs:UpdateExpressGatewayService",
+        "ecs:DescribeExpressGatewayServices"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ECSExpressInfra",
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:CreateLoadBalancer",
+        "elasticloadbalancing:CreateTargetGroup",
+        "elasticloadbalancing:CreateListener",
+        "elasticloadbalancing:CreateRule",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeRules",
+        "elasticloadbalancing:ModifyLoadBalancerAttributes",
+        "elasticloadbalancing:ModifyTargetGroupAttributes",
+        "elasticloadbalancing:AddTags",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "ec2:CreateSecurityGroup",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:CreateTags",
+        "logs:CreateLogGroup",
+        "logs:PutRetentionPolicy",
+        "logs:TagLogGroup",
+        "application-autoscaling:RegisterScalableTarget",
+        "application-autoscaling:PutScalingPolicy",
+        "application-autoscaling:DescribeScalableTargets",
+        "application-autoscaling:DescribeScalingPolicies"
       ],
       "Resource": "*"
     },
@@ -76,18 +117,31 @@ Create a file named `ci-cd-policy.json`:
         "arn:aws:iam::*:role/mekapalEcsInfrastructureRole",
         "arn:aws:iam::*:role/mekapalApiTaskRole"
       ]
+    },
+    {
+      "Sid": "CreateServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "arn:aws:iam::*:role/aws-service-role/ecs.amazonaws.com/*"
     }
   ]
 }
 ```
 
+> **Note:** This policy exceeds the 2048-byte inline policy limit. Use a managed policy instead of an inline policy.
+
 ### Attach the policy
 
 ```bash
-aws iam put-user-policy \
-  --user-name mekapal-ci-cd \
+# Create as managed policy
+aws iam create-policy \
   --policy-name mekapal-ci-cd-policy \
   --policy-document file://ci-cd-policy.json
+
+# Attach to user
+aws iam attach-user-policy \
+  --user-name mekapal-ci-cd \
+  --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/mekapal-ci-cd-policy
 ```
 
 ### Create access keys
