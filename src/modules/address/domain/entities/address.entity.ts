@@ -10,6 +10,9 @@ export class Address {
   longitude: number | null;
   contactName: string | null;
   contactPhone: string | null;
+  stateId: string | null;
+  municipalityId: string | null;
+  zoneId: string | null;
   isDefault: boolean;
   userId: string;
   createdAt: Date;

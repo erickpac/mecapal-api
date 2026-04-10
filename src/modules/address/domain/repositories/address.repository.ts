@@ -11,6 +11,9 @@ export interface CreateAddressData {
   longitude?: number;
   contactName?: string;
   contactPhone?: string;
+  stateId?: string;
+  municipalityId?: string;
+  zoneId?: string;
   isDefault?: boolean;
 }
 

@@ -214,9 +214,17 @@ model Address {
   contactPhone String?
   isDefault    Boolean @default(false)
 
-  // Relation
+  // Relations
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Location hierarchy (optional)
+  stateId        String?       @db.Uuid
+  stateRef       State?        @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  municipalityId String?       @db.Uuid
+  municipality   Municipality? @relation(fields: [municipalityId], references: [id], onDelete: SetNull)
+  zoneId         String?       @db.Uuid
+  zone           Zone?         @relation(fields: [zoneId], references: [id], onDelete: SetNull)
 
   // Delivery relations
   pickupRequests   DeliveryRequest[] @relation("PickupAddress")
@@ -226,6 +234,9 @@ model Address {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([stateId])
+  @@index([municipalityId])
+  @@index([zoneId])
 }
 
 model Vehicle {
@@ -324,6 +335,7 @@ model State {
   country   Country @relation(fields: [countryId], references: [id], onDelete: Restrict)
 
   municipalities Municipality[]
+  addresses      Address[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -343,7 +355,8 @@ model Municipality {
   stateId String @db.Uuid
   state   State  @relation(fields: [stateId], references: [id], onDelete: Restrict)
 
-  zones Zone[]
+  zones     Zone[]
+  addresses Address[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -367,6 +380,7 @@ model Zone {
   municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Restrict)
 
   transporterPreferences TransporterZonePreference[]
+  addresses              Address[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

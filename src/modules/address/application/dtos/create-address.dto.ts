@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsNumber,
   IsBoolean,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateAddressDto {
@@ -46,6 +47,18 @@ export class CreateAddressDto {
   @IsString()
   @IsOptional()
   contactPhone?: string;
+
+  @IsUUID()
+  @IsOptional()
+  stateId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  municipalityId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  zoneId?: string;
 
   @IsBoolean()
   @IsOptional()

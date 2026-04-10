@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsNumber, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsBoolean,
+  IsUUID,
+} from 'class-validator';
 
 export class UpdateAddressDto {
   @IsString()
@@ -40,6 +46,18 @@ export class UpdateAddressDto {
   @IsString()
   @IsOptional()
   contactPhone?: string;
+
+  @IsUUID()
+  @IsOptional()
+  stateId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  municipalityId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  zoneId?: string;
 
   @IsBoolean()
   @IsOptional()
