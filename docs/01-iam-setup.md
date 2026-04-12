@@ -270,7 +270,9 @@ Create a file named `task-role-policy.json`:
         "cognito-idp:AdminInitiateAuth",
         "cognito-idp:AdminRespondToAuthChallenge",
         "cognito-idp:AdminGetUser",
-        "cognito-idp:AdminUpdateUserAttributes"
+        "cognito-idp:AdminUpdateUserAttributes",
+        "cognito-idp:AdminSetUserPassword",
+        "cognito-idp:AdminDeleteUser"
       ],
       "Resource": "arn:aws:cognito-idp:us-east-1:*:userpool/*"
     }
