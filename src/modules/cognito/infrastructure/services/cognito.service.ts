@@ -36,7 +36,7 @@ import {
   InvalidPasswordException,
   UserNotFoundException,
   InvalidTokenException,
-  ForgotPasswordRateLimitedException,
+  CognitoRateLimitedException,
 } from '../../domain/exceptions/cognito.exceptions';
 
 @Injectable()
@@ -296,15 +296,7 @@ export class CognitoService implements ICognitoService {
       return;
     }
 
-    if (
-      err.name === 'LimitExceededException' ||
-      err.name === 'TooManyRequestsException'
-    ) {
-      this.logger.warn(
-        `forgotPassword rate limited ${err.name} (requestId=${requestId}, emailHash=${emailHash})`,
-      );
-      throw new ForgotPasswordRateLimitedException();
-    }
+    this.throwIfRateLimited(error, 'forgotPassword');
 
     this.logger.error(
       `forgotPassword unexpected error ${err.name ?? 'Unknown'} (requestId=${requestId}, emailHash=${emailHash}): ${err.message ?? ''}`,
@@ -345,7 +337,24 @@ export class CognitoService implements ICognitoService {
 
       await this.client.send(command);
     } catch (error) {
+      this.throwIfRateLimited(error, 'changePassword');
       this.handleCognitoError(error);
+    }
+  }
+
+  private throwIfRateLimited(error: unknown, operation: string): void {
+    const err = error as {
+      name?: string;
+      $metadata?: { requestId?: string };
+    };
+    if (
+      err.name === 'LimitExceededException' ||
+      err.name === 'TooManyRequestsException'
+    ) {
+      this.logger.warn(
+        `${operation} rate limited ${err.name} (requestId=${err.$metadata?.requestId})`,
+      );
+      throw new CognitoRateLimitedException();
     }
   }
 

@@ -74,9 +74,11 @@ export class NewPasswordRequiredException extends CognitoException {
   }
 }
 
-export class ForgotPasswordRateLimitedException extends Error {
-  constructor() {
-    super('Too many attempts. Please try again in a few minutes.');
-    this.name = 'ForgotPasswordRateLimitedException';
+export class CognitoRateLimitedException extends Error {
+  constructor(
+    message = 'Too many attempts. Please try again in a few minutes.',
+  ) {
+    super(message);
+    this.name = 'CognitoRateLimitedException';
   }
 }

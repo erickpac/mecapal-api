@@ -1,6 +1,6 @@
 import { ForgotPasswordUseCase } from './forgot-password.use-case';
 import { ICognitoService } from '../../domain/interfaces/ICognitoService';
-import { ForgotPasswordRateLimitedException } from '../../domain/exceptions/cognito.exceptions';
+import { CognitoRateLimitedException } from '../../domain/exceptions/cognito.exceptions';
 
 describe('ForgotPasswordUseCase', () => {
   let useCase: ForgotPasswordUseCase;
@@ -31,14 +31,14 @@ describe('ForgotPasswordUseCase', () => {
     expect(result.message).toMatch(/If the email exists/);
   });
 
-  it('propagates ForgotPasswordRateLimitedException', async () => {
+  it('propagates CognitoRateLimitedException', async () => {
     cognitoService.forgotPassword.mockRejectedValue(
-      new ForgotPasswordRateLimitedException(),
+      new CognitoRateLimitedException(),
     );
 
     await expect(
       useCase.execute({ email: 'user@example.com' }),
-    ).rejects.toBeInstanceOf(ForgotPasswordRateLimitedException);
+    ).rejects.toBeInstanceOf(CognitoRateLimitedException);
   });
 
   it('propagates unexpected errors as-is', async () => {

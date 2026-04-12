@@ -2,9 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { CognitoService } from './cognito.service';
-import { CognitoRateLimitedException } from '../../domain/exceptions/cognito.exceptions';
+import {
+  CognitoRateLimitedException,
+  InvalidCredentialsException,
+  InvalidPasswordException,
+} from '../../domain/exceptions/cognito.exceptions';
 
-describe('CognitoService.forgotPassword', () => {
+describe('CognitoService.changePassword', () => {
   let service: CognitoService;
   let sendMock: jest.Mock;
 
@@ -31,7 +35,6 @@ describe('CognitoService.forgotPassword', () => {
     service = module.get<CognitoService>(CognitoService);
 
     sendMock = jest.fn();
-    // Replace the AWS SDK client's send with our mock
     (service as unknown as { client: { send: jest.Mock } }).client = {
       send: sendMock,
     };
@@ -44,34 +47,20 @@ describe('CognitoService.forgotPassword', () => {
     jest.clearAllMocks();
   });
 
-  const makeAwsError = (name: string) => {
-    const err = new Error(`${name} message`) as Error & {
+  const makeAwsError = (name: string, message = `${name} message`) => {
+    const err = new Error(message) as Error & {
       name: string;
       $metadata: { requestId: string };
     };
     err.name = name;
-    err.$metadata = { requestId: 'req-123' };
+    err.$metadata = { requestId: 'req-xyz' };
     return err;
   };
 
-  it('resolves without error on happy path', async () => {
+  it('resolves on happy path', async () => {
     sendMock.mockResolvedValue({});
-
     await expect(
-      service.forgotPassword('user@example.com'),
-    ).resolves.toBeUndefined();
-  });
-
-  it.each([
-    'UserNotFoundException',
-    'InvalidParameterException',
-    'NotAuthorizedException',
-    'CodeDeliveryFailureException',
-  ])('silently absorbs %s', async (name) => {
-    sendMock.mockRejectedValue(makeAwsError(name));
-
-    await expect(
-      service.forgotPassword('user@example.com'),
+      service.changePassword('token', 'Old123!', 'New456!'),
     ).resolves.toBeUndefined();
   });
 
@@ -79,17 +68,25 @@ describe('CognitoService.forgotPassword', () => {
     'translates %s into CognitoRateLimitedException',
     async (name) => {
       sendMock.mockRejectedValue(makeAwsError(name));
-
       await expect(
-        service.forgotPassword('user@example.com'),
+        service.changePassword('token', 'Old123!', 'New456!'),
       ).rejects.toBeInstanceOf(CognitoRateLimitedException);
     },
   );
 
-  it('rethrows unexpected errors unchanged', async () => {
-    const err = makeAwsError('InternalErrorException');
-    sendMock.mockRejectedValue(err);
+  it('maps NotAuthorizedException to InvalidCredentialsException', async () => {
+    sendMock.mockRejectedValue(makeAwsError('NotAuthorizedException'));
+    await expect(
+      service.changePassword('token', 'WrongOld!', 'New456!'),
+    ).rejects.toBeInstanceOf(InvalidCredentialsException);
+  });
 
-    await expect(service.forgotPassword('user@example.com')).rejects.toBe(err);
+  it('maps InvalidPasswordException to InvalidPasswordException (domain)', async () => {
+    sendMock.mockRejectedValue(
+      makeAwsError('InvalidPasswordException', 'Password does not conform'),
+    );
+    await expect(
+      service.changePassword('token', 'Old123!', 'weak'),
+    ).rejects.toBeInstanceOf(InvalidPasswordException);
   });
 });

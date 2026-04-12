@@ -9,7 +9,7 @@ import { CognitoAuthGuard } from './infrastructure/guards/cognito-auth.guard';
 import { RolesGuard } from './infrastructure/guards/roles.guard';
 import { TransporterStatusGuard } from './infrastructure/guards/transporter-status.guard';
 import { CognitoExceptionFilter } from './infrastructure/filters/cognito-exception.filter';
-import { ForgotPasswordRateLimitFilter } from './infrastructure/filters/forgot-password-rate-limit.filter';
+import { CognitoRateLimitFilter } from './infrastructure/filters/cognito-rate-limit.filter';
 import { AuthController } from './infrastructure/controllers/auth.controller';
 import { AdminAuthController } from './infrastructure/controllers/admin-auth.controller';
 import {
@@ -35,7 +35,7 @@ import {
     // Exception Filter
     {
       provide: APP_FILTER,
-      useClass: ForgotPasswordRateLimitFilter,
+      useClass: CognitoRateLimitFilter,
     },
     {
       provide: APP_FILTER,

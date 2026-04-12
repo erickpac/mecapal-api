@@ -5,11 +5,11 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ForgotPasswordRateLimitedException } from '../../domain/exceptions/cognito.exceptions';
+import { CognitoRateLimitedException } from '../../domain/exceptions/cognito.exceptions';
 
-@Catch(ForgotPasswordRateLimitedException)
-export class ForgotPasswordRateLimitFilter implements ExceptionFilter {
-  catch(exception: ForgotPasswordRateLimitedException, host: ArgumentsHost) {
+@Catch(CognitoRateLimitedException)
+export class CognitoRateLimitFilter implements ExceptionFilter {
+  catch(exception: CognitoRateLimitedException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
