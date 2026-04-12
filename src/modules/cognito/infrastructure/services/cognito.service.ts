@@ -13,6 +13,7 @@ import {
   GetUserCommand,
   AuthFlowType,
   AdminCreateUserCommand,
+  AdminDeleteUserCommand,
   AdminInitiateAuthCommand,
   RespondToAuthChallengeCommand,
   ChallengeNameType,
@@ -392,6 +393,51 @@ export class CognitoService implements ICognitoService {
       };
     } catch (error) {
       this.handleCognitoError(error);
+    }
+  }
+
+  async verifyPassword(email: string, password: string): Promise<boolean> {
+    try {
+      const command = new InitiateAuthCommand({
+        AuthFlow: AuthFlowType.USER_PASSWORD_AUTH,
+        ClientId: this.clientId,
+        AuthParameters: { USERNAME: email, PASSWORD: password },
+      });
+      await this.client.send(command);
+      return true;
+    } catch (error) {
+      const err = error as { name?: string };
+      if (
+        err.name === 'NotAuthorizedException' ||
+        err.name === 'UserNotFoundException'
+      ) {
+        return false;
+      }
+      this.throwIfRateLimited(error, 'verifyPassword');
+      throw error;
+    }
+  }
+
+  async adminDeleteUser(email: string): Promise<void> {
+    try {
+      const command = new AdminDeleteUserCommand({
+        UserPoolId: this.userPoolId,
+        Username: email,
+      });
+      await this.client.send(command);
+    } catch (error) {
+      const err = error as { name?: string; message?: string };
+      // Already deleted is treated as idempotent success.
+      if (err.name === 'UserNotFoundException') {
+        this.logger.warn(
+          `adminDeleteUser: user already absent from Cognito pool`,
+        );
+        return;
+      }
+      this.logger.error(
+        `adminDeleteUser failed: ${err.name ?? 'Unknown'}: ${err.message ?? ''}`,
+      );
+      throw error;
     }
   }
 

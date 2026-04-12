@@ -161,10 +161,47 @@ model User {
   averageRating Float @default(0)
   totalReviews  Int   @default(0)
 
+  // Account deletion (GDPR / App Store compliance)
+  deletedAt            DateTime?
+  deletionScheduledFor DateTime?
+  deletionReason       DeletionReason?
+  deletionOtherReason  String?                @db.VarChar(500)
+  deletionAudits       AccountDeletionAudit[] @relation("UserDeletionAudits")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([billingProfileId])
+  @@index([deletionScheduledFor])
+  @@index([deletedAt])
+}
+
+enum DeletionReason {
+  NO_LONGER_USE
+  CREATED_ANOTHER_ACCOUNT
+  PRIVACY_CONCERNS
+  APP_ISSUES
+  BAD_EXPERIENCE
+  MISSING_FEATURES
+  PREFER_NOT_TO_SAY
+  OTHER
+}
+
+model AccountDeletionAudit {
+  id           String          @id @default(uuid()) @db.Uuid
+  userId       String          @db.Uuid
+  user         User            @relation("UserDeletionAudits", fields: [userId], references: [id])
+  requestedAt  DateTime        @default(now())
+  scheduledFor DateTime
+  processedAt  DateTime?
+  canceledAt   DateTime?
+  reason       DeletionReason?
+  otherReason  String?         @db.VarChar(500)
+  ipAddress    String?
+  userAgent    String?
+
+  @@index([userId])
+  @@index([processedAt])
 }
 
 model TransporterProfile {
@@ -565,9 +602,9 @@ model PaymentMethod {
   stripeCustomerId      String
 
   // Card details (non-sensitive, from Stripe)
-  type      PaymentMethodType @default(CARD)
-  cardBrand CardBrand
-  cardLast4 String            @db.VarChar(4)
+  type         PaymentMethodType @default(CARD)
+  cardBrand    CardBrand
+  cardLast4    String            @db.VarChar(4)
   cardExpMonth Int
   cardExpYear  Int
 
@@ -677,13 +714,13 @@ model Order {
   status OrderStatus @default(CONFIRMED)
 
   // Timestamps for each status
-  confirmedAt   DateTime  @default(now())
-  inProgressAt  DateTime?
-  pickedUpAt    DateTime?
-  inTransitAt   DateTime?
-  deliveredAt   DateTime?
-  completedAt   DateTime?
-  cancelledAt   DateTime?
+  confirmedAt  DateTime  @default(now())
+  inProgressAt DateTime?
+  pickedUpAt   DateTime?
+  inTransitAt  DateTime?
+  deliveredAt  DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
 
   // Delivery confirmation
   deliveryPhotoUrl   String?
@@ -741,7 +778,7 @@ model OrderStatusHistory {
   toStatus   OrderStatus
 
   // Metadata
-  notes    String? @db.VarChar(500)
+  notes     String? @db.VarChar(500)
   changedBy String? @db.Uuid // User ID who made the change
 
   // Location at status change (optional)
@@ -791,7 +828,7 @@ enum BankAccountType {
 
 enum SettlementStatus {
   PENDING // Order completed, waiting for admin to make transfer
-  PAID    // Admin has recorded the transfer
+  PAID // Admin has recorded the transfer
 }
 
 enum BankAccountStatus {
@@ -805,11 +842,11 @@ model BankAccount {
   id String @id @default(uuid()) @db.Uuid
 
   // Bank details
-  bankName          String
-  accountHolderName String
-  accountType       BankAccountType @default(CHECKING)
-  accountNumber     String // Full account number (for admin to use in manual transfers)
-  accountNumberLast4 String @db.VarChar(4) // For display in lists
+  bankName           String
+  accountHolderName  String
+  accountType        BankAccountType @default(CHECKING)
+  accountNumber      String // Full account number (for admin to use in manual transfers)
+  accountNumberLast4 String          @db.VarChar(4) // For display in lists
 
   // Verification
   status             BankAccountStatus @default(PENDING_VERIFICATION)

@@ -20,6 +20,7 @@ import { MatchingModule } from './modules/matching/matching.module';
 import { IncidentModule } from './modules/incident/incident.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { AccountModule } from './modules/account/account.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -45,6 +46,7 @@ import { HealthController } from './health.controller';
     IncidentModule,
     ReportsModule,
     NotificationModule,
+    AccountModule,
   ],
   controllers: [HealthController],
   providers: [],

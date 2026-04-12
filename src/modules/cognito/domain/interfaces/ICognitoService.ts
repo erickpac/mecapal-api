@@ -35,4 +35,6 @@ export interface ICognitoService {
   signOut(accessToken: string): Promise<void>;
   getUser(accessToken: string): Promise<CognitoUser>;
   verifyToken(token: string): Promise<CognitoUser>;
+  verifyPassword(email: string, password: string): Promise<boolean>;
+  adminDeleteUser(email: string): Promise<void>;
 }

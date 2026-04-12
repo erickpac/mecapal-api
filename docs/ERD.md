@@ -106,6 +106,19 @@ TRANSPORTER_TO_CLIENT TRANSPORTER_TO_CLIENT
     
 
 
+        DeletionReason {
+            NO_LONGER_USE NO_LONGER_USE
+CREATED_ANOTHER_ACCOUNT CREATED_ANOTHER_ACCOUNT
+PRIVACY_CONCERNS PRIVACY_CONCERNS
+APP_ISSUES APP_ISSUES
+BAD_EXPERIENCE BAD_EXPERIENCE
+MISSING_FEATURES MISSING_FEATURES
+PREFER_NOT_TO_SAY PREFER_NOT_TO_SAY
+OTHER OTHER
+        }
+    
+
+
         PaymentMethodType {
             CARD CARD
         }
@@ -273,8 +286,25 @@ READ READ
     String stripeCustomerId "❓"
     Float averageRating 
     Int totalReviews 
+    DateTime deletedAt "❓"
+    DateTime deletionScheduledFor "❓"
+    DeletionReason deletionReason "❓"
+    String deletionOtherReason "❓"
     DateTime createdAt 
     DateTime updatedAt 
+    }
+  
+
+  "AccountDeletionAudit" {
+    String id "🗝️"
+    DateTime requestedAt 
+    DateTime scheduledFor 
+    DateTime processedAt "❓"
+    DateTime canceledAt "❓"
+    DeletionReason reason "❓"
+    String otherReason "❓"
+    String ipAddress "❓"
+    String userAgent "❓"
     }
   
 
@@ -633,6 +663,9 @@ READ READ
   
     "User" |o--|| "UserRole" : "enum:role"
     "User" }o--|o "BillingProfile" : "billingProfile"
+    "User" |o--|o "DeletionReason" : "enum:deletionReason"
+    "AccountDeletionAudit" }o--|| "User" : "user"
+    "AccountDeletionAudit" |o--|o "DeletionReason" : "enum:reason"
     "TransporterProfile" |o--|| "TransporterStatus" : "enum:status"
     "TransporterProfile" |o--|| "User" : "user"
     "Address" }o--|| "User" : "user"
