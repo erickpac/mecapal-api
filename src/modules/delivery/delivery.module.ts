@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
@@ -38,6 +39,7 @@ import { OfferExpirationScheduler } from './infrastructure/schedulers/offer-expi
 
 @Module({
   imports: [
+    ConfigModule,
     ScheduleModule.forRoot(),
     PrismaModule,
     CognitoModule,

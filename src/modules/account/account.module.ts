@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -15,7 +16,13 @@ import { CancelAccountDeletionUseCase } from './application/use-cases/cancel-acc
 import { ProcessScheduledDeletionsUseCase } from './application/use-cases/process-scheduled-deletions.use-case';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), PrismaModule, CognitoModule, EmailModule],
+  imports: [
+    ConfigModule,
+    ScheduleModule.forRoot(),
+    PrismaModule,
+    CognitoModule,
+    EmailModule,
+  ],
   controllers: [AccountController],
   providers: [
     {

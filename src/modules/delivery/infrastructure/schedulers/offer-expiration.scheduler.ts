@@ -1,4 +1,5 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { DELIVERY_TOKENS } from '../../domain/constants/injection-tokens';
@@ -19,10 +20,23 @@ export class OfferExpirationScheduler {
     @Inject(DELIVERY_TOKENS.IDeliveryOfferRepository)
     private readonly deliveryOfferRepository: IDeliveryOfferRepository,
     private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
   ) {}
+
+  private isEnabled(): boolean {
+    return (
+      this.config.get<string>('SCHEDULER_OFFER_EXPIRATION_ENABLED') !== 'false'
+    );
+  }
 
   @Cron(CronExpression.EVERY_MINUTE)
   async handleOfferExpiration(): Promise<void> {
+    if (!this.isEnabled()) {
+      this.logger.debug(
+        'Disabled via SCHEDULER_OFFER_EXPIRATION_ENABLED=false',
+      );
+      return;
+    }
     this.logger.debug('Running offer expiration check...');
 
     const outcome = await this.prisma.withAdvisoryLock(

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ProcessScheduledDeletionsUseCase } from '../../application/use-cases/process-scheduled-deletions.use-case';
@@ -13,10 +14,23 @@ export class AccountDeletionScheduler {
   constructor(
     private readonly processScheduledDeletions: ProcessScheduledDeletionsUseCase,
     private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
   ) {}
+
+  private isEnabled(): boolean {
+    return (
+      this.config.get<string>('SCHEDULER_ACCOUNT_DELETION_ENABLED') !== 'false'
+    );
+  }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleScheduledDeletions(): Promise<void> {
+    if (!this.isEnabled()) {
+      this.logger.debug(
+        'Disabled via SCHEDULER_ACCOUNT_DELETION_ENABLED=false',
+      );
+      return;
+    }
     this.logger.debug('Running scheduled account deletions...');
     try {
       const outcome = await this.prisma.withAdvisoryLock(
