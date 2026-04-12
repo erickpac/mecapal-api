@@ -5,6 +5,7 @@ import {
   RequestAccountDeletionUseCase,
 } from './request-account-deletion.use-case';
 import { ICognitoService } from '../../../cognito/domain/interfaces/ICognitoService';
+import { IEmailService } from '../../../email/domain/interfaces/email-service.interface';
 import { IAccountDeletionRepository } from '../../domain/interfaces/account-deletion-repository.interface';
 import { IAccountDeletionBlockerService } from '../../domain/interfaces/account-deletion-blocker-service.interface';
 import { AccountAlreadyScheduledForDeletionException } from '../../domain/exceptions/account-deletion.exceptions';
@@ -14,10 +15,12 @@ describe('RequestAccountDeletionUseCase', () => {
   let cognito: jest.Mocked<Pick<ICognitoService, 'verifyPassword'>>;
   let repo: jest.Mocked<IAccountDeletionRepository>;
   let blocker: jest.Mocked<IAccountDeletionBlockerService>;
+  let email: jest.Mocked<Pick<IEmailService, 'sendTemplated'>>;
 
   const baseInput = {
     userId: 'user-1',
     email: 'user@example.com',
+    firstName: 'Alice',
     dto: { password: 'pw' },
   };
 
@@ -27,12 +30,20 @@ describe('RequestAccountDeletionUseCase', () => {
       scheduleDeletion: jest.fn(),
       cancelDeletion: jest.fn(),
       getScheduledDeletion: jest.fn(),
+      findDueDeletions: jest.fn(),
+      finalizeDeletion: jest.fn(),
     };
     blocker = { findBlockers: jest.fn() };
+    email = {
+      sendTemplated: jest
+        .fn()
+        .mockResolvedValue({ messageId: 'm', success: true }),
+    };
     useCase = new RequestAccountDeletionUseCase(
       cognito as unknown as ICognitoService,
       repo,
       blocker,
+      email as unknown as IEmailService,
     );
   });
 

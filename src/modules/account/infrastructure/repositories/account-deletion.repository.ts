@@ -69,4 +69,51 @@ export class AccountDeletionRepository implements IAccountDeletionRepository {
     });
     return user?.deletionScheduledFor ?? null;
   }
+
+  async findDueDeletions(now: Date) {
+    return this.prisma.user.findMany({
+      where: {
+        deletionScheduledFor: { lte: now },
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        cognitoSub: true,
+      },
+    });
+  }
+
+  async finalizeDeletion(userId: string): Promise<void> {
+    const anonymizedEmail = `deleted_${userId}@mecapal.local`;
+    const now = new Date();
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          email: anonymizedEmail,
+          phone: 'REDACTED',
+          firstName: 'Usuario',
+          lastName: 'Eliminado',
+          companyName: null,
+          taxId: null,
+          deletedAt: now,
+        },
+      });
+
+      const latest = await tx.accountDeletionAudit.findFirst({
+        where: { userId, processedAt: null, canceledAt: null },
+        orderBy: { requestedAt: 'desc' },
+      });
+      if (latest) {
+        await tx.accountDeletionAudit.update({
+          where: { id: latest.id },
+          data: { processedAt: now },
+        });
+      }
+    });
+  }
 }

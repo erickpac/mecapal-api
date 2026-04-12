@@ -31,6 +31,7 @@ export class AccountController {
     return this.requestDeletion.execute({
       userId: req.user.id,
       email: req.cognitoUser.email,
+      firstName: req.user.firstName,
       dto,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],

@@ -12,6 +12,8 @@ describe('CancelAccountDeletionUseCase', () => {
       scheduleDeletion: jest.fn(),
       cancelDeletion: jest.fn(),
       getScheduledDeletion: jest.fn(),
+      findDueDeletions: jest.fn(),
+      finalizeDeletion: jest.fn(),
     };
     useCase = new CancelAccountDeletionUseCase(repo);
   });

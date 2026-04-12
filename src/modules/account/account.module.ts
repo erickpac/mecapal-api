@@ -1,17 +1,21 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
+import { EmailModule } from '../email/email.module';
 import { ACCOUNT_TOKENS } from './domain/constants/injection-tokens';
 import { AccountController } from './infrastructure/controllers/account.controller';
 import { AccountDeletionRepository } from './infrastructure/repositories/account-deletion.repository';
 import { AccountDeletionBlockerService } from './infrastructure/services/account-deletion-blocker.service';
 import { AccountDeletionExceptionFilter } from './infrastructure/filters/account-deletion.filter';
+import { AccountDeletionScheduler } from './infrastructure/schedulers/account-deletion.scheduler';
 import { RequestAccountDeletionUseCase } from './application/use-cases/request-account-deletion.use-case';
 import { CancelAccountDeletionUseCase } from './application/use-cases/cancel-account-deletion.use-case';
+import { ProcessScheduledDeletionsUseCase } from './application/use-cases/process-scheduled-deletions.use-case';
 
 @Module({
-  imports: [PrismaModule, CognitoModule],
+  imports: [ScheduleModule.forRoot(), PrismaModule, CognitoModule, EmailModule],
   controllers: [AccountController],
   providers: [
     {
@@ -28,6 +32,8 @@ import { CancelAccountDeletionUseCase } from './application/use-cases/cancel-acc
     },
     RequestAccountDeletionUseCase,
     CancelAccountDeletionUseCase,
+    ProcessScheduledDeletionsUseCase,
+    AccountDeletionScheduler,
   ],
   exports: [
     ACCOUNT_TOKENS.IAccountDeletionRepository,

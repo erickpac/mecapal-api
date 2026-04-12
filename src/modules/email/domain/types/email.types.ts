@@ -36,4 +36,6 @@ export enum EmailTemplate {
   VALIDATION_APPROVAL = 'validation-approval',
   VALIDATION_REJECTION = 'validation-rejection',
   WELCOME = 'welcome',
+  ACCOUNT_DELETION_SCHEDULED = 'account-deletion-scheduled',
+  ACCOUNT_DELETION_COMPLETED = 'account-deletion-completed',
 }

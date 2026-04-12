@@ -10,11 +10,23 @@ import {
   validationRejectionSubject,
   ValidationRejectionData,
 } from './validation-rejection.template';
+import {
+  accountDeletionScheduledTemplate,
+  accountDeletionScheduledSubject,
+  AccountDeletionScheduledData,
+} from './account-deletion-scheduled.template';
+import {
+  accountDeletionCompletedTemplate,
+  accountDeletionCompletedSubject,
+  AccountDeletionCompletedData,
+} from './account-deletion-completed.template';
 import { baseTemplate } from './base.template';
 
 type TemplateData =
   | ValidationApprovalData
   | ValidationRejectionData
+  | AccountDeletionScheduledData
+  | AccountDeletionCompletedData
   | Record<string, unknown>;
 
 @Injectable()
@@ -26,6 +38,10 @@ export class TemplateRenderer {
       validationRejectionTemplate(data as ValidationRejectionData),
     [EmailTemplate.WELCOME]: (data) =>
       this.renderWelcome(data as Record<string, unknown>),
+    [EmailTemplate.ACCOUNT_DELETION_SCHEDULED]: (data) =>
+      accountDeletionScheduledTemplate(data as AccountDeletionScheduledData),
+    [EmailTemplate.ACCOUNT_DELETION_COMPLETED]: (data) =>
+      accountDeletionCompletedTemplate(data as AccountDeletionCompletedData),
   };
 
   private subjects: Record<EmailTemplate, (data: TemplateData) => string> = {
@@ -34,6 +50,10 @@ export class TemplateRenderer {
     [EmailTemplate.VALIDATION_REJECTION]: (data) =>
       validationRejectionSubject(data as ValidationRejectionData),
     [EmailTemplate.WELCOME]: () => 'Bienvenido a Mekapal',
+    [EmailTemplate.ACCOUNT_DELETION_SCHEDULED]: () =>
+      accountDeletionScheduledSubject(),
+    [EmailTemplate.ACCOUNT_DELETION_COMPLETED]: () =>
+      accountDeletionCompletedSubject(),
   };
 
   render(template: EmailTemplate, data: Record<string, unknown>): string {
