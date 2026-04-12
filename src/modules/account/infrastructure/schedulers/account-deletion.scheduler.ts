@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { ProcessScheduledDeletionsUseCase } from '../../application/use-cases/process-scheduled-deletions.use-case';
+
+// Unique advisory lock key — do not reuse across jobs.
+const ACCOUNT_DELETION_LOCK_KEY = 910001;
 
 @Injectable()
 export class AccountDeletionScheduler {
@@ -8,13 +12,24 @@ export class AccountDeletionScheduler {
 
   constructor(
     private readonly processScheduledDeletions: ProcessScheduledDeletionsUseCase,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleScheduledDeletions(): Promise<void> {
     this.logger.debug('Running scheduled account deletions...');
     try {
-      const result = await this.processScheduledDeletions.execute();
+      const outcome = await this.prisma.withAdvisoryLock(
+        ACCOUNT_DELETION_LOCK_KEY,
+        () => this.processScheduledDeletions.execute(),
+      );
+
+      if (!outcome.acquired) {
+        this.logger.debug('Skipped — another instance holds the lock');
+        return;
+      }
+
+      const { result } = outcome;
       if (result.processed > 0 || result.failed > 0) {
         this.logger.log(
           `Scheduled deletions: ${result.processed} processed, ${result.failed} failed`,

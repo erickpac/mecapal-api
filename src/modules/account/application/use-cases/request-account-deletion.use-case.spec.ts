@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { UnauthorizedException } from '@nestjs/common';
 import {
   DELETION_GRACE_PERIOD_DAYS,

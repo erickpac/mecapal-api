@@ -1,9 +1,13 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { DELIVERY_TOKENS } from '../../domain/constants/injection-tokens';
 import { IDeliveryRequestRepository } from '../../domain/repositories/delivery-request.repository';
 import { IDeliveryOfferRepository } from '../../domain/repositories/delivery-offer.repository';
 import { DeliveryRequestStatus } from '../../domain/enums/delivery-request-status.enum';
+
+// Unique advisory lock key — do not reuse across jobs.
+const OFFER_EXPIRATION_LOCK_KEY = 910002;
 
 @Injectable()
 export class OfferExpirationScheduler {
@@ -14,12 +18,24 @@ export class OfferExpirationScheduler {
     private readonly deliveryRequestRepository: IDeliveryRequestRepository,
     @Inject(DELIVERY_TOKENS.IDeliveryOfferRepository)
     private readonly deliveryOfferRepository: IDeliveryOfferRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
   async handleOfferExpiration(): Promise<void> {
     this.logger.debug('Running offer expiration check...');
 
+    const outcome = await this.prisma.withAdvisoryLock(
+      OFFER_EXPIRATION_LOCK_KEY,
+      () => this.processExpirations(),
+    );
+
+    if (!outcome.acquired) {
+      this.logger.debug('Skipped — another instance holds the lock');
+    }
+  }
+
+  private async processExpirations(): Promise<void> {
     try {
       const expiredRequests =
         await this.deliveryRequestRepository.findExpired();
@@ -33,14 +49,11 @@ export class OfferExpirationScheduler {
 
       for (const request of expiredRequests) {
         try {
-          // Expire all pending offers for this request
           const expiredCount =
             await this.deliveryOfferRepository.expireAllPendingByRequestId(
               request.id,
             );
 
-          // Update request status back to PUBLISHED (no offers accepted)
-          // This allows the client to republish or cancel
           await this.deliveryRequestRepository.updateStatus(
             request.id,
             DeliveryRequestStatus.CANCELLED,

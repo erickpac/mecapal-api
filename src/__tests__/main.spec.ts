@@ -64,7 +64,7 @@ describe('main.ts', () => {
       await mainModule.bootstrap();
 
       // Assert
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(NestFactory.create).toHaveBeenCalledWith(AppModule);
     });
 

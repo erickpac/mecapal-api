@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Logger } from '@nestjs/common';
 import { ProcessScheduledDeletionsUseCase } from './process-scheduled-deletions.use-case';
 import { IAccountDeletionRepository } from '../../domain/interfaces/account-deletion-repository.interface';

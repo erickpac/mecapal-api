@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { CancelAccountDeletionUseCase } from './cancel-account-deletion.use-case';
 import { IAccountDeletionRepository } from '../../domain/interfaces/account-deletion-repository.interface';
 import { AccountNotScheduledForDeletionException } from '../../domain/exceptions/account-deletion.exceptions';
