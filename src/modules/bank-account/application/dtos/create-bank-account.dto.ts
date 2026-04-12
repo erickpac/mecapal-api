@@ -24,7 +24,7 @@ export class CreateBankAccountDto {
   @IsString()
   @MinLength(4, { message: 'Account number must be at least 4 characters' })
   @MaxLength(30, { message: 'Account number must be at most 30 characters' })
-  @Matches(/^[\d\-]+$/, {
+  @Matches(/^[\d-]+$/, {
     message: 'Account number can only contain digits and hyphens',
   })
   accountNumber: string;

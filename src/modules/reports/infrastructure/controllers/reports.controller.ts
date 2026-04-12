@@ -40,11 +40,19 @@ export class ReportsController {
     csvLines.push('=== FINANCIAL SUMMARY ===');
     csvLines.push('Metric,Value');
     csvLines.push(`Total Revenue,${report.financialSummary.totalRevenue}`);
-    csvLines.push(`Total Commissions,${report.financialSummary.totalCommissions}`);
+    csvLines.push(
+      `Total Commissions,${report.financialSummary.totalCommissions}`,
+    );
     csvLines.push(`Total Taxes,${report.financialSummary.totalTaxes}`);
-    csvLines.push(`Completed Transactions,${report.financialSummary.completedTransactions}`);
-    csvLines.push(`Pending Payments,${report.financialSummary.pendingPayments}`);
-    csvLines.push(`Pending Payments Count,${report.financialSummary.pendingPaymentsCount}`);
+    csvLines.push(
+      `Completed Transactions,${report.financialSummary.completedTransactions}`,
+    );
+    csvLines.push(
+      `Pending Payments,${report.financialSummary.pendingPayments}`,
+    );
+    csvLines.push(
+      `Pending Payments Count,${report.financialSummary.pendingPaymentsCount}`,
+    );
     csvLines.push('');
 
     // Revenue by Day Section
@@ -59,7 +67,9 @@ export class ReportsController {
     csvLines.push('=== REVENUE BY LOAD TYPE ===');
     csvLines.push('Load Type,Revenue,Percentage');
     for (const type of report.revenueByLoadType) {
-      csvLines.push(`${type.loadType},${type.revenue},${type.percentage.toFixed(2)}%`);
+      csvLines.push(
+        `${type.loadType},${type.revenue},${type.percentage.toFixed(2)}%`,
+      );
     }
     csvLines.push('');
 
@@ -90,8 +100,12 @@ export class ReportsController {
     csvLines.push(`Total Clients,${report.userStats.totalClients}`);
     csvLines.push(`Total Transporters,${report.userStats.totalTransporters}`);
     csvLines.push(`Active Transporters,${report.userStats.activeTransporters}`);
-    csvLines.push(`New Clients This Period,${report.userStats.newClientsThisPeriod}`);
-    csvLines.push(`New Transporters This Period,${report.userStats.newTransportersThisPeriod}`);
+    csvLines.push(
+      `New Clients This Period,${report.userStats.newClientsThisPeriod}`,
+    );
+    csvLines.push(
+      `New Transporters This Period,${report.userStats.newTransportersThisPeriod}`,
+    );
 
     const csvContent = csvLines.join('\n');
     const filename = `dashboard-report-${new Date().toISOString().split('T')[0]}.csv`;

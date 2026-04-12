@@ -6,7 +6,7 @@ export class OrderQueryDto {
   @IsOptional()
   @IsArray()
   @IsEnum(OrderStatus, { each: true })
-  @Transform(({ value }) => {
+  @Transform(({ value }: { value: OrderStatus | OrderStatus[] }) => {
     if (typeof value === 'string') return [value];
     return value;
   })

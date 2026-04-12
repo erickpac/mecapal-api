@@ -79,7 +79,12 @@ export class IncidentController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.BACKOFFICE, UserRole.CLIENT, UserRole.TRANSPORTER)
+  @Roles(
+    UserRole.ADMIN,
+    UserRole.BACKOFFICE,
+    UserRole.CLIENT,
+    UserRole.TRANSPORTER,
+  )
   async findOne(@Param('id') id: string) {
     return this.getIncidentUseCase.execute(id);
   }

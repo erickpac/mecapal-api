@@ -1,4 +1,11 @@
-import { IsEnum, IsOptional, IsBoolean, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { NotificationType } from '../../domain/enums/notification-type.enum';
 import { NotificationStatus } from '../../domain/enums/notification-status.enum';

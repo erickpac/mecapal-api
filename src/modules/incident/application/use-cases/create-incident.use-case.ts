@@ -11,7 +11,10 @@ export class CreateIncidentUseCase {
     private readonly incidentRepository: IIncidentRepository,
   ) {}
 
-  async execute(reportedById: string, dto: CreateIncidentDto): Promise<Incident> {
+  async execute(
+    reportedById: string,
+    dto: CreateIncidentDto,
+  ): Promise<Incident> {
     return this.incidentRepository.create({
       type: dto.type,
       severity: dto.severity,

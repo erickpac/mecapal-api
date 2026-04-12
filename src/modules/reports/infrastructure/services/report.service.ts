@@ -17,7 +17,6 @@ import {
   OrderStatus,
   DeliveryRequestStatus,
   SettlementStatus,
-  LoadType,
 } from '@prisma/client';
 
 @Injectable()
@@ -77,11 +76,17 @@ export class ReportService implements IReportService {
     });
 
     // Group by day
-    const revenueByDay = new Map<string, { revenue: number; transactions: number }>();
+    const revenueByDay = new Map<
+      string,
+      { revenue: number; transactions: number }
+    >();
 
     for (const tx of transactions) {
       const dateKey = tx.createdAt.toISOString().split('T')[0];
-      const existing = revenueByDay.get(dateKey) || { revenue: 0, transactions: 0 };
+      const existing = revenueByDay.get(dateKey) || {
+        revenue: 0,
+        transactions: 0,
+      };
       existing.revenue += tx.amount;
       existing.transactions += 1;
       revenueByDay.set(dateKey, existing);
@@ -94,7 +99,9 @@ export class ReportService implements IReportService {
     }));
   }
 
-  async getRevenueByLoadType(filters: ReportFilters): Promise<RevenueByLoadType[]> {
+  async getRevenueByLoadType(
+    filters: ReportFilters,
+  ): Promise<RevenueByLoadType[]> {
     const { fromDate, toDate } = filters;
 
     const transactions = await this.prisma.transaction.findMany({
@@ -119,7 +126,8 @@ export class ReportService implements IReportService {
     let totalRevenue = 0;
 
     for (const tx of transactions) {
-      const loadType = tx.order?.deliveryOffer?.deliveryRequest?.loadType || 'UNKNOWN';
+      const loadType =
+        tx.order?.deliveryOffer?.deliveryRequest?.loadType || 'UNKNOWN';
       const current = revenueByType.get(loadType) || 0;
       revenueByType.set(loadType, current + tx.amount);
       totalRevenue += tx.amount;
@@ -207,38 +215,48 @@ export class ReportService implements IReportService {
     return { total, confirmed, inProgress, delivered, completed, cancelled };
   }
 
-  async getDeliveryRequestStats(filters: ReportFilters): Promise<DeliveryRequestStats> {
+  async getDeliveryRequestStats(
+    filters: ReportFilters,
+  ): Promise<DeliveryRequestStats> {
     const { fromDate, toDate } = filters;
 
     const baseWhere = {
       createdAt: { gte: fromDate, lte: toDate },
     };
 
-    const [total, draft, published, offersReceived, accepted, inProgress, delivered, cancelled] =
-      await Promise.all([
-        this.prisma.deliveryRequest.count({ where: baseWhere }),
-        this.prisma.deliveryRequest.count({
-          where: { ...baseWhere, status: DeliveryRequestStatus.DRAFT },
-        }),
-        this.prisma.deliveryRequest.count({
-          where: { ...baseWhere, status: DeliveryRequestStatus.PUBLISHED },
-        }),
-        this.prisma.deliveryRequest.count({
-          where: { ...baseWhere, status: DeliveryRequestStatus.OFFERS_RECEIVED },
-        }),
-        this.prisma.deliveryRequest.count({
-          where: { ...baseWhere, status: DeliveryRequestStatus.ACCEPTED },
-        }),
-        this.prisma.deliveryRequest.count({
-          where: { ...baseWhere, status: DeliveryRequestStatus.IN_PROGRESS },
-        }),
-        this.prisma.deliveryRequest.count({
-          where: { ...baseWhere, status: DeliveryRequestStatus.DELIVERED },
-        }),
-        this.prisma.deliveryRequest.count({
-          where: { ...baseWhere, status: DeliveryRequestStatus.CANCELLED },
-        }),
-      ]);
+    const [
+      total,
+      draft,
+      published,
+      offersReceived,
+      accepted,
+      inProgress,
+      delivered,
+      cancelled,
+    ] = await Promise.all([
+      this.prisma.deliveryRequest.count({ where: baseWhere }),
+      this.prisma.deliveryRequest.count({
+        where: { ...baseWhere, status: DeliveryRequestStatus.DRAFT },
+      }),
+      this.prisma.deliveryRequest.count({
+        where: { ...baseWhere, status: DeliveryRequestStatus.PUBLISHED },
+      }),
+      this.prisma.deliveryRequest.count({
+        where: { ...baseWhere, status: DeliveryRequestStatus.OFFERS_RECEIVED },
+      }),
+      this.prisma.deliveryRequest.count({
+        where: { ...baseWhere, status: DeliveryRequestStatus.ACCEPTED },
+      }),
+      this.prisma.deliveryRequest.count({
+        where: { ...baseWhere, status: DeliveryRequestStatus.IN_PROGRESS },
+      }),
+      this.prisma.deliveryRequest.count({
+        where: { ...baseWhere, status: DeliveryRequestStatus.DELIVERED },
+      }),
+      this.prisma.deliveryRequest.count({
+        where: { ...baseWhere, status: DeliveryRequestStatus.CANCELLED },
+      }),
+    ]);
 
     return {
       total,
@@ -255,26 +273,31 @@ export class ReportService implements IReportService {
   async getUserStats(filters: ReportFilters): Promise<UserStats> {
     const { fromDate, toDate } = filters;
 
-    const [totalClients, totalTransporters, activeTransporters, newClientsThisPeriod, newTransportersThisPeriod] =
-      await Promise.all([
-        this.prisma.user.count({ where: { role: 'CLIENT' } }),
-        this.prisma.user.count({ where: { role: 'TRANSPORTER' } }),
-        this.prisma.transporterProfile.count({
-          where: { status: 'ACTIVE' },
-        }),
-        this.prisma.user.count({
-          where: {
-            role: 'CLIENT',
-            createdAt: { gte: fromDate, lte: toDate },
-          },
-        }),
-        this.prisma.user.count({
-          where: {
-            role: 'TRANSPORTER',
-            createdAt: { gte: fromDate, lte: toDate },
-          },
-        }),
-      ]);
+    const [
+      totalClients,
+      totalTransporters,
+      activeTransporters,
+      newClientsThisPeriod,
+      newTransportersThisPeriod,
+    ] = await Promise.all([
+      this.prisma.user.count({ where: { role: 'CLIENT' } }),
+      this.prisma.user.count({ where: { role: 'TRANSPORTER' } }),
+      this.prisma.transporterProfile.count({
+        where: { status: 'ACTIVE' },
+      }),
+      this.prisma.user.count({
+        where: {
+          role: 'CLIENT',
+          createdAt: { gte: fromDate, lte: toDate },
+        },
+      }),
+      this.prisma.user.count({
+        where: {
+          role: 'TRANSPORTER',
+          createdAt: { gte: fromDate, lte: toDate },
+        },
+      }),
+    ]);
 
     return {
       totalClients,

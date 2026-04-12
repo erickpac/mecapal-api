@@ -4,7 +4,6 @@ import { IMatchingService } from '../../domain/interfaces';
 import { MatchedTransporter } from '../../domain/entities';
 import { DELIVERY_TOKENS } from '../../../delivery/domain/constants';
 import { IDeliveryRequestRepository } from '../../../delivery/domain/repositories';
-import { LoadType } from '../../../vehicle/domain/enums/load-type.enum';
 
 @Injectable()
 export class FindTransportersForRequestUseCase {
@@ -21,7 +20,9 @@ export class FindTransportersForRequestUseCase {
   ): Promise<MatchedTransporter[]> {
     // Get the delivery request with addresses
     const request =
-      await this.deliveryRequestRepository.findByIdWithDetails(deliveryRequestId);
+      await this.deliveryRequestRepository.findByIdWithDetails(
+        deliveryRequestId,
+      );
 
     if (!request) {
       throw new NotFoundException(
@@ -42,7 +43,7 @@ export class FindTransportersForRequestUseCase {
     return this.matchingService.findEligibleTransporters({
       pickupMunicipality,
       deliveryMunicipality,
-      loadType: request.loadType as LoadType,
+      loadType: request.loadType,
       minRating: options?.minRating,
       limit: options?.limit,
     });

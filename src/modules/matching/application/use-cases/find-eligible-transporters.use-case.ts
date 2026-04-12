@@ -1,9 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { MATCHING_TOKENS } from '../../domain/constants';
-import {
-  IMatchingService,
-  MatchingCriteria,
-} from '../../domain/interfaces';
+import { IMatchingService, MatchingCriteria } from '../../domain/interfaces';
 import { MatchedTransporter } from '../../domain/entities';
 
 @Injectable()

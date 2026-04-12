@@ -1,4 +1,10 @@
-import { IsEnum, IsString, IsUUID, IsOptional, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsString,
+  IsUUID,
+  IsOptional,
+  MaxLength,
+} from 'class-validator';
 import { IncidentStatus } from '../../domain/enums/incident-status.enum';
 import { IncidentSeverity } from '../../domain/enums/incident-severity.enum';
 

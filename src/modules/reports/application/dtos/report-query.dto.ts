@@ -1,4 +1,12 @@
-import { IsDateString, IsOptional, IsUUID, IsEnum, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsDateString,
+  IsOptional,
+  IsUUID,
+  IsEnum,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum DateRangePreset {

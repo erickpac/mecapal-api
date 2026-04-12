@@ -22,7 +22,12 @@ export interface BulkNotificationPayload {
 export interface INotificationService {
   send(payload: SendNotificationPayload): Promise<void>;
   sendBulk(payload: BulkNotificationPayload): Promise<void>;
-  sendPush(userId: string, title: string, message: string, data?: Record<string, unknown>): Promise<void>;
+  sendPush(
+    userId: string,
+    title: string,
+    message: string,
+    data?: Record<string, unknown>,
+  ): Promise<void>;
   sendEmail(userId: string, subject: string, body: string): Promise<void>;
   sendSms(userId: string, message: string): Promise<void>;
 }

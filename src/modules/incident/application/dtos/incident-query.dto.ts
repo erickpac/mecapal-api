@@ -1,4 +1,12 @@
-import { IsEnum, IsUUID, IsOptional, IsDateString, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsEnum,
+  IsUUID,
+  IsOptional,
+  IsDateString,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { IncidentStatus } from '../../domain/enums/incident-status.enum';
 import { IncidentSeverity } from '../../domain/enums/incident-severity.enum';

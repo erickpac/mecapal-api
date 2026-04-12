@@ -1,6 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { REPORTS_TOKENS } from '../../domain/constants';
-import { IReportService, FinancialSummary, ReportFilters } from '../../domain/interfaces';
+import {
+  IReportService,
+  FinancialSummary,
+  ReportFilters,
+} from '../../domain/interfaces';
 import { ReportQueryDto, DateRangePreset } from '../dtos';
 
 @Injectable()

@@ -57,7 +57,8 @@ export class SendBulkNotificationUseCase {
         channels,
       });
     } catch (error) {
-      this.logger.error(`Failed to send bulk notifications: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to send bulk notifications: ${message}`);
     }
 
     return createdCount;

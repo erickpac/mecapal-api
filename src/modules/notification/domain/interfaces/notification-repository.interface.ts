@@ -25,7 +25,10 @@ export interface INotificationRepository {
   create(data: CreateNotificationData): Promise<Notification>;
   createMany(data: CreateNotificationData[]): Promise<number>;
   findById(id: string): Promise<Notification | null>;
-  findByUserId(userId: string, filters?: NotificationFilters): Promise<Notification[]>;
+  findByUserId(
+    userId: string,
+    filters?: NotificationFilters,
+  ): Promise<Notification[]>;
   findUnreadByUserId(userId: string): Promise<Notification[]>;
   countUnreadByUserId(userId: string): Promise<number>;
   markAsRead(id: string): Promise<Notification>;

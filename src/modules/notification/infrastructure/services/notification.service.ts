@@ -81,14 +81,15 @@ export class NotificationService implements INotificationService {
       userId,
     }));
 
-    const count = await this.notificationRepository.createMany(notificationsData);
+    const count =
+      await this.notificationRepository.createMany(notificationsData);
     this.logger.log(`Bulk notification created for ${count} users`);
 
     // Note: For production, push/email/sms should be handled via a queue
     // to avoid blocking and to handle failures gracefully
   }
 
-  async sendPush(
+  sendPush(
     userId: string,
     title: string,
     message: string,
@@ -96,37 +97,22 @@ export class NotificationService implements INotificationService {
   ): Promise<void> {
     // TODO: Implement Firebase Cloud Messaging integration
     this.logger.debug(
-      `[STUB] Push notification to user ${userId}: ${title} - ${message}`,
+      `[STUB] Push notification to user ${userId}: ${title} - ${message} (data keys: ${Object.keys(data ?? {}).join(',')})`,
     );
-    // When implementing:
-    // 1. Get user's FCM token from database
-    // 2. Use Firebase Admin SDK to send push notification
-    // 3. Handle token refresh/invalidation
+    return Promise.resolve();
   }
 
-  async sendEmail(
-    userId: string,
-    subject: string,
-    body: string,
-  ): Promise<void> {
+  sendEmail(userId: string, subject: string, body: string): Promise<void> {
     // TODO: Implement SendGrid integration
     this.logger.debug(
-      `[STUB] Email to user ${userId}: ${subject}`,
+      `[STUB] Email to user ${userId}: ${subject} (body length: ${body.length})`,
     );
-    // When implementing:
-    // 1. Get user's email from database
-    // 2. Use SendGrid SDK to send email
-    // 3. Handle bounces and complaints
+    return Promise.resolve();
   }
 
-  async sendSms(userId: string, message: string): Promise<void> {
+  sendSms(userId: string, message: string): Promise<void> {
     // TODO: Implement Twilio integration
-    this.logger.debug(
-      `[STUB] SMS to user ${userId}: ${message}`,
-    );
-    // When implementing:
-    // 1. Get user's phone from database
-    // 2. Use Twilio SDK to send SMS
-    // 3. Handle delivery status callbacks
+    this.logger.debug(`[STUB] SMS to user ${userId}: ${message}`);
+    return Promise.resolve();
   }
 }

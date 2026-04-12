@@ -183,7 +183,9 @@ export class DeliveryOfferRepository implements IDeliveryOfferRepository {
     });
   }
 
-  async expireAllPendingByRequestId(deliveryRequestId: string): Promise<number> {
+  async expireAllPendingByRequestId(
+    deliveryRequestId: string,
+  ): Promise<number> {
     const result = await this.prisma.deliveryOffer.updateMany({
       where: {
         deliveryRequestId,

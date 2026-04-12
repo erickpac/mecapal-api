@@ -19,11 +19,7 @@ import {
 import { MATCHING_TOKENS } from './domain/constants';
 
 @Module({
-  imports: [
-    PrismaModule,
-    CognitoModule,
-    forwardRef(() => DeliveryModule),
-  ],
+  imports: [PrismaModule, CognitoModule, forwardRef(() => DeliveryModule)],
   controllers: [MatchingController],
   providers: [
     // Services

@@ -35,7 +35,9 @@ export class IncidentRepository implements IIncidentRepository {
       data: {
         incidentNumber,
         type: data.type as PrismaIncidentType,
-        severity: (data.severity as PrismaIncidentSeverity) || PrismaIncidentSeverity.MEDIUM,
+        severity:
+          (data.severity as PrismaIncidentSeverity) ||
+          PrismaIncidentSeverity.MEDIUM,
         description: data.description,
         evidenceUrls: data.evidenceUrls || [],
         reportedById: data.reportedById,
@@ -162,7 +164,8 @@ export class IncidentRepository implements IIncidentRepository {
         resolution: data.resolution as PrismaIncidentResolution,
         resolutionNotes: data.resolutionNotes,
         refundAmount: data.refundAmount,
-        userAction: (data.userAction as PrismaUserAction) || PrismaUserAction.NONE,
+        userAction:
+          (data.userAction as PrismaUserAction) || PrismaUserAction.NONE,
         resolvedAt: new Date(),
       },
     });
@@ -173,10 +176,18 @@ export class IncidentRepository implements IIncidentRepository {
   async getStats(): Promise<IncidentStats> {
     const [total, open, investigating, resolved, closed] = await Promise.all([
       this.prisma.incident.count(),
-      this.prisma.incident.count({ where: { status: PrismaIncidentStatus.OPEN } }),
-      this.prisma.incident.count({ where: { status: PrismaIncidentStatus.INVESTIGATING } }),
-      this.prisma.incident.count({ where: { status: PrismaIncidentStatus.RESOLVED } }),
-      this.prisma.incident.count({ where: { status: PrismaIncidentStatus.CLOSED } }),
+      this.prisma.incident.count({
+        where: { status: PrismaIncidentStatus.OPEN },
+      }),
+      this.prisma.incident.count({
+        where: { status: PrismaIncidentStatus.INVESTIGATING },
+      }),
+      this.prisma.incident.count({
+        where: { status: PrismaIncidentStatus.RESOLVED },
+      }),
+      this.prisma.incident.count({
+        where: { status: PrismaIncidentStatus.CLOSED },
+      }),
     ]);
 
     return { total, open, investigating, resolved, closed };
@@ -198,7 +209,10 @@ export class IncidentRepository implements IIncidentRepository {
 
     let sequence = 1;
     if (latestIncident) {
-      const lastSequence = parseInt(latestIncident.incidentNumber.split('-')[2], 10);
+      const lastSequence = parseInt(
+        latestIncident.incidentNumber.split('-')[2],
+        10,
+      );
       sequence = lastSequence + 1;
     }
 

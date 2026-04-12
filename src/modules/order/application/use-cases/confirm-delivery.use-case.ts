@@ -42,7 +42,7 @@ export class ConfirmDeliveryUseCase {
     }
 
     // Confirm delivery and update status to DELIVERED
-    const confirmedOrder = await this.orderRepository.confirmDelivery(orderId, {
+    await this.orderRepository.confirmDelivery(orderId, {
       deliveryPhotoUrl: dto.deliveryPhotoUrl,
       deliverySignature: dto.deliverySignature,
       deliveryNotes: dto.deliveryNotes,

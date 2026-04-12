@@ -24,8 +24,13 @@ export class MatchingService implements IMatchingService {
   async findEligibleTransporters(
     criteria: MatchingCriteria,
   ): Promise<MatchedTransporter[]> {
-    const { pickupMunicipality, deliveryMunicipality, loadType, minRating, limit } =
-      criteria;
+    const {
+      pickupMunicipality,
+      deliveryMunicipality,
+      loadType,
+      minRating,
+      limit,
+    } = criteria;
 
     // Find zones that match the pickup or delivery municipalities
     const matchingZones = await this.prisma.zone.findMany({
@@ -106,7 +111,9 @@ export class MatchingService implements IMatchingService {
         // PREFERRED = 100 points, NEUTRAL = 50 points
         // Add rating bonus (up to 50 points for 5-star rating)
         const preferenceScore =
-          bestPreference?.preference === PrismaZonePreference.PREFERRED ? 100 : 50;
+          bestPreference?.preference === PrismaZonePreference.PREFERRED
+            ? 100
+            : 50;
         const ratingBonus = (transporter.averageRating || 0) * 10;
         const matchScore = preferenceScore + ratingBonus;
 

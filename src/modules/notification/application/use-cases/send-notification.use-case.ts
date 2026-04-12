@@ -44,13 +44,11 @@ export class SendNotificationUseCase {
 
       await this.notificationRepository.markAsSent(notification.id);
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Failed to send notification ${notification.id}: ${error.message}`,
+        `Failed to send notification ${notification.id}: ${message}`,
       );
-      await this.notificationRepository.markAsFailed(
-        notification.id,
-        error.message,
-      );
+      await this.notificationRepository.markAsFailed(notification.id, message);
     }
   }
 }
