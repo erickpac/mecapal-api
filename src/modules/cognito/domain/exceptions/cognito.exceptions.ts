@@ -73,3 +73,10 @@ export class NewPasswordRequiredException extends CognitoException {
     super('New password required', 'NEW_PASSWORD_REQUIRED');
   }
 }
+
+export class ForgotPasswordRateLimitedException extends Error {
+  constructor() {
+    super('Too many attempts. Please try again in a few minutes.');
+    this.name = 'ForgotPasswordRateLimitedException';
+  }
+}

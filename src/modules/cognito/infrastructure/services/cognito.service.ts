@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { createHash } from 'crypto';
 import {
   CognitoIdentityProviderClient,
   SignUpCommand,
@@ -35,10 +36,12 @@ import {
   InvalidPasswordException,
   UserNotFoundException,
   InvalidTokenException,
+  ForgotPasswordRateLimitedException,
 } from '../../domain/exceptions/cognito.exceptions';
 
 @Injectable()
 export class CognitoService implements ICognitoService {
+  private readonly logger = new Logger(CognitoService.name);
   private client: CognitoIdentityProviderClient;
   private userPoolId: string;
   private clientId: string;
@@ -266,8 +269,47 @@ export class CognitoService implements ICognitoService {
 
       await this.client.send(command);
     } catch (error) {
-      this.handleCognitoError(error);
+      this.handleForgotPasswordError(error, email);
     }
+  }
+
+  private handleForgotPasswordError(error: unknown, email: string): void {
+    const err = error as {
+      name?: string;
+      message?: string;
+      $metadata?: { requestId?: string };
+    };
+    const emailHash = createHash('sha256').update(email).digest('hex');
+    const requestId = err.$metadata?.requestId;
+
+    const silentlyAbsorbed = new Set([
+      'UserNotFoundException',
+      'InvalidParameterException',
+      'NotAuthorizedException',
+      'CodeDeliveryFailureException',
+    ]);
+
+    if (err.name && silentlyAbsorbed.has(err.name)) {
+      this.logger.warn(
+        `forgotPassword absorbed ${err.name} (requestId=${requestId}, emailHash=${emailHash})`,
+      );
+      return;
+    }
+
+    if (
+      err.name === 'LimitExceededException' ||
+      err.name === 'TooManyRequestsException'
+    ) {
+      this.logger.warn(
+        `forgotPassword rate limited ${err.name} (requestId=${requestId}, emailHash=${emailHash})`,
+      );
+      throw new ForgotPasswordRateLimitedException();
+    }
+
+    this.logger.error(
+      `forgotPassword unexpected error ${err.name ?? 'Unknown'} (requestId=${requestId}, emailHash=${emailHash}): ${err.message ?? ''}`,
+    );
+    throw error;
   }
 
   async confirmForgotPassword(

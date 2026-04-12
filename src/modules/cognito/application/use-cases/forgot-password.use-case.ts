@@ -13,6 +13,12 @@ export class ForgotPasswordUseCase {
   async execute(dto: ForgotPasswordDto): Promise<{ message: string }> {
     await this.cognitoService.forgotPassword(dto.email);
 
+    // Timing-attack mitigation: randomize latency on the success/absorbed path
+    // so clients cannot infer email existence from response time. Rate-limit
+    // path throws before reaching here and is unaffected.
+    const jitterMs = 50 + Math.floor(Math.random() * 101);
+    await new Promise((resolve) => setTimeout(resolve, jitterMs));
+
     return {
       message: 'If the email exists, a verification code has been sent.',
     };
