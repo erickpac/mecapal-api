@@ -1,6 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
-  DELETION_GRACE_PERIOD_DAYS,
+  DEFAULT_DELETION_GRACE_PERIOD_DAYS,
   RequestAccountDeletionUseCase,
 } from './request-account-deletion.use-case';
 import { ICognitoService } from '../../../cognito/domain/interfaces/ICognitoService';
@@ -15,6 +16,7 @@ describe('RequestAccountDeletionUseCase', () => {
   let repo: jest.Mocked<IAccountDeletionRepository>;
   let blocker: jest.Mocked<IAccountDeletionBlockerService>;
   let email: jest.Mocked<Pick<IEmailService, 'sendTemplated'>>;
+  let config: jest.Mocked<Pick<ConfigService, 'get'>>;
 
   const baseInput = {
     userId: 'user-1',
@@ -38,11 +40,13 @@ describe('RequestAccountDeletionUseCase', () => {
         .fn()
         .mockResolvedValue({ messageId: 'm', success: true }),
     };
+    config = { get: jest.fn().mockReturnValue(undefined) };
     useCase = new RequestAccountDeletionUseCase(
       cognito as unknown as ICognitoService,
       repo,
       blocker,
       email as unknown as IEmailService,
+      config as unknown as ConfigService,
     );
   });
 
@@ -55,13 +59,34 @@ describe('RequestAccountDeletionUseCase', () => {
     const result = await useCase.execute(baseInput);
 
     expect(repo.scheduleDeletion).toHaveBeenCalledTimes(1);
-    const expectedMs = DELETION_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
+    const expectedMs = DEFAULT_DELETION_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
     expect(result.scheduledFor.getTime() - Date.now()).toBeGreaterThan(
       expectedMs - 5000,
     );
     expect(result.scheduledFor.getTime() - Date.now()).toBeLessThanOrEqual(
       expectedMs + 1000,
     );
+  });
+
+  it('uses DELETION_GRACE_PERIOD_DAYS env when present', async () => {
+    repo.getScheduledDeletion.mockResolvedValue(null);
+    cognito.verifyPassword.mockResolvedValue(true);
+    blocker.findBlockers.mockResolvedValue([]);
+    repo.scheduleDeletion.mockResolvedValue({ scheduledFor: new Date() });
+    config.get.mockImplementation((key: string) =>
+      key === 'DELETION_GRACE_PERIOD_DAYS' ? '7' : undefined,
+    );
+
+    const result = await useCase.execute(baseInput);
+
+    const expectedMs = 7 * 24 * 60 * 60 * 1000;
+    expect(result.scheduledFor.getTime() - Date.now()).toBeGreaterThan(
+      expectedMs - 5000,
+    );
+    expect(result.scheduledFor.getTime() - Date.now()).toBeLessThanOrEqual(
+      expectedMs + 1000,
+    );
+    expect(result.message).toContain('7 days');
   });
 
   it('throws if deletion already scheduled', async () => {

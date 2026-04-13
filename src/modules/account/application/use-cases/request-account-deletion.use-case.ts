@@ -4,6 +4,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ACCOUNT_TOKENS } from '../../domain/constants/injection-tokens';
 import { COGNITO_TOKENS } from '../../../cognito/domain/constants/injection-tokens';
 import { EMAIL_TOKENS } from '../../../email/domain/constants/injection-tokens';
@@ -18,7 +19,7 @@ import {
 } from '../../domain/exceptions/account-deletion.exceptions';
 import { RequestAccountDeletionDto } from '../dtos/request-account-deletion.dto';
 
-export const DELETION_GRACE_PERIOD_DAYS = 30;
+export const DEFAULT_DELETION_GRACE_PERIOD_DAYS = 30;
 
 export interface RequestAccountDeletionInput {
   userId: string;
@@ -42,7 +43,16 @@ export class RequestAccountDeletionUseCase {
     private readonly blockerService: IAccountDeletionBlockerService,
     @Inject(EMAIL_TOKENS.IEmailService)
     private readonly emailService: IEmailService,
+    private readonly config: ConfigService,
   ) {}
+
+  private getGracePeriodDays(): number {
+    const raw = this.config.get<string>('DELETION_GRACE_PERIOD_DAYS');
+    const parsed = raw ? Number.parseInt(raw, 10) : NaN;
+    return Number.isFinite(parsed) && parsed > 0
+      ? parsed
+      : DEFAULT_DELETION_GRACE_PERIOD_DAYS;
+  }
 
   async execute(
     input: RequestAccountDeletionInput,
@@ -65,8 +75,9 @@ export class RequestAccountDeletionUseCase {
       throw new AccountDeletionBlockedException(blockers);
     }
 
+    const gracePeriodDays = this.getGracePeriodDays();
     const scheduledFor = new Date(
-      Date.now() + DELETION_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000,
+      Date.now() + gracePeriodDays * 24 * 60 * 60 * 1000,
     );
 
     await this.repository.scheduleDeletion({
@@ -101,7 +112,7 @@ export class RequestAccountDeletionUseCase {
 
     return {
       scheduledFor,
-      message: `Account deletion scheduled. You have ${DELETION_GRACE_PERIOD_DAYS} days to cancel by signing in again.`,
+      message: `Account deletion scheduled. You have ${gracePeriodDays} days to cancel by signing in again.`,
     };
   }
 }
