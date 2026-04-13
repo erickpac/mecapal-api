@@ -13,6 +13,7 @@ describe('CancelAccountDeletionUseCase', () => {
       getScheduledDeletion: jest.fn(),
       findDueDeletions: jest.fn(),
       finalizeDeletion: jest.fn(),
+      collectPiiUrls: jest.fn(),
     };
     useCase = new CancelAccountDeletionUseCase(repo);
   });

@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
 import { EmailModule } from '../email/email.module';
+import { UploadModule } from '../upload/upload.module';
 import { ACCOUNT_TOKENS } from './domain/constants/injection-tokens';
 import { AccountController } from './infrastructure/controllers/account.controller';
 import { AccountDeletionRepository } from './infrastructure/repositories/account-deletion.repository';
@@ -25,6 +26,7 @@ import { ProcessScheduledDeletionsUseCase } from './application/use-cases/proces
     PrismaModule,
     CognitoModule,
     EmailModule,
+    UploadModule,
   ],
   controllers: [AccountController],
   providers: [

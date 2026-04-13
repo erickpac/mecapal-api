@@ -29,4 +29,11 @@ export interface IAccountDeletionRepository {
   getScheduledDeletion(userId: string): Promise<Date | null>;
   findDueDeletions(now: Date): Promise<DueDeletionUser[]>;
   finalizeDeletion(userId: string): Promise<void>;
+  /**
+   * Returns every S3 URL stored against the user that holds PII (license
+   * scans, ID photos, vehicle photos, insurance docs, bank statements).
+   * Called BEFORE finalizeDeletion because that step overwrites the
+   * URLs.
+   */
+  collectPiiUrls(userId: string): Promise<string[]>;
 }

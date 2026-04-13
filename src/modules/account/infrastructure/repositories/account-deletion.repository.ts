@@ -70,6 +70,55 @@ export class AccountDeletionRepository implements IAccountDeletionRepository {
     return user?.deletionScheduledFor ?? null;
   }
 
+  async collectPiiUrls(userId: string): Promise<string[]> {
+    const [profile, vehicles, bankAccounts] = await Promise.all([
+      this.prisma.transporterProfile.findUnique({
+        where: { userId },
+        select: {
+          licenseFrontPhotoUrl: true,
+          licenseBackPhotoUrl: true,
+          idPhotoUrl: true,
+          insuranceDocumentUrl: true,
+        },
+      }),
+      this.prisma.vehicle.findMany({
+        where: { userId },
+        select: {
+          frontPhotoUrl: true,
+          rearPhotoUrl: true,
+          sidePhotoUrl: true,
+          interiorPhotoUrl: true,
+          registrationDocUrl: true,
+          insuranceDocUrl: true,
+        },
+      }),
+      this.prisma.bankAccount.findMany({
+        where: { transporterId: userId },
+        select: { verificationDocUrl: true },
+      }),
+    ]);
+
+    const urls: (string | null | undefined)[] = [
+      profile?.licenseFrontPhotoUrl,
+      profile?.licenseBackPhotoUrl,
+      profile?.idPhotoUrl,
+      profile?.insuranceDocumentUrl,
+      ...vehicles.flatMap((v) => [
+        v.frontPhotoUrl,
+        v.rearPhotoUrl,
+        v.sidePhotoUrl,
+        v.interiorPhotoUrl,
+        v.registrationDocUrl,
+        v.insuranceDocUrl,
+      ]),
+      ...bankAccounts.map((b) => b.verificationDocUrl),
+    ];
+
+    return urls.filter(
+      (u): u is string => typeof u === 'string' && u.length > 0,
+    );
+  }
+
   async findDueDeletions(now: Date) {
     return this.prisma.user.findMany({
       where: {

@@ -33,6 +33,7 @@ describe('RequestAccountDeletionUseCase', () => {
       getScheduledDeletion: jest.fn(),
       findDueDeletions: jest.fn(),
       finalizeDeletion: jest.fn(),
+      collectPiiUrls: jest.fn(),
     };
     blocker = { findBlockers: jest.fn() };
     email = {
