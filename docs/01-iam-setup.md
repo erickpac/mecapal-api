@@ -1,6 +1,6 @@
 # IAM Setup
 
-This guide covers creating the necessary IAM users and roles for the Mecapal API infrastructure.
+This guide covers creating the necessary IAM users and roles for the Mekapal API infrastructure.
 
 ## Overview
 

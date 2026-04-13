@@ -41,7 +41,7 @@ Mekapal API is the backend service powering the Mekapal App — a location-based
 $ git clone https://github.com/your-org/transportistas-api
 
 # Navigate into the project
-$ cd mecapal-api
+$ cd mekapal-api
 
 # Install dependencies
 $ pnpm install

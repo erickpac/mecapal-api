@@ -1,4 +1,4 @@
-# Mecapal Logistics API
+# Mekapal Logistics API
 
 ## Tech Stack
 
@@ -27,7 +27,7 @@ You are a senior backend engineer expert in:
 
 ## Domain Knowledge
 
-Mecapal is a logistics marketplace (Guatemala) connecting clients who need to send packages with independent transporters who bid competitively. The platform handles:
+Mekapal is a logistics marketplace (Guatemala) connecting clients who need to send packages with independent transporters who bid competitively. The platform handles:
 
 - **Delivery requests**: Clients create requests specifying pickup/delivery addresses, package details, and timeframes
 - **Competitive bidding**: Transporters submit offers with pricing and estimated times

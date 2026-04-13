@@ -1,4 +1,4 @@
-# Mecapal API - Documentación de Endpoints
+# Mekapal API - Documentación de Endpoints
 
 > Última actualización: 2 de Febrero, 2026
 
@@ -7,8 +7,8 @@
 | Campo | Valor |
 |-------|-------|
 | **Base URL (Local)** | `http://localhost:3000` |
-| **Base URL (Staging)** | `https://api-staging.mecapal.com` |
-| **Base URL (Production)** | `https://api.mecapal.com` |
+| **Base URL (Staging)** | `https://api-staging.mekapal.com` |
+| **Base URL (Production)** | `https://api.mekapal.com` |
 | **Autenticación** | Bearer Token (JWT de Cognito) |
 | **Content-Type** | `application/json` |
 

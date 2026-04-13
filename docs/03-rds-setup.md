@@ -16,7 +16,7 @@ First, create a security group that allows PostgreSQL access.
 
 1. Go to **EC2 → Security Groups → Create security group**
 2. **Name**: `mekapal-rds-sg`
-3. **Description**: Security group for Mecapal RDS instances
+3. **Description**: Security group for Mekapal RDS instances
 4. **Inbound rules**:
    - Type: PostgreSQL
    - Port: 5432
@@ -28,7 +28,7 @@ First, create a security group that allows PostgreSQL access.
 # Create security group
 aws ec2 create-security-group \
   --group-name mekapal-rds-sg \
-  --description "Security group for Mecapal RDS instances"
+  --description "Security group for Mekapal RDS instances"
 
 # Add inbound rule (PostgreSQL)
 aws ec2 authorize-security-group-ingress \

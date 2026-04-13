@@ -150,7 +150,7 @@ export class AccountDeletionRepository implements IAccountDeletionRepository {
    *   - Reviews / Incidents bodies (other users' content)
    */
   async finalizeDeletion(userId: string): Promise<void> {
-    const anonymizedEmail = `deleted_${userId}@mecapal.local`;
+    const anonymizedEmail = `deleted_${userId}@mekapal.local`;
     const redactedPlate = `REDACTED_${userId.slice(0, 8)}`;
     const now = new Date();
 

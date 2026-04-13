@@ -1,4 +1,4 @@
-# Mecapal API - AWS Infrastructure Guide
+# Mekapal API - AWS Infrastructure Guide
 
 This guide provides step-by-step instructions for setting up the AWS infrastructure for both development and production environments.
 

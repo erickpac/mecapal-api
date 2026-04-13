@@ -1,4 +1,4 @@
-# Estado del Proyecto - Mecapal API
+# Estado del Proyecto - Mekapal API
 
 > Última actualización: 2 de Febrero, 2026
 
