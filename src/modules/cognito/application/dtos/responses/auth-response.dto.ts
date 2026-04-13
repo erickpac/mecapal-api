@@ -10,6 +10,12 @@ export class AuthUserDto {
   role: UserRole;
   companyName: string | null;
   taxId: string | null;
+  /**
+   * When present, the account is in the grace period before permanent
+   * deletion. Clients should surface a banner and offer a way to cancel.
+   * `null` means no pending deletion.
+   */
+  deletionScheduledFor: Date | null;
 }
 
 export class AuthResponseDto {

@@ -45,6 +45,7 @@ export class CompleteNewPasswordUseCase {
         role: user.role,
         companyName: user.companyName,
         taxId: user.taxId,
+        deletionScheduledFor: user.deletionScheduledFor ?? null,
       },
     };
   }

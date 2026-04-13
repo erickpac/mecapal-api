@@ -46,16 +46,18 @@ export class MobileSignInUseCase {
     // 4. Auto-cancel pending deletion, if any. Signing in is interpreted
     // as the user reversing their decision. Wrapped in catch so a failure
     // here does not block login.
+    let cancelSucceeded = false;
     if (this.accountStatus) {
-      await this.accountStatus
-        .cancelPendingDeletionIfAny(user.id)
-        .catch((err) => {
-          this.logger.warn(
-            `Failed to auto-cancel pending deletion for ${user.id}: ${
-              err instanceof Error ? err.message : 'unknown'
-            }`,
-          );
-        });
+      try {
+        await this.accountStatus.cancelPendingDeletionIfAny(user.id);
+        cancelSucceeded = true;
+      } catch (err) {
+        this.logger.warn(
+          `Failed to auto-cancel pending deletion for ${user.id}: ${
+            err instanceof Error ? err.message : 'unknown'
+          }`,
+        );
+      }
     }
 
     return {
@@ -73,6 +75,13 @@ export class MobileSignInUseCase {
         role: user.role,
         companyName: user.companyName,
         taxId: user.taxId,
+        // After a successful auto-cancel the state is guaranteed to be
+        // cleared, even though `user` in memory still holds the stale
+        // value. If auto-cancel didn't run (feature disabled, web/admin
+        // flows), fall back to whatever the DB says.
+        deletionScheduledFor: cancelSucceeded
+          ? null
+          : (user.deletionScheduledFor ?? null),
       },
     };
   }
