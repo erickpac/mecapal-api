@@ -23,6 +23,12 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { AccountModule } from './modules/account/account.module';
 import { HealthController } from './health.controller';
 
+// Feature flags evaluated at bootstrap. Opt-in by design: a new environment
+// that forgets to set the flag stays off rather than silently exposing an
+// unfinished feature.
+const accountDeletionEnabled =
+  process.env.ACCOUNT_DELETION_ENABLED === 'true';
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -46,7 +52,7 @@ import { HealthController } from './health.controller';
     IncidentModule,
     ReportsModule,
     NotificationModule,
-    AccountModule,
+    ...(accountDeletionEnabled ? [AccountModule] : []),
   ],
   controllers: [HealthController],
   providers: [],
