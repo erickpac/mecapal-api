@@ -12,6 +12,8 @@ import { AccountDeletionBlockerService } from './infrastructure/services/account
 import { AccountDeletionExceptionFilter } from './infrastructure/filters/account-deletion.filter';
 import { AccountDeletionScheduler } from './infrastructure/schedulers/account-deletion.scheduler';
 import { PendingDeletionGuard } from './infrastructure/guards/pending-deletion.guard';
+import { AccountStatusAdapter } from './infrastructure/adapters/account-status.adapter';
+import { COGNITO_TOKENS } from '../cognito/domain/constants/injection-tokens';
 import { RequestAccountDeletionUseCase } from './application/use-cases/request-account-deletion.use-case';
 import { CancelAccountDeletionUseCase } from './application/use-cases/cancel-account-deletion.use-case';
 import { ProcessScheduledDeletionsUseCase } from './application/use-cases/process-scheduled-deletions.use-case';
@@ -46,10 +48,15 @@ import { ProcessScheduledDeletionsUseCase } from './application/use-cases/proces
     CancelAccountDeletionUseCase,
     ProcessScheduledDeletionsUseCase,
     AccountDeletionScheduler,
+    {
+      provide: COGNITO_TOKENS.IAccountStatusPort,
+      useClass: AccountStatusAdapter,
+    },
   ],
   exports: [
     ACCOUNT_TOKENS.IAccountDeletionRepository,
     ACCOUNT_TOKENS.IAccountDeletionBlockerService,
+    COGNITO_TOKENS.IAccountStatusPort,
   ],
 })
 export class AccountModule {}

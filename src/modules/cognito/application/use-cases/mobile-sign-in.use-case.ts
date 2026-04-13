@@ -1,7 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { COGNITO_TOKENS } from '../../domain/constants/injection-tokens';
 import { ICognitoService } from '../../domain/interfaces/ICognitoService';
 import { IUserRepository } from '../../domain/interfaces/IUserRepository';
+import { IAccountStatusPort } from '../../domain/interfaces/IAccountStatusPort';
 import { SignInDto } from '../dtos/sign-in.dto';
 import { AuthResponseDto } from '../dtos/responses/auth-response.dto';
 import { UserRole } from '../../domain/enums/user-role.enum';
@@ -14,11 +15,16 @@ const ALLOWED_ROLES = [UserRole.CLIENT, UserRole.TRANSPORTER];
 
 @Injectable()
 export class MobileSignInUseCase {
+  private readonly logger = new Logger(MobileSignInUseCase.name);
+
   constructor(
     @Inject(COGNITO_TOKENS.ICognitoService)
     private readonly cognitoService: ICognitoService,
     @Inject(COGNITO_TOKENS.IUserRepository)
     private readonly userRepository: IUserRepository,
+    @Optional()
+    @Inject(COGNITO_TOKENS.IAccountStatusPort)
+    private readonly accountStatus?: IAccountStatusPort,
   ) {}
 
   async execute(dto: SignInDto): Promise<AuthResponseDto> {
@@ -35,6 +41,21 @@ export class MobileSignInUseCase {
     // 3. Validate user has mobile app role
     if (!ALLOWED_ROLES.includes(user.role)) {
       throw new UnauthorizedRoleException();
+    }
+
+    // 4. Auto-cancel pending deletion, if any. Signing in is interpreted
+    // as the user reversing their decision. Wrapped in catch so a failure
+    // here does not block login.
+    if (this.accountStatus) {
+      await this.accountStatus
+        .cancelPendingDeletionIfAny(user.id)
+        .catch((err) => {
+          this.logger.warn(
+            `Failed to auto-cancel pending deletion for ${user.id}: ${
+              err instanceof Error ? err.message : 'unknown'
+            }`,
+          );
+        });
     }
 
     return {
