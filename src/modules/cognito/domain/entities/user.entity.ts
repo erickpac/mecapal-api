@@ -12,6 +12,8 @@ export class User {
   companyName: string | null;
   taxId: string | null;
   transporterProfile?: TransporterProfile | null;
+  deletionScheduledFor?: Date | null;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 

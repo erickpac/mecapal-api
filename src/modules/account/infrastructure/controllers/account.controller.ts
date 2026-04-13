@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Post,
   Req,
+  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
 import { CognitoAuthGuard } from '../../../cognito/infrastructure/guards/cognito-auth.guard';
@@ -13,6 +14,7 @@ import { RequestWithUser } from '../../../cognito/infrastructure/guards/cognito-
 import { RequestAccountDeletionDto } from '../../application/dtos/request-account-deletion.dto';
 import { RequestAccountDeletionUseCase } from '../../application/use-cases/request-account-deletion.use-case';
 import { CancelAccountDeletionUseCase } from '../../application/use-cases/cancel-account-deletion.use-case';
+import { ALLOW_DURING_PENDING_DELETION } from '../guards/pending-deletion.guard';
 
 @Controller('auth/account')
 @UseGuards(CognitoAuthGuard)
@@ -40,6 +42,7 @@ export class AccountController {
 
   @Post('cancel-deletion')
   @HttpCode(HttpStatus.OK)
+  @SetMetadata(ALLOW_DURING_PENDING_DELETION, true)
   async cancel(@Req() req: RequestWithUser) {
     return this.cancelDeletion.execute(req.user.id);
   }

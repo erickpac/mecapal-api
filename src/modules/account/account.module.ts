@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
@@ -11,6 +11,7 @@ import { AccountDeletionRepository } from './infrastructure/repositories/account
 import { AccountDeletionBlockerService } from './infrastructure/services/account-deletion-blocker.service';
 import { AccountDeletionExceptionFilter } from './infrastructure/filters/account-deletion.filter';
 import { AccountDeletionScheduler } from './infrastructure/schedulers/account-deletion.scheduler';
+import { PendingDeletionGuard } from './infrastructure/guards/pending-deletion.guard';
 import { RequestAccountDeletionUseCase } from './application/use-cases/request-account-deletion.use-case';
 import { CancelAccountDeletionUseCase } from './application/use-cases/cancel-account-deletion.use-case';
 import { ProcessScheduledDeletionsUseCase } from './application/use-cases/process-scheduled-deletions.use-case';
@@ -28,6 +29,10 @@ import { ProcessScheduledDeletionsUseCase } from './application/use-cases/proces
     {
       provide: APP_FILTER,
       useClass: AccountDeletionExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PendingDeletionGuard,
     },
     {
       provide: ACCOUNT_TOKENS.IAccountDeletionRepository,
