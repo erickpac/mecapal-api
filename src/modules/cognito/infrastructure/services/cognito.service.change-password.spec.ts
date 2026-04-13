@@ -89,4 +89,27 @@ describe('CognitoService.changePassword', () => {
       service.changePassword('token', 'Old123!', 'weak'),
     ).rejects.toBeInstanceOf(InvalidPasswordException);
   });
+
+  describe('verifyPassword', () => {
+    it('returns true on success', async () => {
+      sendMock.mockResolvedValue({ AuthenticationResult: {} });
+      await expect(
+        service.verifyPassword('u@x.com', 'pw'),
+      ).resolves.toBe(true);
+    });
+
+    it('returns false on NotAuthorizedException', async () => {
+      sendMock.mockRejectedValue(makeAwsError('NotAuthorizedException'));
+      await expect(
+        service.verifyPassword('u@x.com', 'wrong'),
+      ).resolves.toBe(false);
+    });
+
+    it('translates LimitExceededException to CognitoRateLimitedException', async () => {
+      sendMock.mockRejectedValue(makeAwsError('LimitExceededException'));
+      await expect(
+        service.verifyPassword('u@x.com', 'pw'),
+      ).rejects.toBeInstanceOf(CognitoRateLimitedException);
+    });
+  });
 });

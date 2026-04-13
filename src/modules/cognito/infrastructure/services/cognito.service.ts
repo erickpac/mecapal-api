@@ -407,13 +407,13 @@ export class CognitoService implements ICognitoService {
       return true;
     } catch (error) {
       const err = error as { name?: string };
+      this.throwIfRateLimited(error, 'verifyPassword');
       if (
         err.name === 'NotAuthorizedException' ||
         err.name === 'UserNotFoundException'
       ) {
         return false;
       }
-      this.throwIfRateLimited(error, 'verifyPassword');
       throw error;
     }
   }
