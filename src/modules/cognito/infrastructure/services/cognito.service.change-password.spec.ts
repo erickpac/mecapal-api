@@ -93,16 +93,14 @@ describe('CognitoService.changePassword', () => {
   describe('verifyPassword', () => {
     it('returns true on success', async () => {
       sendMock.mockResolvedValue({ AuthenticationResult: {} });
-      await expect(
-        service.verifyPassword('u@x.com', 'pw'),
-      ).resolves.toBe(true);
+      await expect(service.verifyPassword('u@x.com', 'pw')).resolves.toBe(true);
     });
 
     it('returns false on NotAuthorizedException', async () => {
       sendMock.mockRejectedValue(makeAwsError('NotAuthorizedException'));
-      await expect(
-        service.verifyPassword('u@x.com', 'wrong'),
-      ).resolves.toBe(false);
+      await expect(service.verifyPassword('u@x.com', 'wrong')).resolves.toBe(
+        false,
+      );
     });
 
     it('translates LimitExceededException to CognitoRateLimitedException', async () => {

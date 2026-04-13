@@ -86,8 +86,23 @@ export class AccountDeletionRepository implements IAccountDeletionRepository {
     });
   }
 
+  /**
+   * Anonymizes all personally identifiable information (PII) associated
+   * with the user while preserving records required by Guatemalan tax law
+   * (SAT retention) and audit history: settlements, orders, reviews,
+   * incidents all stay intact, but the linked PII fields are scrubbed.
+   *
+   * Kept on purpose (non-PII or legally required):
+   *   - User.id, User.cognitoSub (stable keys for historical joins)
+   *   - User.role, ratings
+   *   - Address: city, state (aggregate stats only)
+   *   - Vehicle: brand, model, year, color (non-identifying specs)
+   *   - BankAccount: bankName (settlement traceability)
+   *   - Reviews / Incidents bodies (other users' content)
+   */
   async finalizeDeletion(userId: string): Promise<void> {
     const anonymizedEmail = `deleted_${userId}@mecapal.local`;
+    const redactedPlate = `REDACTED_${userId.slice(0, 8)}`;
     const now = new Date();
 
     await this.prisma.$transaction(async (tx) => {
@@ -103,6 +118,69 @@ export class AccountDeletionRepository implements IAccountDeletionRepository {
           deletedAt: now,
         },
       });
+
+      await tx.transporterProfile.updateMany({
+        where: { userId },
+        data: {
+          licenseNumber: 'REDACTED',
+          licenseFrontPhotoUrl: '',
+          licenseBackPhotoUrl: '',
+          idPhotoUrl: '',
+          address: 'REDACTED',
+          postalCode: 'REDACTED',
+          insurancePolicy: 'REDACTED',
+          insuranceDocumentUrl: '',
+        },
+      });
+
+      await tx.address.updateMany({
+        where: { userId },
+        data: {
+          alias: 'Dirección eliminada',
+          street: 'REDACTED',
+          postalCode: 'REDACTED',
+          contactName: null,
+          contactPhone: null,
+          latitude: null,
+          longitude: null,
+        },
+      });
+
+      // Vehicles: licensePlate and vin have unique constraints, so we
+      // suffix with a slice of the user id to keep them unique per user.
+      const vehicles = await tx.vehicle.findMany({
+        where: { userId },
+        select: { id: true },
+      });
+      for (const v of vehicles) {
+        await tx.vehicle.update({
+          where: { id: v.id },
+          data: {
+            licensePlate: `${redactedPlate}_${v.id.slice(0, 8)}`,
+            vin: `REDACTED_${v.id.slice(0, 13)}`,
+            frontPhotoUrl: '',
+            rearPhotoUrl: '',
+            sidePhotoUrl: '',
+            interiorPhotoUrl: '',
+            registrationDocUrl: '',
+            insuranceDocUrl: '',
+          },
+        });
+      }
+
+      await tx.bankAccount.updateMany({
+        where: { transporterId: userId },
+        data: {
+          accountHolderName: 'REDACTED',
+          accountNumber: 'REDACTED',
+          accountNumberLast4: 'XXXX',
+          verificationDocUrl: null,
+          status: 'SUSPENDED',
+        },
+      });
+
+      // Notifications are user-private and safe to drop entirely.
+      await tx.notification.deleteMany({ where: { userId } });
 
       const latest = await tx.accountDeletionAudit.findFirst({
         where: { userId, processedAt: null, canceledAt: null },

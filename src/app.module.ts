@@ -26,8 +26,7 @@ import { HealthController } from './health.controller';
 // Feature flags evaluated at bootstrap. Opt-in by design: a new environment
 // that forgets to set the flag stays off rather than silently exposing an
 // unfinished feature.
-const accountDeletionEnabled =
-  process.env.ACCOUNT_DELETION_ENABLED === 'true';
+const accountDeletionEnabled = process.env.ACCOUNT_DELETION_ENABLED === 'true';
 
 @Module({
   imports: [

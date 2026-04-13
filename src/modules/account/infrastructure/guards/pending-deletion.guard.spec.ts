@@ -29,9 +29,9 @@ describe('PendingDeletionGuard', () => {
   });
 
   it('allows public endpoints (no user)', () => {
-    expect(guard.canActivate(makeContext('POST', '/api/orders', undefined))).toBe(
-      true,
-    );
+    expect(
+      guard.canActivate(makeContext('POST', '/api/orders', undefined)),
+    ).toBe(true);
   });
 
   it('allows GET requests even when pending deletion', () => {
