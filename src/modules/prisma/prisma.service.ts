@@ -4,7 +4,41 @@ import {
   OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { Pool, type PoolConfig } from 'pg';
+
+/**
+ * Build the pg Pool config from the DATABASE_URL env var.
+ *
+ * - If the URL already declares a `sslmode` query param we respect it and let
+ *   `pg` derive the SSL options from the connection string itself (no extra
+ *   `ssl` option).
+ * - Otherwise we default to `{ rejectUnauthorized: false }` to support the
+ *   AWS RDS bundle without distributing the CA cert with the image. This
+ *   matches the previous Prisma behaviour for managed Postgres.
+ */
+function buildPoolConfig(connectionString: string): PoolConfig {
+  const config: PoolConfig = {
+    connectionString,
+    max: 10,
+  };
+
+  try {
+    const url = new URL(connectionString);
+    const sslmode = url.searchParams.get('sslmode');
+    if (!sslmode) {
+      config.ssl = { rejectUnauthorized: false };
+    }
+  } catch {
+    // Non-URL connection strings (e.g. KV form). Fall back to the RDS-friendly
+    // default so we keep parity with previous Prisma behaviour.
+    config.ssl = { rejectUnauthorized: false };
+  }
+
+  return config;
+}
 
 @Injectable()
 export class PrismaService
@@ -12,6 +46,15 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   private readonly logger = new Logger(PrismaService.name);
+  private readonly pool: Pool;
+
+  constructor(configService: ConfigService) {
+    const connectionString = configService.get<string>('DATABASE_URL', '');
+    const pool = new Pool(buildPoolConfig(connectionString));
+    const adapter = new PrismaPg(pool);
+    super({ adapter });
+    this.pool = pool;
+  }
 
   async onModuleInit() {
     const maxRetries = 2;
@@ -39,6 +82,7 @@ export class PrismaService
 
   async onModuleDestroy() {
     await this.$disconnect();
+    await this.pool.end();
   }
 
   /**

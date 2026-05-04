@@ -1,7 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ModuleRef } from '@nestjs/core';
+
+jest.mock('pg', () => ({
+  Pool: jest.fn().mockImplementation(() => ({
+    end: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
+jest.mock('@prisma/adapter-pg', () => ({
+  PrismaPg: jest.fn().mockImplementation(() => ({
+    provider: 'postgres',
+    adapterName: '@prisma/adapter-pg',
+    connect: jest.fn(),
+    connectToShadowDb: jest.fn(),
+  })),
+}));
+
 import { PrismaModule } from '../prisma.module';
 import { PrismaService } from '../prisma.service';
-import { ModuleRef } from '@nestjs/core';
 
 describe('PrismaModule', () => {
   let module: TestingModule;
