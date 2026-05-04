@@ -14,6 +14,7 @@ export interface CreateTransporterProfileData {
   insurancePolicy: string;
   insuranceExpiration: Date;
   insuranceDocumentUrl: string;
+  idNumber?: string | null;
 }
 
 export type UpdateTransporterProfileData =

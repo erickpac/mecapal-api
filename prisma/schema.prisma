@@ -207,6 +207,9 @@ model AccountDeletionAudit {
 model TransporterProfile {
   id String @id @default(uuid()) @db.Uuid
 
+  // Identity (DPI)
+  idNumber String?
+
   // License
   licenseNumber        String
   licenseExpiration    DateTime

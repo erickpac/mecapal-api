@@ -16,7 +16,7 @@ export class UpdateUserDto {
   @MinLength(8)
   phone?: string;
 
-  // Client-specific
+  // Transporter-specific
   @IsOptional()
   @IsString()
   companyName?: string;
@@ -24,4 +24,10 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   taxId?: string;
+
+  // Transporter-specific (DPI / national ID)
+  @IsOptional()
+  @IsString()
+  @MinLength(5)
+  idNumber?: string;
 }

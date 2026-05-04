@@ -310,6 +310,7 @@ READ READ
 
   "TransporterProfile" {
     String id "🗝️"
+    String idNumber "❓"
     String licenseNumber 
     DateTime licenseExpiration 
     String licenseFrontPhotoUrl 

@@ -4,6 +4,9 @@ export class TransporterProfile {
   id: string;
   userId: string;
 
+  // Identity (DPI)
+  idNumber: string | null;
+
   // License
   licenseNumber: string;
   licenseExpiration: Date;
