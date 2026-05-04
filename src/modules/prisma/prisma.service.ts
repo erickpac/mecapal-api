@@ -87,10 +87,16 @@ export class PrismaService
 
   /**
    * Runs `fn` only if the caller can acquire a Postgres session-level
-   * advisory lock identified by `lockKey`. Returns `false` when the lock
-   * is already held by another session (and `fn` is skipped). Prevents
-   * concurrent execution of scheduled jobs across multiple ECS task
-   * instances.
+   * advisory lock identified by `lockKey`. Returns `acquired: false` when the
+   * lock is already held by another session (and `fn` is skipped). Prevents
+   * concurrent execution of scheduled jobs across multiple ECS task instances.
+   *
+   * Acquire and release run on the same dedicated pool connection so the
+   * `pg_advisory_unlock` actually releases the lock — Postgres advisory locks
+   * are session-scoped, and Prisma queries through the pool may otherwise
+   * land on a different connection where the unlock would be a no-op.
+   * `fn` itself can use any pool connection (queries through PrismaClient);
+   * the lock is global across the database, not connection-bound.
    *
    * Pick a unique integer per job and keep it stable (a collision means
    * two jobs can never run in parallel).
@@ -99,18 +105,23 @@ export class PrismaService
     lockKey: number,
     fn: () => Promise<T>,
   ): Promise<{ acquired: true; result: T } | { acquired: false }> {
-    const rows = await this.$queryRawUnsafe<{ locked: boolean }[]>(
-      `SELECT pg_try_advisory_lock($1) AS locked`,
-      lockKey,
-    );
-    if (!rows[0]?.locked) {
-      return { acquired: false };
-    }
+    const client = await this.pool.connect();
     try {
-      const result = await fn();
-      return { acquired: true, result };
+      const lockResult = await client.query<{ locked: boolean }>(
+        'SELECT pg_try_advisory_lock($1) AS locked',
+        [lockKey],
+      );
+      if (!lockResult.rows[0]?.locked) {
+        return { acquired: false };
+      }
+      try {
+        const result = await fn();
+        return { acquired: true, result };
+      } finally {
+        await client.query('SELECT pg_advisory_unlock($1)', [lockKey]);
+      }
     } finally {
-      await this.$queryRawUnsafe(`SELECT pg_advisory_unlock($1)`, lockKey);
+      client.release();
     }
   }
 }

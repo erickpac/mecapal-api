@@ -5,9 +5,16 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 const mockPoolEnd = jest.fn().mockResolvedValue(undefined);
+const mockClientQuery = jest.fn();
+const mockClientRelease = jest.fn();
+const mockPoolConnect = jest.fn().mockResolvedValue({
+  query: mockClientQuery,
+  release: mockClientRelease,
+});
 
 jest.mock('pg', () => ({
   Pool: jest.fn().mockImplementation(() => ({
+    connect: mockPoolConnect,
     end: mockPoolEnd,
   })),
 }));
@@ -208,42 +215,62 @@ describe('PrismaService', () => {
   });
 
   describe('withAdvisoryLock', () => {
-    it('should run fn and unlock when lock is acquired', async () => {
-      const queryRawUnsafeSpy = jest
-        .spyOn(
-          service as unknown as {
-            $queryRawUnsafe: (...args: unknown[]) => Promise<unknown>;
-          },
-          '$queryRawUnsafe',
-        )
-        .mockResolvedValueOnce([{ locked: true }])
-        .mockResolvedValueOnce([]);
+    beforeEach(() => {
+      mockClientQuery.mockReset();
+      mockClientRelease.mockReset();
+      mockPoolConnect.mockClear();
+    });
+
+    it('should run fn and unlock on the same pool connection when lock is acquired', async () => {
+      mockClientQuery
+        .mockResolvedValueOnce({ rows: [{ locked: true }] })
+        .mockResolvedValueOnce({ rows: [] });
 
       const fn = jest.fn().mockResolvedValue('done');
 
       const result = await service.withAdvisoryLock(42, fn);
 
       expect(fn).toHaveBeenCalledTimes(1);
-      expect(queryRawUnsafeSpy).toHaveBeenCalledTimes(2);
+      expect(mockPoolConnect).toHaveBeenCalledTimes(1);
+      expect(mockClientQuery).toHaveBeenCalledTimes(2);
+      expect(mockClientQuery).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining('pg_try_advisory_lock'),
+        [42],
+      );
+      expect(mockClientQuery).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('pg_advisory_unlock'),
+        [42],
+      );
+      expect(mockClientRelease).toHaveBeenCalledTimes(1);
       expect(result).toEqual({ acquired: true, result: 'done' });
     });
 
-    it('should skip fn when lock is not acquired', async () => {
-      jest
-        .spyOn(
-          service as unknown as {
-            $queryRawUnsafe: (...args: unknown[]) => Promise<unknown>;
-          },
-          '$queryRawUnsafe',
-        )
-        .mockResolvedValueOnce([{ locked: false }]);
+    it('should skip fn and release the connection when lock is not acquired', async () => {
+      mockClientQuery.mockResolvedValueOnce({ rows: [{ locked: false }] });
 
       const fn = jest.fn();
 
       const result = await service.withAdvisoryLock(42, fn);
 
       expect(fn).not.toHaveBeenCalled();
+      expect(mockPoolConnect).toHaveBeenCalledTimes(1);
+      expect(mockClientQuery).toHaveBeenCalledTimes(1);
+      expect(mockClientRelease).toHaveBeenCalledTimes(1);
       expect(result).toEqual({ acquired: false });
+    });
+
+    it('should release the connection even if fn throws', async () => {
+      mockClientQuery
+        .mockResolvedValueOnce({ rows: [{ locked: true }] })
+        .mockResolvedValueOnce({ rows: [] });
+
+      const fn = jest.fn().mockRejectedValue(new Error('boom'));
+
+      await expect(service.withAdvisoryLock(42, fn)).rejects.toThrow('boom');
+      expect(mockClientQuery).toHaveBeenCalledTimes(2);
+      expect(mockClientRelease).toHaveBeenCalledTimes(1);
     });
   });
 });
