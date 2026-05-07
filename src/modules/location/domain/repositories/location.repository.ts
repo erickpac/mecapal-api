@@ -61,6 +61,7 @@ export interface ILocationRepository {
   createCountry(data: CreateCountryData): Promise<Country>;
   findAllCountries(activeOnly?: boolean): Promise<Country[]>;
   findCountryById(id: string): Promise<Country | null>;
+  findCountryByCode(code: string): Promise<Country | null>;
   updateCountry(id: string, data: UpdateCountryData): Promise<Country>;
   toggleCountryStatus(id: string): Promise<Country>;
 

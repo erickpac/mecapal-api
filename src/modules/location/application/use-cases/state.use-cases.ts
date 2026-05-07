@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { LOCATION_TOKENS } from '../../domain/constants/injection-tokens';
 import { ILocationRepository } from '../../domain/repositories/location.repository';
 import { State } from '../../domain/entities/state.entity';
@@ -34,7 +39,30 @@ export class GetStatesUseCase {
     private readonly locationRepository: ILocationRepository,
   ) {}
 
-  async execute(countryId: string, activeOnly = false): Promise<State[]> {
+  async execute(
+    query: { countryId?: string; countryCode?: string },
+    activeOnly = false,
+  ): Promise<State[]> {
+    let countryId = query.countryId;
+
+    if (!countryId && query.countryCode) {
+      const country = await this.locationRepository.findCountryByCode(
+        query.countryCode,
+      );
+      if (!country) {
+        throw new NotFoundException(
+          `Country with code ${query.countryCode} not found`,
+        );
+      }
+      countryId = country.id;
+    }
+
+    if (!countryId) {
+      throw new BadRequestException(
+        'countryId or countryCode query param is required',
+      );
+    }
+
     return this.locationRepository.findStatesByCountry(countryId, activeOnly);
   }
 }

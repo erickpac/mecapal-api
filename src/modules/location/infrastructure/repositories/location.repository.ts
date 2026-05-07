@@ -39,6 +39,13 @@ export class LocationRepository implements ILocationRepository {
     return country ? this.mapToCountry(country) : null;
   }
 
+  async findCountryByCode(code: string): Promise<Country | null> {
+    const country = await this.prisma.country.findUnique({
+      where: { code: code.toUpperCase() },
+    });
+    return country ? this.mapToCountry(country) : null;
+  }
+
   async updateCountry(id: string, data: UpdateCountryData): Promise<Country> {
     const country = await this.prisma.country.update({
       where: { id },

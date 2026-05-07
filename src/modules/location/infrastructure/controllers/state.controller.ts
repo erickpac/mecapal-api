@@ -43,10 +43,15 @@ export class StateController {
 
   @Get()
   async findByCountry(
-    @Query('countryId', ParseUUIDPipe) countryId: string,
+    @Query('countryId', new ParseUUIDPipe({ optional: true }))
+    countryId?: string,
+    @Query('countryCode') countryCode?: string,
     @Query('activeOnly') activeOnly?: string,
   ) {
-    return this.getStatesUseCase.execute(countryId, activeOnly === 'true');
+    return this.getStatesUseCase.execute(
+      { countryId, countryCode },
+      activeOnly === 'true',
+    );
   }
 
   @Put(':id')
