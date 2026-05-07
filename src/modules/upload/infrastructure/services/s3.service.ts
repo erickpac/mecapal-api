@@ -1,16 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  S3Client,
-  PutObjectCommand,
-  DeleteObjectsCommand,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3Client, DeleteObjectsCommand } from '@aws-sdk/client-s3';
+import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import {
   IS3Service,
-  PresignedUrlParams,
-  PresignedUrlResult,
-} from './s3.service.interface';
+  PresignedPostParams,
+  PresignedPostResult,
+} from '../../domain/interfaces/s3.service.interface';
 
 @Injectable()
 export class S3Service implements IS3Service {
@@ -18,38 +14,49 @@ export class S3Service implements IS3Service {
   private readonly s3Client: S3Client;
   private readonly bucketName: string;
   private readonly region: string;
+  private readonly cloudFrontDomain: string;
 
   constructor(private readonly configService: ConfigService) {
     this.region = this.configService.getOrThrow<string>('AWS_S3_REGION');
     this.bucketName = this.configService.getOrThrow<string>('AWS_S3_BUCKET');
+    this.cloudFrontDomain = this.configService.getOrThrow<string>(
+      'AWS_CLOUDFRONT_DOMAIN',
+    );
 
     this.s3Client = new S3Client({
       region: this.region,
     });
   }
 
-  async generatePresignedUrl(
-    params: PresignedUrlParams,
-  ): Promise<PresignedUrlResult> {
-    // Note: do NOT include ContentLength here — it gets signed into the
-    // presigned URL as an exact value, causing S3 to reject uploads whose
-    // actual Content-Length differs (which is always the case in practice).
-    // Max-size enforcement should happen via presigned POST with a
-    // content-length-range condition or via bucket policy.
-    const command = new PutObjectCommand({
+  async generatePresignedPost(
+    params: PresignedPostParams,
+  ): Promise<PresignedPostResult> {
+    const tagging = this.buildTaggingXml(params.tags);
+
+    const { url, fields } = await createPresignedPost(this.s3Client, {
       Bucket: this.bucketName,
       Key: params.key,
-      ContentType: params.contentType,
+      Expires: params.expiresIn,
+      Conditions: [
+        ['content-length-range', 1, params.maxSize],
+        ['eq', '$Content-Type', params.contentType],
+        ['eq', '$x-amz-server-side-encryption', 'AES256'],
+        ['eq', '$tagging', tagging],
+      ],
+      Fields: {
+        'Content-Type': params.contentType,
+        'x-amz-server-side-encryption': 'AES256',
+        tagging,
+      },
     });
 
-    const uploadUrl = await getSignedUrl(this.s3Client, command, {
-      expiresIn: params.expiresIn,
-    });
-
-    const fileUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${params.key}`;
+    // Public URL goes through CloudFront (with OAC), keeping the bucket
+    // private. The S3 endpoint URL would 403 for end users.
+    const fileUrl = `https://${this.cloudFrontDomain}/${params.key}`;
 
     return {
-      uploadUrl,
+      url,
+      fields,
       fileUrl,
     };
   }
@@ -83,12 +90,43 @@ export class S3Service implements IS3Service {
   extractKeyFromUrl(url: string): string | null {
     try {
       const parsed = new URL(url);
-      const expectedHost = `${this.bucketName}.s3.${this.region}.amazonaws.com`;
-      if (parsed.host !== expectedHost) return null;
+      // Accept both the CloudFront distribution host (current/preferred)
+      // and the direct S3 host (kept for backward compatibility with any
+      // URLs persisted before the CDN migration).
+      const cloudFrontHost = this.cloudFrontDomain;
+      const s3Host = `${this.bucketName}.s3.${this.region}.amazonaws.com`;
+      if (parsed.host !== cloudFrontHost && parsed.host !== s3Host) {
+        return null;
+      }
       const key = parsed.pathname.replace(/^\/+/, '');
       return key || null;
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Builds the XML payload S3 expects in the `tagging` form field for a
+   * presigned POST. Keys/values are URL-encoded to keep the XML safe;
+   * tag inputs are server-controlled so the surface is small, but we
+   * still escape defensively.
+   */
+  private buildTaggingXml(tags: Record<string, string>): string {
+    const entries = Object.entries(tags)
+      .map(
+        ([k, v]) =>
+          `<Tag><Key>${this.escapeXml(k)}</Key><Value>${this.escapeXml(v)}</Value></Tag>`,
+      )
+      .join('');
+    return `<Tagging><TagSet>${entries}</TagSet></Tagging>`;
+  }
+
+  private escapeXml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
   }
 }

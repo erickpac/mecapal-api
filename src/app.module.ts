@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { CognitoModule } from './modules/cognito/cognito.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { UserModule } from './modules/user/user.module';
@@ -31,6 +32,10 @@ const accountDeletionEnabled = process.env.ACCOUNT_DELETION_ENABLED === 'true';
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    // Rate limiter is registered globally so any module can opt in via
+    // `@UseGuards(ThrottlerGuard) + @Throttle(...)`. We deliberately do
+    // NOT register the guard as `APP_GUARD` to keep throttling opt-in.
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
     PrismaModule,
     CognitoModule,
     UserModule,

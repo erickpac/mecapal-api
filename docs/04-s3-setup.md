@@ -188,3 +188,5 @@ Environment variables:
 ## Next Step
 
 Continue to [Cognito Setup](./05-cognito-setup.md)
+
+> **Reads go through CloudFront, not S3 directly.** With public access blocked, the bucket cannot be hit from a browser/app — the upload module returns CloudFront URLs as `fileUrl`. See [11-cloudfront-setup.md](./11-cloudfront-setup.md) for the procedural CDN setup, and [10-upload-module.md](./10-upload-module.md) for the architecture rationale.

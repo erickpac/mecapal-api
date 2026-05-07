@@ -48,6 +48,8 @@ on:
         required: true
       AWS_S3_BUCKET:
         required: true
+      AWS_CLOUDFRONT_DOMAIN:
+        required: true
       CORS_ORIGIN:
         required: true
 
@@ -150,6 +152,7 @@ jobs:
               {"name": "AWS_COGNITO_CLIENT_ID", "value": "${{ secrets.AWS_COGNITO_CLIENT_ID }}"},
               {"name": "AWS_S3_BUCKET", "value": "${{ secrets.AWS_S3_BUCKET }}"},
               {"name": "AWS_S3_REGION", "value": "${{ env.AWS_REGION }}"},
+              {"name": "AWS_CLOUDFRONT_DOMAIN", "value": "${{ secrets.AWS_CLOUDFRONT_DOMAIN }}"},
               {"name": "AWS_SES_REGION", "value": "${{ env.AWS_REGION }}"},
               {"name": "CORS_ORIGIN", "value": "${{ secrets.CORS_ORIGIN }}"}
             ]

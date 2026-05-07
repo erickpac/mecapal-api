@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
+import { UploadModule } from '../upload/upload.module';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 import { TransporterProfileRepository } from './infrastructure/repositories/transporter-profile.repository';
 import { UserController } from './infrastructure/controllers/user.controller';
@@ -13,7 +14,7 @@ import { DomainExceptionFilter } from './infrastructure/filters/domain-exception
 import { USER_TOKENS } from './domain/constants/injection-tokens';
 
 @Module({
-  imports: [PrismaModule, CognitoModule],
+  imports: [PrismaModule, CognitoModule, UploadModule],
   controllers: [UserController, TransporterController],
   providers: [
     // Exception Filter

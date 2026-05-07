@@ -12,6 +12,8 @@ import { User } from '../../../cognito/domain/entities/user.entity';
 import { UserRole } from '../../../cognito/domain/enums/user-role.enum';
 import { UserNotFoundException } from '../../domain/exceptions/user-not-found.exception';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { IS3Service } from '../../../upload/domain/interfaces/s3.service.interface';
+import { UPLOAD_TOKENS } from '../../../upload/domain/constants/injection-tokens';
 
 /**
  * Fields that the API accepts at the boundary, regardless of role.
@@ -28,6 +30,8 @@ export class UpdateUserUseCase {
     private readonly userRepository: IUserRepository,
     @Inject(USER_TOKENS.ITransporterProfileRepository)
     private readonly transporterProfileRepository: ITransporterProfileRepository,
+    @Inject(UPLOAD_TOKENS.IS3Service)
+    private readonly s3Service: IS3Service,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -88,6 +92,29 @@ export class UpdateUserUseCase {
 
     if (!refreshed) {
       throw new UserNotFoundException(userId);
+    }
+
+    // Best-effort cleanup of the previous profile photo. Runs after the
+    // user row is persisted so a delete failure can't leave the user
+    // pointing at a no-longer-existing object. Errors are logged and
+    // swallowed — orphan files are recoverable, broken UX is not.
+    if (
+      updateUserDto.profilePhotoUrl !== undefined &&
+      existingUser.profilePhotoUrl &&
+      existingUser.profilePhotoUrl !== updateUserDto.profilePhotoUrl
+    ) {
+      const oldKey = this.s3Service.extractKeyFromUrl(
+        existingUser.profilePhotoUrl,
+      );
+      if (oldKey) {
+        try {
+          await this.s3Service.deleteObjects([oldKey]);
+        } catch (err) {
+          this.logger.warn(
+            `Failed to delete previous profile photo for user ${userId}: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      }
     }
 
     return refreshed;

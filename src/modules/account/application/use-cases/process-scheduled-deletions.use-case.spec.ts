@@ -3,7 +3,7 @@ import { ProcessScheduledDeletionsUseCase } from './process-scheduled-deletions.
 import { IAccountDeletionRepository } from '../../domain/interfaces/account-deletion-repository.interface';
 import { ICognitoService } from '../../../cognito/domain/interfaces/ICognitoService';
 import { IEmailService } from '../../../email/domain/interfaces/email-service.interface';
-import { IS3Service } from '../../../upload/infrastructure/services/s3.service.interface';
+import { IS3Service } from '../../../upload/domain/interfaces/s3.service.interface';
 
 describe('ProcessScheduledDeletionsUseCase', () => {
   let useCase: ProcessScheduledDeletionsUseCase;

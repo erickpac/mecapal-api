@@ -5,7 +5,7 @@ import { EMAIL_TOKENS } from '../../../email/domain/constants/injection-tokens';
 import { UPLOAD_TOKENS } from '../../../upload/domain/constants/injection-tokens';
 import { ICognitoService } from '../../../cognito/domain/interfaces/ICognitoService';
 import { IEmailService } from '../../../email/domain/interfaces/email-service.interface';
-import { IS3Service } from '../../../upload/infrastructure/services/s3.service.interface';
+import { IS3Service } from '../../../upload/domain/interfaces/s3.service.interface';
 import { EmailTemplate } from '../../../email/domain/types/email.types';
 import { IAccountDeletionRepository } from '../../domain/interfaces/account-deletion-repository.interface';
 
