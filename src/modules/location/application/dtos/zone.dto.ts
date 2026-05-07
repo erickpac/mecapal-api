@@ -25,7 +25,7 @@ export class CreateZoneDto {
 
   @IsString()
   @MaxLength(10)
-  code: string;
+  postalCode: string;
 
   @IsUUID()
   municipalityId: string;
@@ -54,7 +54,7 @@ export class UpdateZoneDto {
   @IsString()
   @MaxLength(10)
   @IsOptional()
-  code?: string;
+  postalCode?: string;
 
   @IsNumber()
   @IsOptional()

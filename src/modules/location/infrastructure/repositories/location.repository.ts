@@ -170,7 +170,7 @@ export class LocationRepository implements ILocationRepository {
     const zone = await this.prisma.zone.create({
       data: {
         name: data.name,
-        code: data.code,
+        postalCode: data.postalCode,
         municipalityId: data.municipalityId,
         latitude: data.latitude,
         longitude: data.longitude,
@@ -220,7 +220,7 @@ export class LocationRepository implements ILocationRepository {
           ? {
               OR: [
                 { name: { contains: search, mode: 'insensitive' } },
-                { code: { contains: search, mode: 'insensitive' } },
+                { postalCode: { contains: search, mode: 'insensitive' } },
                 {
                   municipality: {
                     name: { contains: search, mode: 'insensitive' },
@@ -245,7 +245,7 @@ export class LocationRepository implements ILocationRepository {
       where: { id },
       data: {
         name: data.name,
-        code: data.code,
+        postalCode: data.postalCode,
         latitude: data.latitude,
         longitude: data.longitude,
         polygon: data.polygon as object,
@@ -358,7 +358,7 @@ export class LocationRepository implements ILocationRepository {
   private mapToZone(data: {
     id: string;
     name: string;
-    code: string;
+    postalCode: string;
     latitude: number | null;
     longitude: number | null;
     polygon: unknown;
@@ -396,7 +396,7 @@ export class LocationRepository implements ILocationRepository {
     return {
       id: data.id,
       name: data.name,
-      code: data.code,
+      postalCode: data.postalCode,
       latitude: data.latitude ?? null,
       longitude: data.longitude ?? null,
       polygon: (data.polygon as ZonePolygon) ?? null,

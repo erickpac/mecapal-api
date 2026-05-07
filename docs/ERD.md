@@ -334,10 +334,6 @@ READ READ
     String id "🗝️"
     String alias 
     String street 
-    String city 
-    String state 
-    String postalCode 
-    String country 
     Float latitude "❓"
     Float longitude "❓"
     String contactName "❓"
@@ -419,7 +415,7 @@ READ READ
   "Zone" {
     String id "🗝️"
     String name 
-    String code 
+    String postalCode 
     Float latitude "❓"
     Float longitude "❓"
     Json polygon "❓"
@@ -670,8 +666,8 @@ READ READ
     "TransporterProfile" |o--|| "TransporterStatus" : "enum:status"
     "TransporterProfile" |o--|| "User" : "user"
     "Address" }o--|| "User" : "user"
-    "Address" }o--|o "State" : "stateRef"
-    "Address" }o--|o "Municipality" : "municipality"
+    "Address" }o--|| "State" : "state"
+    "Address" }o--|| "Municipality" : "municipality"
     "Address" }o--|o "Zone" : "zone"
     "Vehicle" |o--|| "VehicleType" : "enum:vehicleType"
     "Vehicle" |o--|| "LoadType" : "enum:loadType"

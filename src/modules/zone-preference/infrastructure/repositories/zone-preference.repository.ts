@@ -149,7 +149,7 @@ export class ZonePreferenceRepository implements IZonePreferenceRepository {
       zone: {
         id: data.zone.id,
         name: data.zone.name,
-        code: data.zone.code,
+        postalCode: data.zone.postalCode,
         latitude: data.zone.latitude ?? null,
         longitude: data.zone.longitude ?? null,
         polygon: (data.zone.polygon as unknown as ZonePolygon) ?? null,

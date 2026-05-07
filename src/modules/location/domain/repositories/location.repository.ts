@@ -41,7 +41,7 @@ export interface UpdateMunicipalityData {
 // Zone
 export interface CreateZoneData {
   name: string;
-  code: string;
+  postalCode: string;
   municipalityId: string;
   latitude?: number;
   longitude?: number;
@@ -50,7 +50,7 @@ export interface CreateZoneData {
 
 export interface UpdateZoneData {
   name?: string;
-  code?: string;
+  postalCode?: string;
   latitude?: number;
   longitude?: number;
   polygon?: ZonePolygon;

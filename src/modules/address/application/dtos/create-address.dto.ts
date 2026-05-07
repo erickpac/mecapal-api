@@ -16,22 +16,6 @@ export class CreateAddressDto {
   @IsNotEmpty()
   street: string;
 
-  @IsString()
-  @IsNotEmpty()
-  city: string;
-
-  @IsString()
-  @IsNotEmpty()
-  state: string;
-
-  @IsString()
-  @IsNotEmpty()
-  postalCode: string;
-
-  @IsString()
-  @IsOptional()
-  country?: string;
-
   @IsNumber()
   @IsOptional()
   latitude?: number;
@@ -49,12 +33,10 @@ export class CreateAddressDto {
   contactPhone?: string;
 
   @IsUUID()
-  @IsOptional()
-  stateId?: string;
+  stateId: string;
 
   @IsUUID()
-  @IsOptional()
-  municipalityId?: string;
+  municipalityId: string;
 
   @IsUUID()
   @IsOptional()

@@ -23,7 +23,7 @@ export class CreateZoneUseCase {
 
     return this.locationRepository.createZone({
       name: dto.name,
-      code: dto.code.toUpperCase(),
+      postalCode: dto.postalCode.toUpperCase(),
       municipalityId: dto.municipalityId,
       latitude: dto.latitude,
       longitude: dto.longitude,
@@ -74,7 +74,7 @@ export class UpdateZoneUseCase {
 
     return this.locationRepository.updateZone(id, {
       name: dto.name,
-      code: dto.code?.toUpperCase(),
+      postalCode: dto.postalCode?.toUpperCase(),
       latitude: dto.latitude,
       longitude: dto.longitude,
       polygon: dto.polygon as ZonePolygon,

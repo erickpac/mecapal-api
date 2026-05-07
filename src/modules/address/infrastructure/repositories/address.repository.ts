@@ -11,12 +11,27 @@ import { Address } from '../../domain/entities/address.entity';
 export class AddressRepository implements IAddressRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private readonly include = {
+    state: { select: { id: true, name: true, code: true } },
+    municipality: { select: { id: true, name: true, code: true } },
+    zone: {
+      select: {
+        id: true,
+        name: true,
+        postalCode: true,
+        latitude: true,
+        longitude: true,
+      },
+    },
+  } as const;
+
   async create(userId: string, data: CreateAddressData): Promise<Address> {
     const address = await this.prisma.address.create({
       data: {
         ...data,
         userId,
       },
+      include: this.include,
     });
 
     return new Address(address);
@@ -25,6 +40,7 @@ export class AddressRepository implements IAddressRepository {
   async findById(id: string): Promise<Address | null> {
     const address = await this.prisma.address.findUnique({
       where: { id },
+      include: this.include,
     });
 
     if (!address) return null;
@@ -35,6 +51,7 @@ export class AddressRepository implements IAddressRepository {
   async findByUserId(userId: string): Promise<Address[]> {
     const addresses = await this.prisma.address.findMany({
       where: { userId },
+      include: this.include,
       orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
     });
 
@@ -51,6 +68,7 @@ export class AddressRepository implements IAddressRepository {
     const address = await this.prisma.address.update({
       where: { id },
       data,
+      include: this.include,
     });
 
     return new Address(address);
@@ -68,6 +86,7 @@ export class AddressRepository implements IAddressRepository {
     const address = await this.prisma.address.update({
       where: { id },
       data: { isDefault: true },
+      include: this.include,
     });
 
     return new Address(address);

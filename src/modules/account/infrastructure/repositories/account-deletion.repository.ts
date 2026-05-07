@@ -187,7 +187,6 @@ export class AccountDeletionRepository implements IAccountDeletionRepository {
         data: {
           alias: 'Dirección eliminada',
           street: 'REDACTED',
-          postalCode: 'REDACTED',
           contactName: null,
           contactPhone: null,
           latitude: null,

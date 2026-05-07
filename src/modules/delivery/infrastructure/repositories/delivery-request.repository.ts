@@ -22,9 +22,29 @@ import { Address } from '../../../address/domain/entities/address.entity';
 import { User } from '../../../cognito/domain/entities/user.entity';
 import { Vehicle } from '../../../vehicle/domain/entities/vehicle.entity';
 
+type AddressInclude = {
+  include: {
+    state: { select: { id: true; name: true; code: true } };
+    municipality: { select: { id: true; name: true; code: true } };
+    zone: {
+      select: {
+        id: true;
+        name: true;
+        postalCode: true;
+        latitude: true;
+        longitude: true;
+      };
+    };
+  };
+};
+
 type DeliveryRequestWithAddresses = PrismaDeliveryRequest & {
-  pickupAddress?: Prisma.AddressGetPayload<object>;
-  deliveryAddress?: Prisma.AddressGetPayload<object>;
+  pickupAddress?:
+    | Prisma.AddressGetPayload<AddressInclude>
+    | Prisma.AddressGetPayload<object>;
+  deliveryAddress?:
+    | Prisma.AddressGetPayload<AddressInclude>
+    | Prisma.AddressGetPayload<object>;
   offers?: Array<
     Prisma.DeliveryOfferGetPayload<{
       include: { transporter: true; vehicle: true };
@@ -64,8 +84,36 @@ export class DeliveryRequestRepository implements IDeliveryRequestRepository {
     const request = await this.prisma.deliveryRequest.findUnique({
       where: { id },
       include: {
-        pickupAddress: true,
-        deliveryAddress: true,
+        pickupAddress: {
+          include: {
+            state: { select: { id: true, name: true, code: true } },
+            municipality: { select: { id: true, name: true, code: true } },
+            zone: {
+              select: {
+                id: true,
+                name: true,
+                postalCode: true,
+                latitude: true,
+                longitude: true,
+              },
+            },
+          },
+        },
+        deliveryAddress: {
+          include: {
+            state: { select: { id: true, name: true, code: true } },
+            municipality: { select: { id: true, name: true, code: true } },
+            zone: {
+              select: {
+                id: true,
+                name: true,
+                postalCode: true,
+                latitude: true,
+                longitude: true,
+              },
+            },
+          },
+        },
         offers: {
           include: {
             transporter: true,

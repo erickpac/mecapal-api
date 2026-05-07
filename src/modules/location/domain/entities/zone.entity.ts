@@ -8,7 +8,7 @@ export interface ZonePolygon {
 export class Zone {
   id: string;
   name: string;
-  code: string;
+  postalCode: string;
   latitude: number | null;
   longitude: number | null;
   polygon: ZonePolygon | null;

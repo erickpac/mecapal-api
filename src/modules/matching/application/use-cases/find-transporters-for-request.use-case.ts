@@ -36,9 +36,17 @@ export class FindTransportersForRequestUseCase {
       );
     }
 
-    // Use city as municipality name for matching
-    const pickupMunicipality = request.pickupAddress.city;
-    const deliveryMunicipality = request.deliveryAddress.city;
+    if (
+      !request.pickupAddress.municipality ||
+      !request.deliveryAddress.municipality
+    ) {
+      throw new NotFoundException(
+        'Delivery request addresses are missing municipality data',
+      );
+    }
+
+    const pickupMunicipality = request.pickupAddress.municipality.name;
+    const deliveryMunicipality = request.deliveryAddress.municipality.name;
 
     return this.matchingService.findEligibleTransporters({
       pickupMunicipality,

@@ -3,16 +3,12 @@ import { Address } from '../entities/address.entity';
 export interface CreateAddressData {
   alias: string;
   street: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country?: string;
   latitude?: number;
   longitude?: number;
   contactName?: string;
   contactPhone?: string;
-  stateId?: string;
-  municipalityId?: string;
+  stateId: string;
+  municipalityId: string;
   zoneId?: string;
   isDefault?: boolean;
 }
