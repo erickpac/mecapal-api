@@ -59,6 +59,9 @@ export class UpdateUserUseCase {
     if (updateUserDto.companyName !== undefined) {
       userFields.companyName = updateUserDto.companyName;
     }
+    if (updateUserDto.profilePhotoUrl !== undefined) {
+      userFields.profilePhotoUrl = updateUserDto.profilePhotoUrl;
+    }
 
     const shouldUpdateTransporterProfile =
       existingUser.role === UserRole.TRANSPORTER &&

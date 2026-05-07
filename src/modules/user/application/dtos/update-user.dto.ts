@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { IsOptional, IsString, IsUrl, MinLength } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -15,6 +15,10 @@ export class UpdateUserDto {
   @IsString()
   @MinLength(8)
   phone?: string;
+
+  @IsOptional()
+  @IsUrl({ require_protocol: true })
+  profilePhotoUrl?: string;
 
   // Transporter-specific
   @IsOptional()

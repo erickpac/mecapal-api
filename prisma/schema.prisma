@@ -112,6 +112,9 @@ model User {
   companyName String?
   taxId       String?
 
+  // Profile
+  profilePhotoUrl String?
+
   // Relations
   transporterProfile     TransporterProfile?
   addresses              Address[]

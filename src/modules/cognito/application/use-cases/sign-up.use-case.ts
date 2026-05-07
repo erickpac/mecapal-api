@@ -32,6 +32,7 @@ export class SignUpUseCase {
       role: dto.role ?? UserRole.CLIENT,
       companyName: dto.companyName ?? null,
       taxId: dto.taxId ?? null,
+      profilePhotoUrl: null,
     });
 
     return {

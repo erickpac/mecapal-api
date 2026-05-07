@@ -31,11 +31,15 @@ export class S3Service implements IS3Service {
   async generatePresignedUrl(
     params: PresignedUrlParams,
   ): Promise<PresignedUrlResult> {
+    // Note: do NOT include ContentLength here — it gets signed into the
+    // presigned URL as an exact value, causing S3 to reject uploads whose
+    // actual Content-Length differs (which is always the case in practice).
+    // Max-size enforcement should happen via presigned POST with a
+    // content-length-range condition or via bucket policy.
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: params.key,
       ContentType: params.contentType,
-      ContentLength: params.maxSize,
     });
 
     const uploadUrl = await getSignedUrl(this.s3Client, command, {

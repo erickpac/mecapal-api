@@ -11,6 +11,7 @@ export class User {
   role: UserRole;
   companyName: string | null;
   taxId: string | null;
+  profilePhotoUrl: string | null;
   transporterProfile?: TransporterProfile | null;
   deletionScheduledFor?: Date | null;
   deletedAt?: Date | null;

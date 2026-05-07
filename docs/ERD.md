@@ -283,6 +283,7 @@ READ READ
     UserRole role 
     String companyName "❓"
     String taxId "❓"
+    String profilePhotoUrl "❓"
     String stripeCustomerId "❓"
     Float averageRating 
     Int totalReviews 

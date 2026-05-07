@@ -31,6 +31,7 @@ export class CreateAdminUserUseCase {
       role: dto.role,
       companyName: null,
       taxId: null,
+      profilePhotoUrl: null,
     });
 
     return {

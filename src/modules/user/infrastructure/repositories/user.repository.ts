@@ -65,6 +65,7 @@ export class UserRepository implements IUserRepository {
         phone: data.phone,
         companyName: data.companyName,
         taxId: data.taxId,
+        profilePhotoUrl: data.profilePhotoUrl,
       },
     });
 
