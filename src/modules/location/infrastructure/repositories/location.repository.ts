@@ -195,8 +195,10 @@ export class LocationRepository implements ILocationRepository {
       include: {
         municipality: { include: { state: { include: { country: true } } } },
       },
-      orderBy: { name: 'asc' },
     });
+    // Natural numeric sort so "Zona 2" comes before "Zona 10".
+    const collator = new Intl.Collator(undefined, { numeric: true });
+    zones.sort((a, b) => collator.compare(a.name, b.name));
     return zones.map((z) => this.mapToZone(z));
   }
 
@@ -231,8 +233,10 @@ export class LocationRepository implements ILocationRepository {
       include: {
         municipality: { include: { state: { include: { country: true } } } },
       },
-      orderBy: { name: 'asc' },
     });
+    // Natural numeric sort so "Zona 2" comes before "Zona 10".
+    const collator = new Intl.Collator(undefined, { numeric: true });
+    zones.sort((a, b) => collator.compare(a.name, b.name));
     return zones.map((z) => this.mapToZone(z));
   }
 
