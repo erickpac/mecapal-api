@@ -144,13 +144,18 @@ Belt and suspenders: even though we sign the SSE header into the presigned POST,
 
 ## Open follow-ups
 
-Tracked elsewhere:
+- **`pending_upload` table** + cron for orphan cleanup. Today, if a client gets a presigned policy and never POSTs, or POSTs but the user PATCH never lands, the file (or the unused policy slot) leaks. Track issuance in a DB row, expire after 24h, sweep S3 objects whose key matches an expired-and-unconsumed row.
+- **Signed URLs/cookies for documents**: protect `profile-documents/` and `vehicle-documents/` behind a CloudFront trusted key group; API issues short-lived signed URLs from an authenticated read endpoint. Today documents would be readable by anyone who knows the (unguessable) URL, which is fine for non-sensitive content but not for PII.
+- **Custom CDN domain** (`cdn.mekapal.com` / `cdn-staging.mekapal.com`) with ACM cert in `us-east-1`. Currently using the default `*.cloudfront.net`. See [11-cloudfront-setup.md](./11-cloudfront-setup.md#custom-domain-cdnmekapalcom).
+- **WAF on the CloudFront distribution** with the AWS managed common rule set + a rate-based rule (e.g. 2,000 req / 5 min per IP). Track via `WebACLId` in the distribution config.
+- **Revisit rate limit** (`@Throttle({ ttl: 60_000, limit: 10 })` on `POST /upload/presigned-url`) once we have real-user data; tune up or down.
+- **Production bucket lifecycle rules**: abort incomplete multipart uploads after 1 day; transition `*-documents/` to STANDARD_IA after 30 days. See sample policy in this doc above.
+- **Production bucket policy**: `DenyUnencryptedUploads` belt-and-suspenders. See sample above.
 
-- **Mobile migration**: switch from PUT (legacy) to multipart POST (new presigned policy). API is already on POST as of `fix/upload-hardening`; mobile change is pending.
-- **`pending_upload` table** + cron for orphan cleanup.
-- **Signed URLs/cookies for documents**: protect `profile-documents/` and `vehicle-documents/` behind a CloudFront trusted key group; API issues short-lived signed URLs from an authenticated read endpoint.
-- **Custom CDN domain** (`cdn.mekapal.com` / `cdn-staging.mekapal.com`) with ACM cert in `us-east-1`. Currently using the default `*.cloudfront.net`.
-- **Revisit rate limit** (`@Throttle({ ttl: 60_000, limit: 10 })`) once we have real-user data; tune up or down.
+Done:
+
+- ~~Mobile migration~~: switched from PUT to multipart POST (`043d50f` mobile).
+- ~~Auth response includes `profilePhotoUrl`~~ (`cc120cc` api).
 
 ## Code map
 
