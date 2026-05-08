@@ -151,6 +151,7 @@ aws iam create-access-key --user-name mekapal-ci-cd
 ```
 
 **Important**: Save the output! You'll need these for GitHub Secrets:
+
 - `AccessKeyId`
 - `SecretAccessKey`
 
@@ -242,7 +243,9 @@ Create a file named `task-role-policy.json`:
       "Effect": "Allow",
       "Action": [
         "s3:PutObject",
+        "s3:PutObjectTagging",
         "s3:GetObject",
+        "s3:GetObjectTagging",
         "s3:DeleteObject",
         "s3:ListBucket"
       ],
@@ -256,10 +259,7 @@ Create a file named `task-role-policy.json`:
     {
       "Sid": "SESAccess",
       "Effect": "Allow",
-      "Action": [
-        "ses:SendEmail",
-        "ses:SendRawEmail"
-      ],
+      "Action": ["ses:SendEmail", "ses:SendRawEmail"],
       "Resource": "*"
     },
     {
@@ -295,12 +295,12 @@ Save the role ARN: `arn:aws:iam::<ACCOUNT_ID>:role/mekapalApiTaskRole`
 
 After completing this guide, you should have:
 
-| Resource | Type | Purpose | ARN needed for |
-|----------|------|---------|----------------|
-| `mekapal-ci-cd` | IAM user | GitHub Actions deployments | GitHub repo secrets |
-| `mekapalEcsTaskExecutionRole` | IAM role | ECS pulls images & writes logs | GitHub env secrets |
-| `mekapalEcsInfrastructureRole` | IAM role | ECS Express provisions infra | GitHub env secrets |
-| `mekapalApiTaskRole` | IAM role | App accesses S3, SES, Cognito | GitHub env secrets |
+| Resource                       | Type     | Purpose                        | ARN needed for      |
+| ------------------------------ | -------- | ------------------------------ | ------------------- |
+| `mekapal-ci-cd`                | IAM user | GitHub Actions deployments     | GitHub repo secrets |
+| `mekapalEcsTaskExecutionRole`  | IAM role | ECS pulls images & writes logs | GitHub env secrets  |
+| `mekapalEcsInfrastructureRole` | IAM role | ECS Express provisions infra   | GitHub env secrets  |
+| `mekapalApiTaskRole`           | IAM role | App accesses S3, SES, Cognito  | GitHub env secrets  |
 
 > **Note:** The `mekapal-app` IAM user (with access keys) is no longer needed. The task role provides credentials automatically, which is more secure.
 
