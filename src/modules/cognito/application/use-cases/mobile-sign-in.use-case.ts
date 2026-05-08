@@ -75,6 +75,7 @@ export class MobileSignInUseCase {
         role: user.role,
         companyName: user.companyName,
         taxId: user.taxId,
+        profilePhotoUrl: user.profilePhotoUrl,
         // After a successful auto-cancel the state is guaranteed to be
         // cleared, even though `user` in memory still holds the stale
         // value. If auto-cancel didn't run (feature disabled, web/admin

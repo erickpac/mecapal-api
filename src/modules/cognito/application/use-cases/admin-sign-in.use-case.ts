@@ -65,6 +65,7 @@ export class AdminSignInUseCase {
         role: user.role,
         companyName: user.companyName,
         taxId: user.taxId,
+        profilePhotoUrl: user.profilePhotoUrl,
         deletionScheduledFor: user.deletionScheduledFor ?? null,
       },
     };
