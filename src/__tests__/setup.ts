@@ -22,3 +22,6 @@ process.env.AWS_S3_REGION = 'us-east-1';
 process.env.AWS_S3_BUCKET = 'test-bucket';
 process.env.AWS_ACCESS_KEY_ID = 'test-access-key-id';
 process.env.AWS_SECRET_ACCESS_KEY = 'test-secret-access-key';
+
+// AWS CloudFront test environment (required by S3Service.getOrThrow)
+process.env.AWS_CLOUDFRONT_DOMAIN = 'test.cloudfront.net';

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../app.module';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { CognitoModule } from '../modules/cognito/cognito.module';
 import { PrismaModule } from '../modules/prisma/prisma.module';
 import { UserModule } from '../modules/user/user.module';
@@ -8,6 +9,7 @@ import { PrismaService } from '../modules/prisma/prisma.service';
 import { INestApplication } from '@nestjs/common';
 import { COGNITO_TOKENS } from '../modules/cognito/domain/constants/injection-tokens';
 import { HealthController } from '../health.controller';
+import { GlobalExceptionFilter } from '../common/filters/global-exception.filter';
 
 // Mock PrismaService for AppModule tests
 const mockPrismaService = {
@@ -96,10 +98,12 @@ describe('AppModule', () => {
     expect(controllers).toEqual([HealthController]);
   });
 
-  it('should have no providers', () => {
+  it('should register the global exception filter', () => {
     const providers = Reflect.getMetadata('providers', AppModule) as
-      | unknown[]
+      | { provide?: unknown; useClass?: unknown }[]
       | undefined;
-    expect(providers).toEqual([]);
+    expect(providers).toHaveLength(1);
+    expect(providers?.[0].provide).toBe(APP_FILTER);
+    expect(providers?.[0].useClass).toBe(GlobalExceptionFilter);
   });
 });

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { CognitoModule } from './modules/cognito/cognito.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { UserModule } from './modules/user/user.module';
@@ -59,6 +61,16 @@ const accountDeletionEnabled = process.env.ACCOUNT_DELETION_ENABLED === 'true';
     ...(accountDeletionEnabled ? [AccountModule] : []),
   ],
   controllers: [HealthController],
-  providers: [],
+  providers: [
+    // Catch-all filter enforcing the standardized error contract
+    // ({ statusCode, error: <ERROR_CODE>, message, ...details }) for every
+    // error response. Module-scoped filters (cognito, account) still take
+    // precedence for the specific exceptions they `@Catch`; this is the
+    // safety net so nothing falls through to a raw 500 without a code.
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

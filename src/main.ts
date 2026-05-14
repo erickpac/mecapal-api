@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { validationExceptionFactory } from './common/pipes/validation-exception.factory';
 
 export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,7 +19,11 @@ export async function bootstrap() {
   });
 
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(new ValidationPipe());
+  // Custom exception factory: 400 validation errors carry the stable
+  // `VALIDATION_ERROR` code while keeping per-field messages as detail.
+  app.useGlobalPipes(
+    new ValidationPipe({ exceptionFactory: validationExceptionFactory }),
+  );
 
   await app.listen(port);
 

@@ -116,6 +116,26 @@ cognito, user, address, vehicle, upload, backoffice, location, zone-preference, 
 - Unit test Use Cases in isolation with mocked repositories
 - Use NestJS `Logger` class, never `console.log/warn/error`
 
+## Error Handling
+
+Every error response shares one contract so clients can localize by code:
+
+```json
+{ "statusCode": 404, "error": "ADDRESS_NOT_FOUND", "message": "..." }
+```
+
+- `error` — stable `SCREAMING_SNAKE_CASE` code; **this is the contract**. Clients map it to localized strings. Never rename without a coordinated consumer sync.
+- `message` — developer/log-facing only; clients never display it.
+
+Rules for every new endpoint:
+
+- Throw a `DomainException` subclass (`src/common/exceptions/`) from the **use case** — never build error responses in controllers.
+- Register the code in `ErrorCode` (`src/common/exceptions/error-code.ts`); the single `GlobalExceptionFilter` (`APP_FILTER`) shapes the response.
+- DTO validation already returns `VALIDATION_ERROR` via the global `ValidationPipe` factory — don't hand-roll it.
+- New code → document it in `docs/API_ENDPOINTS.md` and add `errors.server.*` i18n keys in `mekapal-mobile` + `mekapal-web/apps/console` (run the `api-contract-sync` agent).
+
+Full reference: `docs/12-error-contract.md`.
+
 ## Commands
 
 - `pnpm build` - Build the project

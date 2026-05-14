@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
 import { UploadModule } from '../upload/upload.module';
@@ -10,18 +9,14 @@ import { TransporterController } from './infrastructure/controllers/transporter.
 import { GetUserUseCase } from './application/use-cases/get-user.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
 import { CompleteTransporterProfileUseCase } from './application/use-cases/complete-transporter-profile.use-case';
-import { DomainExceptionFilter } from './infrastructure/filters/domain-exception.filter';
 import { USER_TOKENS } from './domain/constants/injection-tokens';
 
 @Module({
   imports: [PrismaModule, CognitoModule, UploadModule],
   controllers: [UserController, TransporterController],
   providers: [
-    // Exception Filter
-    {
-      provide: APP_FILTER,
-      useClass: DomainExceptionFilter,
-    },
+    // Domain exceptions extend the shared `DomainException` and are handled
+    // by the global `GlobalExceptionFilter` registered in AppModule.
     // Repository implementations
     {
       provide: USER_TOKENS.IUserRepository,

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CognitoModule } from '../cognito/cognito.module';
@@ -10,7 +10,6 @@ import { ACCOUNT_TOKENS } from './domain/constants/injection-tokens';
 import { AccountController } from './infrastructure/controllers/account.controller';
 import { AccountDeletionRepository } from './infrastructure/repositories/account-deletion.repository';
 import { AccountDeletionBlockerService } from './infrastructure/services/account-deletion-blocker.service';
-import { AccountDeletionExceptionFilter } from './infrastructure/filters/account-deletion.filter';
 import { AccountDeletionScheduler } from './infrastructure/schedulers/account-deletion.scheduler';
 import { PendingDeletionGuard } from './infrastructure/guards/pending-deletion.guard';
 import { AccountStatusAdapter } from './infrastructure/adapters/account-status.adapter';
@@ -30,10 +29,8 @@ import { ProcessScheduledDeletionsUseCase } from './application/use-cases/proces
   ],
   controllers: [AccountController],
   providers: [
-    {
-      provide: APP_FILTER,
-      useClass: AccountDeletionExceptionFilter,
-    },
+    // Account deletion domain exceptions extend the shared `DomainException`
+    // and are handled by the global `GlobalExceptionFilter` (AppModule).
     {
       provide: APP_GUARD,
       useClass: PendingDeletionGuard,

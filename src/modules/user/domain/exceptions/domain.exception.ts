@@ -1,13 +1,7 @@
 /**
- * Base Domain Exception
- * Abstract base class for all domain exceptions
+ * The user module's domain exceptions extend the shared, API-wide
+ * `DomainException` base (see `src/common/exceptions/domain.exception.ts`),
+ * which carries a stable `code` and `httpStatus`. Re-exported here so existing
+ * imports (`./domain.exception`) keep working.
  */
-export abstract class DomainException extends Error {
-  public readonly code: string;
-
-  constructor(message: string, code: string) {
-    super(message);
-    this.name = this.constructor.name;
-    this.code = code;
-  }
-}
+export { DomainException } from '../../../../common/exceptions/domain.exception';

@@ -1,6 +1,6 @@
 # Mekapal API - Documentación de Endpoints
 
-> Última actualización: 2 de Febrero, 2026
+> Última actualización: 14 de Mayo, 2026
 
 ## Información General
 
@@ -1964,27 +1964,170 @@ Remover perfil de cliente.
 
 ---
 
-## Códigos de Error Comunes
+## Manejo de Errores
 
-| Código | Descripción |
-|--------|-------------|
-| 400 | Bad Request - Datos inválidos |
-| 401 | Unauthorized - Token inválido o expirado |
-| 403 | Forbidden - Sin permisos para esta acción |
-| 404 | Not Found - Recurso no encontrado |
-| 409 | Conflict - Conflicto (ej: duplicado) |
-| 422 | Unprocessable Entity - Error de validación |
-| 500 | Internal Server Error |
+### Contrato de respuesta de error
 
-### Formato de Error
+**Toda** respuesta de error de la API — de cualquier módulo, incluida la
+validación de DTOs y los errores inesperados — usa el mismo formato:
+
+```json
+{
+  "statusCode": 404,
+  "error": "ADDRESS_NOT_FOUND",
+  "message": "Address with ID abc-123 not found"
+}
+```
+
+| Campo | Descripción |
+|-------|-------------|
+| `statusCode` | Código HTTP (400, 401, 403, 404, 409, 429, 500). |
+| `error` | **Código de error estable, legible por máquina** en `SCREAMING_SNAKE_CASE`. Es el contrato: los clientes lo mapean a textos localizados (`errors.server.*`). |
+| `message` | Texto humano para desarrolladores/logs. **Los clientes no lo muestran al usuario final.** |
+
+Algunas respuestas incluyen campos contextuales adicionales junto a los
+anteriores:
+
+- `details.messages` — lista de mensajes por campo en errores de validación (`VALIDATION_ERROR`).
+- `blockers` — obligaciones pendientes en `DELETION_BLOCKED`.
+- `scheduledFor` — fecha programada en `DELETION_ALREADY_SCHEDULED`.
+- `session` — sesión de Cognito en `NEW_PASSWORD_REQUIRED`.
+- `failureCode` — código de rechazo del proveedor (Stripe) en `PAYMENT_FAILED`.
+
+Ejemplo de error de validación (HTTP 400):
 
 ```json
 {
   "statusCode": 400,
-  "message": ["email must be an email"],
-  "error": "Bad Request"
+  "error": "VALIDATION_ERROR",
+  "message": "Validation failed",
+  "messages": ["email must be an email", "name should not be empty"]
 }
 ```
+
+### Catálogo de códigos de error (`error`)
+
+El catálogo completo y autoritativo vive en
+`src/common/exceptions/error-code.ts`.
+
+**Genéricos / transversales**
+
+| Código | HTTP | Cuándo |
+|--------|------|--------|
+| `VALIDATION_ERROR` | 400 | El body/params no pasaron la validación de class-validator. |
+| `BAD_REQUEST` | 400 | Error 400 genérico sin código de dominio más específico. |
+| `UNAUTHORIZED` | 401 | Falta de autenticación o token inválido (genérico). |
+| `FORBIDDEN` | 403 | Autenticado pero sin permiso (genérico). |
+| `NOT_FOUND` | 404 | Recurso no encontrado (genérico). |
+| `CONFLICT` | 409 | Conflicto genérico sin código de dominio más específico. |
+| `RATE_LIMITED` | 429 | Demasiadas solicitudes (throttling). |
+| `INTERNAL_ERROR` | 500 | Error inesperado del servidor. No filtra detalles internos. |
+
+**Auth / Cognito**
+
+| Código | HTTP |
+|--------|------|
+| `INVALID_CREDENTIALS` | 401 |
+| `INVALID_TOKEN` | 401 |
+| `UNAUTHORIZED_ROLE` | 403 |
+| `USER_NOT_FOUND` | 404 |
+| `USER_ALREADY_EXISTS` | 409 |
+| `USER_NOT_CONFIRMED` | 400 |
+| `INVALID_CODE` | 400 |
+| `EXPIRED_CODE` | 400 |
+| `INVALID_PASSWORD` | 400 |
+| `NEW_PASSWORD_REQUIRED` | 400 |
+
+**Account (eliminación de cuenta)**
+
+| Código | HTTP |
+|--------|------|
+| `DELETION_BLOCKED` | 409 |
+| `DELETION_ALREADY_SCHEDULED` | 409 |
+| `DELETION_NOT_SCHEDULED` | 404 |
+
+**User**
+
+| Código | HTTP |
+|--------|------|
+| `EMAIL_ALREADY_TAKEN` | 409 |
+
+**Address**
+
+| Código | HTTP |
+|--------|------|
+| `ADDRESS_NOT_FOUND` | 404 |
+| `ADDRESS_IN_USE` | 409 |
+| `ADDRESS_LIMIT_EXCEEDED` | 409 |
+
+**Vehicle**
+
+| Código | HTTP |
+|--------|------|
+| `VEHICLE_NOT_FOUND` | 404 |
+| `VEHICLE_IN_USE` | 409 |
+| `VEHICLE_LIMIT_EXCEEDED` | 409 |
+
+**Delivery**
+
+| Código | HTTP |
+|--------|------|
+| `DELIVERY_REQUEST_NOT_FOUND` | 404 |
+| `DELIVERY_OFFER_NOT_FOUND` | 404 |
+| `OFFER_WINDOW_EXPIRED` | 409 |
+| `INVALID_REQUEST_STATUS` | 409 |
+| `INVALID_OFFER_STATUS` | 409 |
+| `DUPLICATE_OFFER` | 409 |
+
+**Order**
+
+| Código | HTTP |
+|--------|------|
+| `ORDER_NOT_FOUND` | 404 |
+| `INVALID_ORDER_STATUS` | 400 |
+| `INVALID_STATUS_TRANSITION` | 400 |
+
+**Payment**
+
+| Código | HTTP |
+|--------|------|
+| `PAYMENT_METHOD_NOT_FOUND` | 404 |
+| `TRANSACTION_NOT_FOUND` | 404 |
+| `PAYMENT_FAILED` | 400 |
+| `INVALID_PAYMENT_METHOD` | 400 |
+
+**Bank Account**
+
+| Código | HTTP |
+|--------|------|
+| `BANK_ACCOUNT_NOT_FOUND` | 404 |
+| `BANK_ACCOUNT_NOT_VERIFIED` | 400 |
+| `DUPLICATE_BANK_ACCOUNT` | 409 |
+| `BANK_ACCOUNT_HAS_SETTLEMENTS` | 409 |
+
+**Settlement**
+
+| Código | HTTP |
+|--------|------|
+| `SETTLEMENT_NOT_FOUND` | 404 |
+| `SETTLEMENT_ALREADY_PAID` | 409 |
+| `SETTLEMENT_ALREADY_EXISTS` | 409 |
+
+**Review**
+
+| Código | HTTP |
+|--------|------|
+| `REVIEW_NOT_FOUND` | 404 |
+| `REVIEW_ALREADY_EXISTS` | 409 |
+| `INVALID_REVIEW_TARGET` | 400 |
+| `ORDER_NOT_COMPLETED` | 400 |
+
+**Incident**
+
+| Código | HTTP |
+|--------|------|
+| `INCIDENT_NOT_FOUND` | 404 |
+| `INVALID_INCIDENT_STATUS` | 400 |
 
 ---
 
