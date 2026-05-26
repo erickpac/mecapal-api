@@ -19,7 +19,7 @@ export class TransporterProfile {
   city: string;
   state: string;
   postalCode: string;
-  country: string;
+  countryCode: string;
 
   // Insurance
   insurancePolicy: string;

@@ -321,7 +321,6 @@ READ READ
     String city 
     String state 
     String postalCode 
-    String country 
     String insurancePolicy 
     DateTime insuranceExpiration 
     String insuranceDocumentUrl 
@@ -660,10 +659,12 @@ READ READ
     }
   
     "User" |o--|| "UserRole" : "enum:role"
+    "User" }o--|| "Country" : "country"
     "User" }o--|o "BillingProfile" : "billingProfile"
     "User" |o--|o "DeletionReason" : "enum:deletionReason"
     "AccountDeletionAudit" }o--|| "User" : "user"
     "AccountDeletionAudit" |o--|o "DeletionReason" : "enum:reason"
+    "TransporterProfile" }o--|| "Country" : "country"
     "TransporterProfile" |o--|| "TransporterStatus" : "enum:status"
     "TransporterProfile" |o--|| "User" : "user"
     "Address" }o--|| "User" : "user"

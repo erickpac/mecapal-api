@@ -1,13 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { COGNITO_TOKENS } from '../../domain/constants/injection-tokens';
 import { ICognitoService } from '../../domain/interfaces/ICognitoService';
 import { IUserRepository } from '../../domain/interfaces/IUserRepository';
 import { UserRole } from '../../domain/enums/user-role.enum';
+import { User } from '../../domain/entities/user.entity';
 import { SignUpDto } from '../dtos/sign-up.dto';
 import { SignUpResponseDto } from '../dtos/responses/sign-up-response.dto';
 
 @Injectable()
 export class SignUpUseCase {
+  private readonly logger = new Logger(SignUpUseCase.name);
+
   constructor(
     @Inject(COGNITO_TOKENS.ICognitoService)
     private readonly cognitoService: ICognitoService,
@@ -22,18 +25,34 @@ export class SignUpUseCase {
       dto.password,
     );
 
-    // 2. Create user profile in local database
-    const user = await this.userRepository.create({
-      cognitoSub: cognitoResult.userSub,
-      email: dto.email,
-      phone: dto.phone,
-      firstName: dto.firstName,
-      lastName: dto.lastName,
-      role: dto.role ?? UserRole.CLIENT,
-      companyName: dto.companyName ?? null,
-      taxId: dto.taxId ?? null,
-      profilePhotoUrl: null,
-    });
+    // 2. Create user profile in local database.
+    //    If this fails (FK violation, transient DB error, etc.) we must
+    //    roll back the Cognito user to avoid orphans that block re-signup.
+    let user: User;
+    try {
+      user = await this.userRepository.create({
+        cognitoSub: cognitoResult.userSub,
+        email: dto.email,
+        phone: dto.phone,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        role: dto.role ?? UserRole.CLIENT,
+        countryCode: dto.country ?? 'GT',
+        companyName: dto.companyName ?? null,
+        taxId: dto.taxId ?? null,
+        profilePhotoUrl: null,
+      });
+    } catch (error) {
+      try {
+        await this.cognitoService.adminDeleteUser(dto.email);
+      } catch (rollbackError) {
+        const err = rollbackError as { message?: string };
+        this.logger.error(
+          `Failed to roll back Cognito user ${cognitoResult.userSub} after DB write failure: ${err.message ?? 'unknown error'}`,
+        );
+      }
+      throw error;
+    }
 
     return {
       user: {
@@ -44,6 +63,7 @@ export class SignUpUseCase {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        countryCode: user.countryCode,
         companyName: user.companyName,
         taxId: user.taxId,
       },

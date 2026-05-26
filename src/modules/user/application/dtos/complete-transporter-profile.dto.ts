@@ -1,4 +1,11 @@
-import { IsDateString, IsString, IsUrl } from 'class-validator';
+import {
+  IsDateString,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Length,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CompleteTransporterProfileDto {
   // License
@@ -30,8 +37,13 @@ export class CompleteTransporterProfileDto {
   @IsString()
   postalCode: string;
 
+  // ISO 3166 country code (defaults to 'GT' when omitted)
+  // Transformed to uppercase so the FK to Country.code (uppercase) holds.
+  @Transform(({ value }: { value: string | undefined }) => value?.toUpperCase())
   @IsString()
-  country: string;
+  @Length(2, 3)
+  @IsOptional()
+  country?: string;
 
   // Insurance
   @IsString()

@@ -108,6 +108,10 @@ model User {
   lastName   String
   role       UserRole @default(CLIENT)
 
+  // Country (FK to Country.code)
+  countryCode String  @default("GT") @db.VarChar(3)
+  country     Country @relation(fields: [countryCode], references: [code], onDelete: Restrict)
+
   // Client-specific (optional)
   companyName String?
   taxId       String?
@@ -176,6 +180,7 @@ model User {
   @@index([billingProfileId])
   @@index([deletionScheduledFor])
   @@index([deletedAt])
+  @@index([countryCode])
 }
 
 enum DeletionReason {
@@ -220,11 +225,12 @@ model TransporterProfile {
   idPhotoUrl           String
 
   // Address
-  address    String
-  city       String
-  state      String
-  postalCode String
-  country    String
+  address     String
+  city        String
+  state       String
+  postalCode  String
+  countryCode String  @default("GT") @db.VarChar(3)
+  country     Country @relation(fields: [countryCode], references: [code], onDelete: Restrict)
 
   // Insurance
   insurancePolicy      String
@@ -240,6 +246,8 @@ model TransporterProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([countryCode])
 }
 
 model Address {
@@ -354,7 +362,9 @@ model Country {
   code     String  @unique @db.VarChar(3)
   isActive Boolean @default(true)
 
-  states State[]
+  states              State[]
+  users               User[]
+  transporterProfiles TransporterProfile[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

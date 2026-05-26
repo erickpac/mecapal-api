@@ -10,7 +10,7 @@ export interface CreateTransporterProfileData {
   city: string;
   state: string;
   postalCode: string;
-  country: string;
+  countryCode: string;
   insurancePolicy: string;
   insuranceExpiration: Date;
   insuranceDocumentUrl: string;

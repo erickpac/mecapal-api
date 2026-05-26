@@ -73,14 +73,19 @@ Registrar nuevo usuario.
   "lastName": "Pérez",
   "role": "CLIENT",
   "companyName": "Mi Empresa S.A.",
-  "taxId": "12345678-9"
+  "taxId": "12345678-9",
+  "country": "GT"
 }
 ```
+
+`country` es opcional (ISO 3166 alpha-2/3). Se normaliza a mayúsculas
+y por defecto vale `"GT"`. Debe corresponder a un `Country.code` existente.
 
 ```json
 // Response 201
 {
   "userSub": "uuid-del-usuario",
+  "countryCode": "GT",
   "message": "Verification code sent to email"
 }
 ```
@@ -314,9 +319,15 @@ Completar perfil de transportista.
   "licenseNumber": "A-1234567",
   "licensePhotoUrl": "https://s3.../license.jpg",
   "licenseExpiration": "2025-12-31",
-  "selfiePhotoUrl": "https://s3.../selfie.jpg"
+  "selfiePhotoUrl": "https://s3.../selfie.jpg",
+  "country": "GT"
 }
 ```
+
+`country` es opcional (ISO 3166 alpha-2/3). Se normaliza a mayúsculas
+y por defecto vale `"GT"` en creación. En actualizaciones, si se omite,
+se preserva el valor existente. Debe corresponder a un `Country.code`
+existente.
 
 ---
 

@@ -31,7 +31,7 @@ export class CompleteTransporterProfileUseCase {
       city: dto.city,
       state: dto.state,
       postalCode: dto.postalCode,
-      country: dto.country,
+      countryCode: dto.country ?? existing?.countryCode ?? 'GT',
       insurancePolicy: dto.insurancePolicy,
       insuranceExpiration: new Date(dto.insuranceExpiration),
       insuranceDocumentUrl: dto.insuranceDocumentUrl,

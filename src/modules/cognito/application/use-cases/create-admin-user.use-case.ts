@@ -29,6 +29,7 @@ export class CreateAdminUserUseCase {
       firstName: dto.firstName,
       lastName: dto.lastName,
       role: dto.role,
+      countryCode: 'GT',
       companyName: null,
       taxId: null,
       profilePhotoUrl: null,

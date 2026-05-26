@@ -9,6 +9,7 @@ export class User {
   firstName: string;
   lastName: string;
   role: UserRole;
+  countryCode: string;
   companyName: string | null;
   taxId: string | null;
   profilePhotoUrl: string | null;
