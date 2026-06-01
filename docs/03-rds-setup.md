@@ -8,35 +8,26 @@ Create two database instances:
 - `mekapal-dev` - Development database
 - `mekapal-prod` - Production database
 
-## 1. Create Security Group
+## 1. Security Group (private, SG-to-SG)
 
-First, create a security group that allows PostgreSQL access.
+RDS is **not publicly accessible**. The RDS SG allows 5432 **only from the ECS
+task SG** — no `0.0.0.0/0`. The app reaches RDS over the in-VPC private path.
 
-### Via AWS Console (Recommended)
-
-1. Go to **EC2 → Security Groups → Create security group**
-2. **Name**: `mekapal-rds-sg`
-3. **Description**: Security group for Mekapal RDS instances
-4. **Inbound rules**:
-   - Type: PostgreSQL
-   - Port: 5432
-   - Source: `0.0.0.0/0` (for development) or your IP range
-
-### Via CLI
+Current dev wiring:
+- RDS SG: `sg-0d327f9ff2faf8d1c`
+- ECS task SG: `sg-04e2b769e3fa167a4`
 
 ```bash
-# Create security group
-aws ec2 create-security-group \
-  --group-name mekapal-rds-sg \
-  --description "Security group for Mekapal RDS instances"
-
-# Add inbound rule (PostgreSQL)
+# Allow 5432 from the task SG only (no public CIDR)
 aws ec2 authorize-security-group-ingress \
-  --group-name mekapal-rds-sg \
-  --protocol tcp \
-  --port 5432 \
-  --cidr 0.0.0.0/0
+  --group-id sg-0d327f9ff2faf8d1c \
+  --protocol tcp --port 5432 \
+  --source-group sg-04e2b769e3fa167a4 \
+  --region us-east-1
 ```
+
+Do not add a `0.0.0.0/0` rule. For rare manual access use the EICE tunnel in
+[08-migrations.md](./08-migrations.md#4-rare-manual-db-access-private-rds).
 
 ## 2. Create Development Database
 
@@ -61,8 +52,8 @@ aws ec2 authorize-security-group-ingress \
 8. **Connectivity**:
    - VPC: Default VPC
    - Subnet group: Default
-   - Public access: **Yes** (required for local development access)
-   - VPC security group: Choose existing → `mekapal-rds-sg`
+   - Public access: **No** (private; reached in-VPC by the ECS task)
+   - VPC security group: Choose existing → the RDS SG
 9. **Database authentication**: Password authentication
 10. **Additional configuration**:
     - Initial database name: `mekapal`
@@ -85,7 +76,7 @@ aws rds create-db-instance \
   --storage-type gp2 \
   --db-name mekapal \
   --vpc-security-group-ids sg-xxxxxxxxx \
-  --publicly-accessible \
+  --no-publicly-accessible \
   --backup-retention-period 7 \
   --no-multi-az \
   --auto-minor-version-upgrade
@@ -101,7 +92,7 @@ Repeat the steps above with these differences:
 | Instance class | `db.t3.micro` | `db.t3.small` or larger |
 | Storage | 20 GB | 50 GB or more |
 | Storage autoscaling | Disabled | Enabled |
-| Public access | Yes | **No** (use VPC) |
+| Public access | **No** | **No** |
 | Multi-AZ | No | Yes (recommended) |
 | Backup retention | 7 days | 14+ days |
 
@@ -150,27 +141,20 @@ DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@mekapal-prod.xxxxxxxxx.us-east-
 
 ## 7. Test Connection
 
-```bash
-# Using psql
-psql -h mekapal-dev.xxxxxxxxx.us-east-1.rds.amazonaws.com -U postgres -d mekapal
+RDS is private; connect through the EICE tunnel (see
+[08-migrations.md](./08-migrations.md#4-rare-manual-db-access-private-rds)),
+then:
 
-# Or test with Prisma
-DATABASE_URL="postgresql://..." npx prisma db pull
+```bash
+psql -h localhost -U postgres -d mekapal
 ```
 
 ## Security Notes
 
-### For Development
-- Public access is enabled for convenience
-- Use strong passwords
-- Consider restricting security group to your IP
-
-### For Production
-- Disable public access
-- Use VPC peering or VPN for access
-- Enable Multi-AZ for high availability
-- Enable automated backups
-- Use AWS Secrets Manager for credentials
+- Public access **disabled** in both environments; access is in-VPC only.
+- RDS SG allows 5432 only from the ECS task SG (no public CIDR).
+- Use strong passwords; consider AWS Secrets Manager.
+- Production: Multi-AZ, deletion protection, and longer backup retention on.
 
 ## Summary
 

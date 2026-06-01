@@ -4,76 +4,44 @@ Run Prisma migrations to set up the database schema.
 
 ## Overview
 
-Migrations are handled automatically by the GitHub Actions deploy workflow. The workflow runs `prisma migrate deploy` before deploying the new application version.
+RDS is **private** (not publicly accessible; ingress only from the ECS task SG).
+Migrations therefore run **inside the VPC**, not from the GitHub runner or a
+laptop.
 
-**Automatic (via GitHub Actions):**
-- Migrations run automatically on every deploy to `develop` or `main`
-- No manual intervention needed for normal deployments
+**Principle: schema changes go through Prisma migrations only — never manual
+`psql` / `ALTER TABLE`.** A migration file is the single source of truth; manual
+edits cause drift the next `migrate deploy` cannot reconcile.
 
-**Manual:**
-- Initial setup
-- Local development
-- Troubleshooting
+**Automatic (CI/CD):** every deploy to `develop` / `main` runs
+`prisma migrate deploy` as a one-off in-VPC ECS task before the service updates.
+No manual step for normal deployments.
 
-## 1. Run Migrations Locally
+## 1. How CI runs migrations (in-VPC ECS RunTask)
 
-The safest way is to run migrations from your local machine pointing to RDS.
+The deploy workflow (`.github/workflows/_deploy-ecs-express.yml`) runs migrations
+after pushing the image and before updating the service:
 
-### Development Database
+1. Register a one-off task def (`mekapal-api-<env>-migrate`) using the freshly
+   built image, command override `prisma migrate deploy`, `DATABASE_URL` from
+   the environment secret.
+2. `run-task` into the service subnet + task SG (`sg-04e2b769e3fa167a4`) so it
+   reaches private RDS; `aws ecs wait tasks-stopped`.
+3. If the container exit code is non-zero, the deploy **fails** before the
+   service is touched. A bad migration is a visible CI failure, not a runtime
+   crash-loop.
 
-```bash
-# Set the DATABASE_URL for development RDS
-export DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@mekapal-dev.xxxxxxxxx.us-east-1.rds.amazonaws.com:5432/mekapal"
+We deliberately do **not** run migrations on container startup (would re-run on
+every boot and turn a bad migration into a crash-loop instead of a CI failure).
 
-# Run migrations
-pnpm prisma migrate deploy
-
-# Optionally, seed the database
-pnpm prisma db seed
-```
-
-### Production Database
-
-```bash
-# Set the DATABASE_URL for production RDS
-export DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@mekapal-prod.xxxxxxxxx.us-east-1.rds.amazonaws.com:5432/mekapal"
-
-# Run migrations
-pnpm prisma migrate deploy
-```
+The `DATABASE_URL` secret is environment-specific (development vs production).
 
 ## 2. Verify Migrations
 
-```bash
-# Check migration status
-pnpm prisma migrate status
+`prisma migrate status` / `prisma studio` work locally only against a reachable
+DB — i.e. through the tunnel in section 4. In CI, the migrate task output (its
+exit code and CloudWatch logs) is the source of truth.
 
-# Open Prisma Studio to inspect data
-pnpm prisma studio
-```
-
-## 3. Automatic Migrations in CI/CD
-
-The deploy workflow (`.github/workflows/_deploy-apprunner.yml`) automatically runs migrations before deploying:
-
-```yaml
-- name: Run database migrations
-  env:
-    DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  run: |
-    pnpm install --frozen-lockfile
-    pnpm prisma migrate deploy
-```
-
-**Flow:**
-1. Push to `develop` → runs migrations on dev DB → deploys to dev App Runner
-2. Push to `main` → runs migrations on prod DB → deploys to prod App Runner
-
-**Important:** The `DATABASE_URL` secret is environment-specific:
-- `development` environment uses dev database
-- `production` environment uses prod database
-
-## 4. Creating New Migrations
+## 3. Creating New Migrations
 
 When you change `prisma/schema.prisma`:
 
@@ -88,15 +56,36 @@ pnpm prisma migrate dev --name add_vehicle_status_field
 
 This creates a migration file in `prisma/migrations/`.
 
+## 4. Rare manual DB access (private RDS)
+
+RDS has no public IP, so connect through an **EC2 Instance Connect Endpoint**
+tunnel (~$0 standing cost; no NAT, no bastion instance). One-time: create an
+EICE in the VPC. Then:
+
+```bash
+# Tunnel localhost:5432 -> RDS through the EICE (keep running in a terminal)
+aws ec2-instance-connect open-tunnel \
+  --instance-connect-endpoint-id eice-xxxxxxxx \
+  --private-ip-address <rds-eni-private-ip> \
+  --remote-port 5432 --local-port 5432 --region us-east-1
+
+# In another terminal, point Prisma at the tunnel:
+export DATABASE_URL="postgresql://postgres:PASSWORD@localhost:5432/mekapal"
+pnpm prisma migrate status
+```
+
+For routine migrations use CI (section 1). Reserve the tunnel for debugging and
+`prisma studio`. Never `ALTER TABLE` by hand — use a migration.
+
 ## 5. Handling Migration Issues
 
 ### Reset Development Database
 
-If you need to reset the dev database:
+Pre-prod only, through the tunnel:
 
 ```bash
 # WARNING: This deletes all data!
-DATABASE_URL="postgresql://..." pnpm prisma migrate reset
+DATABASE_URL="postgresql://...@localhost:5432/mekapal" pnpm prisma migrate reset
 ```
 
 ### Failed Migration

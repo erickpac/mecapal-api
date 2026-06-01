@@ -35,10 +35,12 @@ RUN corepack enable && corepack prepare pnpm@10 --activate
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Copy prisma schema
+# Copy prisma schema and config (used by the migration RunTask)
 COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
 
-# Install all dependencies, generate Prisma client, then prune dev dependencies
+# Prisma CLI is a prod dependency so it survives prune; the migration RunTask
+# overrides the command to `prisma migrate deploy` from inside the VPC.
 RUN mkdir -p docs && \
     pnpm install --frozen-lockfile && \
     pnpm prisma generate && \
