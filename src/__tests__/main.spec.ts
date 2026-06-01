@@ -12,6 +12,7 @@ describe('main.ts', () => {
     setGlobalPrefix: jest.Mock;
     listen: jest.Mock;
     useGlobalPipes: jest.Mock;
+    enableCors: jest.Mock;
   };
   let mockConfigService: {
     get: jest.Mock;
@@ -19,12 +20,14 @@ describe('main.ts', () => {
 
   // Helper function to set config values
   const setConfigValues = (overrides: { PORT?: number | string | null }) => {
-    mockConfigService.get.mockImplementation((key: string) => {
-      if (key === 'PORT' && overrides.PORT !== undefined) return overrides.PORT;
-      // Use default values
-      if (key === 'PORT') return 3001;
-      return undefined;
-    });
+    mockConfigService.get.mockImplementation(
+      (key: string, defaultValue?: unknown) => {
+        if (key === 'PORT' && overrides.PORT !== undefined)
+          return overrides.PORT;
+        if (key === 'PORT') return 3001;
+        return defaultValue;
+      },
+    );
   };
 
   beforeEach(() => {
@@ -36,13 +39,14 @@ describe('main.ts', () => {
       setGlobalPrefix: jest.fn(),
       listen: jest.fn(),
       useGlobalPipes: jest.fn(),
+      enableCors: jest.fn(),
     };
 
     // Mock ConfigService with safe defaults
     mockConfigService = {
-      get: jest.fn((key: string) => {
+      get: jest.fn((key: string, defaultValue?: unknown) => {
         if (key === 'PORT') return 3001;
-        return undefined;
+        return defaultValue;
       }),
     };
 
@@ -269,11 +273,13 @@ describe('main.ts', () => {
         executionOrder.push('get ConfigService');
         return mockConfigService;
       });
-      mockConfigService.get.mockImplementation((key: string) => {
-        executionOrder.push(`get ${key}`);
-        if (key === 'PORT') return 3001;
-        return undefined;
-      });
+      mockConfigService.get.mockImplementation(
+        (key: string, defaultValue?: unknown) => {
+          executionOrder.push(`get ${key}`);
+          if (key === 'PORT') return 3001;
+          return defaultValue;
+        },
+      );
       mockApp.useGlobalPipes.mockImplementation(() => {
         executionOrder.push('useGlobalPipes');
       });
@@ -292,6 +298,7 @@ describe('main.ts', () => {
       expect(executionOrder).toEqual([
         'get ConfigService',
         'get PORT',
+        'get CORS_ORIGIN',
         'setGlobalPrefix',
         'useGlobalPipes',
         'listen',

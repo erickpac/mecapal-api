@@ -74,28 +74,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run database migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          echo "::group::Running Prisma migrations"
-          pnpm prisma migrate deploy
-          echo "::endgroup::"
-          echo "::notice::Migrations applied successfully"
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -128,6 +106,77 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ecr_repository }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Run Prisma migrations as a one-off ECS task inside the VPC, so it can
+      # reach the now-private RDS. Runs before the service is updated; a
+      # non-zero container exit code fails the deploy.
+      - name: Run database migrations (in-VPC ECS task)
+        env:
+          IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.ecr_repository }}:${{ steps.meta.outputs.image_tag }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          EXECUTION_ROLE_ARN: ${{ secrets.ECS_EXECUTION_ROLE_ARN }}
+          TASK_ROLE_ARN: ${{ secrets.ECS_TASK_ROLE_ARN }}
+          MIGRATION_SUBNET: subnet-0582235ac8cb7e758
+          MIGRATION_SG: sg-04e2b769e3fa167a4
+          LOG_GROUP: /aws/ecs/default/mekapal-api-${{ inputs.environment == 'production' && 'prod' || 'dev' }}-migrate
+        run: |
+          set -euo pipefail
+
+          aws logs create-log-group --log-group-name "$LOG_GROUP" 2>/dev/null || true
+
+          # Register a one-off migration task def: new image, command override,
+          # DATABASE_URL passed straight through (private RDS, in-VPC).
+          TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --family mekapal-api-${{ inputs.environment }}-migrate \
+            --requires-compatibilities FARGATE \
+            --network-mode awsvpc \
+            --cpu 256 --memory 512 \
+            --execution-role-arn "$EXECUTION_ROLE_ARN" \
+            --task-role-arn "$TASK_ROLE_ARN" \
+            --container-definitions "$(cat <<JSON
+          [
+            {
+              "name": "migrate",
+              "image": "${IMAGE}",
+              "essential": true,
+              "command": ["node_modules/.bin/prisma", "migrate", "deploy"],
+              "environment": [{ "name": "DATABASE_URL", "value": "${DATABASE_URL}" }],
+              "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                  "awslogs-group": "${LOG_GROUP}",
+                  "awslogs-region": "${AWS_REGION}",
+                  "awslogs-stream-prefix": "migrate"
+                }
+              }
+            }
+          ]
+          JSON
+          )" \
+            --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "Registered $TASK_DEF_ARN"
+
+          TASK_ARN=$(aws ecs run-task \
+            --cluster default \
+            --launch-type FARGATE \
+            --task-definition "$TASK_DEF_ARN" \
+            --network-configuration "awsvpcConfiguration={subnets=[$MIGRATION_SUBNET],securityGroups=[$MIGRATION_SG],assignPublicIp=ENABLED}" \
+            --query 'tasks[0].taskArn' --output text)
+          echo "Started migration task $TASK_ARN"
+
+          aws ecs wait tasks-stopped --cluster default --tasks "$TASK_ARN"
+
+          EXIT_CODE=$(aws ecs describe-tasks --cluster default --tasks "$TASK_ARN" \
+            --query 'tasks[0].containers[0].exitCode' --output text)
+          STOP_REASON=$(aws ecs describe-tasks --cluster default --tasks "$TASK_ARN" \
+            --query 'tasks[0].stoppedReason' --output text)
+          echo "Migration task exit code: $EXIT_CODE (reason: $STOP_REASON)"
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "::error::Migration task failed (exit $EXIT_CODE). Aborting deploy."
+            exit 1
+          fi
+          echo "::notice::Migrations applied successfully"
 
       - name: Deploy to ECS Express Mode
         id: deploy-ecs

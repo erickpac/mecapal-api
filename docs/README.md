@@ -61,10 +61,11 @@ Follow these guides in order:
 3. [RDS Setup](./03-rds-setup.md) - Create PostgreSQL databases
 4. [S3 Setup](./04-s3-setup.md) - Create storage buckets
 5. [Cognito Setup](./05-cognito-setup.md) - Create user pools
-6. [App Runner Setup](./06-app-runner-setup.md) - Create and configure services
+6. [ECS Express Setup](./06-ecs-express-setup.md) - Create and configure services
 7. [GitHub Secrets](./07-github-secrets.md) - Configure repository secrets
 8. [Migrations](./08-migrations.md) - Run database migrations
 9. [Verification](./09-verification.md) - Verify deployments
+13. [Networking & Cost](./13-networking-cost.md) - Private RDS, ALB, IPv4 cost log
 
 ## Environment Variables
 

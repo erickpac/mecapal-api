@@ -155,7 +155,25 @@ aws logs tail /ecs/mekapal-api-dev --follow
 # Amazon ECS → Services → mekapal-api-dev → Logs
 ```
 
-## 8. Auto-scaling
+## 8. Migrations on deploy
+
+Migrations run as a one-off in-VPC ECS RunTask in the deploy workflow, before
+the service updates (private RDS is unreachable from the GitHub runner). See
+[08-migrations.md](./08-migrations.md). The container does **not** migrate on
+boot.
+
+## 9. Networking, ALB, and cost notes
+
+The Express gateway ALB (`ecs-express-gateway-alb-*`) is tagged
+`AmazonECSManaged: true` and the service has `resourceManagementType: ECS` with
+`availabilityZoneRebalancing: ENABLED` — **ECS owns the ALB, its AZ/subnet
+spread, and the per-AZ Elastic IPs**. Do not `set-subnets` or release those EIPs
+manually; ECS reconciles them back. There is no stable Express-native knob to
+reduce the AZ count today, so the ALB spans all default-VPC AZs.
+
+Cost log: see [13-networking-cost.md](./13-networking-cost.md).
+
+## 10. Auto-scaling
 
 ECS Express Mode configures CPU-based auto-scaling by default:
 - Minimum: 1 task (always running)
