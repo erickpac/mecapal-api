@@ -43,7 +43,6 @@ export class CompleteNewPasswordUseCase {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        countryCode: user.countryCode,
         companyName: user.companyName,
         taxId: user.taxId,
         profilePhotoUrl: user.profilePhotoUrl,

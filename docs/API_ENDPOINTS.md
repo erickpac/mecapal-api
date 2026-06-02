@@ -73,19 +73,14 @@ Registrar nuevo usuario.
   "lastName": "Pérez",
   "role": "CLIENT",
   "companyName": "Mi Empresa S.A.",
-  "taxId": "12345678-9",
-  "country": "GT"
+  "taxId": "12345678-9"
 }
 ```
-
-`country` es opcional (ISO 3166 alpha-2/3). Se normaliza a mayúsculas
-y por defecto vale `"GT"`. Debe corresponder a un `Country.code` existente.
 
 ```json
 // Response 201
 {
   "userSub": "uuid-del-usuario",
-  "countryCode": "GT",
   "message": "Verification code sent to email"
 }
 ```

@@ -29,7 +29,6 @@ describe('SignUpUseCase', () => {
       firstName: baseDto.firstName,
       lastName: baseDto.lastName,
       role: UserRole.CLIENT,
-      countryCode: 'GT',
       companyName: null,
       taxId: null,
       profilePhotoUrl: null,
@@ -47,7 +46,7 @@ describe('SignUpUseCase', () => {
     );
   });
 
-  it("defaults countryCode to 'GT' when DTO omits country", async () => {
+  it('persists the user and returns the created profile', async () => {
     cognitoService.signUp.mockResolvedValue({
       userSub: 'cognito-sub',
       userConfirmed: true,
@@ -57,26 +56,9 @@ describe('SignUpUseCase', () => {
     const result = await useCase.execute(baseDto);
 
     expect(userRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ countryCode: 'GT' }),
+      expect.objectContaining({ email: baseDto.email, role: UserRole.CLIENT }),
     );
-    expect(result.user.countryCode).toBe('GT');
-  });
-
-  it('honors an explicit country in the DTO', async () => {
-    cognitoService.signUp.mockResolvedValue({
-      userSub: 'cognito-sub',
-      userConfirmed: false,
-    });
-    userRepository.create.mockResolvedValue(
-      buildPersistedUser({ countryCode: 'MX' }),
-    );
-
-    const result = await useCase.execute({ ...baseDto, country: 'MX' });
-
-    expect(userRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ countryCode: 'MX' }),
-    );
-    expect(result.user.countryCode).toBe('MX');
+    expect(result.user.email).toBe(baseDto.email);
   });
 
   it('rolls back the Cognito user and rethrows when the DB write fails', async () => {
@@ -84,7 +66,7 @@ describe('SignUpUseCase', () => {
       userSub: 'cognito-sub',
       userConfirmed: false,
     });
-    const dbError = new Error('FK violation on countryCode');
+    const dbError = new Error('DB write failed');
     userRepository.create.mockRejectedValue(dbError);
     cognitoService.adminDeleteUser.mockResolvedValue(undefined);
 
@@ -99,7 +81,7 @@ describe('SignUpUseCase', () => {
       userSub: 'cognito-sub',
       userConfirmed: false,
     });
-    const dbError = new Error('FK violation on countryCode');
+    const dbError = new Error('DB write failed');
     userRepository.create.mockRejectedValue(dbError);
     cognitoService.adminDeleteUser.mockRejectedValue(
       new Error('Cognito unreachable'),

@@ -108,10 +108,6 @@ model User {
   lastName   String
   role       UserRole @default(CLIENT)
 
-  // Country (FK to Country.code)
-  countryCode String  @default("GT") @db.VarChar(3)
-  country     Country @relation(fields: [countryCode], references: [code], onDelete: Restrict)
-
   // Client-specific (optional)
   companyName String?
   taxId       String?
@@ -180,7 +176,6 @@ model User {
   @@index([billingProfileId])
   @@index([deletionScheduledFor])
   @@index([deletedAt])
-  @@index([countryCode])
 }
 
 enum DeletionReason {
@@ -363,7 +358,6 @@ model Country {
   isActive Boolean @default(true)
 
   states              State[]
-  users               User[]
   transporterProfiles TransporterProfile[]
 
   createdAt DateTime @default(now())

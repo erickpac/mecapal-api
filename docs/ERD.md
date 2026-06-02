@@ -659,7 +659,6 @@ READ READ
     }
   
     "User" |o--|| "UserRole" : "enum:role"
-    "User" }o--|| "Country" : "country"
     "User" }o--|o "BillingProfile" : "billingProfile"
     "User" |o--|o "DeletionReason" : "enum:deletionReason"
     "AccountDeletionAudit" }o--|| "User" : "user"

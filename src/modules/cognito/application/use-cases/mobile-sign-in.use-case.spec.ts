@@ -24,7 +24,6 @@ describe('MobileSignInUseCase', () => {
       firstName: 'Jane',
       lastName: 'Doe',
       role: UserRole.CLIENT,
-      countryCode: 'GT',
       companyName: null,
       taxId: null,
       profilePhotoUrl: null,
@@ -42,7 +41,7 @@ describe('MobileSignInUseCase', () => {
     );
   });
 
-  it('returns countryCode from the DB user in the response payload', async () => {
+  it('returns the DB user profile in the response payload', async () => {
     cognitoService.signIn.mockResolvedValue({
       accessToken: 'access-token',
       refreshToken: 'refresh-token',
@@ -50,11 +49,12 @@ describe('MobileSignInUseCase', () => {
       expiresIn: 3600,
     });
     userRepository.findByEmail.mockResolvedValue(
-      buildPersistedUser({ countryCode: 'MX' }),
+      buildPersistedUser({ role: UserRole.TRANSPORTER }),
     );
 
     const result = await useCase.execute(dto);
 
-    expect(result.user.countryCode).toBe('MX');
+    expect(result.user.email).toBe(dto.email);
+    expect(result.user.role).toBe(UserRole.TRANSPORTER);
   });
 });
