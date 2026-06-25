@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../prisma/prisma.module';
+import { USER_TOKENS } from '../user/domain/constants/injection-tokens';
+import { TermsAcceptanceRepository } from '../user/infrastructure/repositories/terms-acceptance.repository';
 import { COGNITO_TOKENS } from './domain/constants/injection-tokens';
 import { CognitoService } from './infrastructure/services/cognito.service';
 import { UserRepository } from './infrastructure/repositories/user.repository';
@@ -40,6 +42,14 @@ import {
     {
       provide: COGNITO_TOKENS.IUserRepository,
       useClass: UserRepository,
+    },
+    // Terms acceptance repo bound locally (only needs PrismaService).
+    // Avoids a module-level dependency on UserModule, which would close a
+    // Upload → Cognito → User → Upload cycle. This is a file import of the
+    // class, not a Nest module import — no DI edge.
+    {
+      provide: USER_TOKENS.ITermsAcceptanceRepository,
+      useClass: TermsAcceptanceRepository,
     },
     // Guards
     CognitoAuthGuard,

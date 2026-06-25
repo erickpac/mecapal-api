@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Delete,
   Body,
   UseGuards,
   HttpCode,
@@ -9,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { GetUserUseCase } from '../../application/use-cases/get-user.use-case';
 import { UpdateUserUseCase } from '../../application/use-cases/update-user.use-case';
+import { DeleteProfilePhotoUseCase } from '../../application/use-cases/delete-profile-photo.use-case';
 import { UpdateUserDto } from '../../application/dtos/update-user.dto';
 import { CognitoAuthGuard, CurrentUser, User } from '../../../cognito';
 
@@ -18,6 +20,7 @@ export class UserController {
   constructor(
     private readonly getUserUseCase: GetUserUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly deleteProfilePhotoUseCase: DeleteProfilePhotoUseCase,
   ) {}
 
   @Get('me')
@@ -32,5 +35,11 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
     return this.updateUserUseCase.execute(user.id, updateUserDto);
+  }
+
+  @Delete('profile-photo')
+  @HttpCode(HttpStatus.OK)
+  async deleteProfilePhoto(@CurrentUser() user: User): Promise<User> {
+    return this.deleteProfilePhotoUseCase.execute(user.id);
   }
 }

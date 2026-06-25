@@ -4,6 +4,8 @@ import {
   MinLength,
   IsOptional,
   IsEnum,
+  IsBoolean,
+  Equals,
 } from 'class-validator';
 import { UserRole } from '../../domain/enums/user-role.enum';
 
@@ -37,4 +39,9 @@ export class SignUpDto {
   @IsString()
   @IsOptional()
   taxId?: string;
+
+  // Legal: must be true. Second safety belt over the mobile gate.
+  @IsBoolean()
+  @Equals(true, { message: 'acceptedTerms must be true' })
+  acceptedTerms: boolean;
 }

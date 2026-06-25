@@ -6,4 +6,5 @@ export const USER_TOKENS = {
   // Repositories
   IUserRepository: 'IUserRepository',
   ITransporterProfileRepository: 'ITransporterProfileRepository',
+  ITermsAcceptanceRepository: 'ITermsAcceptanceRepository',
 };

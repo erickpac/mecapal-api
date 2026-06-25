@@ -8,6 +8,7 @@ import { UserController } from './infrastructure/controllers/user.controller';
 import { TransporterController } from './infrastructure/controllers/transporter.controller';
 import { GetUserUseCase } from './application/use-cases/get-user.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
+import { DeleteProfilePhotoUseCase } from './application/use-cases/delete-profile-photo.use-case';
 import { CompleteTransporterProfileUseCase } from './application/use-cases/complete-transporter-profile.use-case';
 import { USER_TOKENS } from './domain/constants/injection-tokens';
 
@@ -29,6 +30,7 @@ import { USER_TOKENS } from './domain/constants/injection-tokens';
     // Use Cases
     GetUserUseCase,
     UpdateUserUseCase,
+    DeleteProfilePhotoUseCase,
     CompleteTransporterProfileUseCase,
   ],
   exports: [USER_TOKENS.IUserRepository],

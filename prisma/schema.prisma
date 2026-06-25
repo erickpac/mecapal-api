@@ -159,6 +159,9 @@ model User {
   // Notification relations
   notifications Notification[] @relation("UserNotifications")
 
+  // Legal consent relations
+  termsAcceptances TermsAcceptance[]
+
   // Rating stats (cached for performance)
   averageRating Float @default(0)
   totalReviews  Int   @default(0)
@@ -176,6 +179,17 @@ model User {
   @@index([billingProfileId])
   @@index([deletionScheduledFor])
   @@index([deletedAt])
+}
+
+model TermsAcceptance {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType String   // starts as only 'TERMS'; extensible to 'PRIVACY', etc.
+  version      String   // backend-stamped current version (e.g. '2.1')
+  acceptedAt   DateTime @default(now())
+
+  @@index([userId, documentType])
 }
 
 enum DeletionReason {

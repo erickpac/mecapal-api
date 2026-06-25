@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { COGNITO_TOKENS } from '../../domain/constants/injection-tokens';
 import { ICognitoService } from '../../domain/interfaces/ICognitoService';
 import { IUserRepository } from '../../domain/interfaces/IUserRepository';
@@ -6,6 +7,12 @@ import { UserRole } from '../../domain/enums/user-role.enum';
 import { User } from '../../domain/entities/user.entity';
 import { SignUpDto } from '../dtos/sign-up.dto';
 import { SignUpResponseDto } from '../dtos/responses/sign-up-response.dto';
+import { USER_TOKENS } from '../../../user/domain/constants/injection-tokens';
+import { ITermsAcceptanceRepository } from '../../../user/domain/repositories/terms-acceptance.repository';
+import {
+  CURRENT_TERMS_VERSION,
+  LEGAL_DOCUMENT_TYPE,
+} from '../../../user/domain/constants/legal.constants';
 
 @Injectable()
 export class SignUpUseCase {
@@ -16,6 +23,9 @@ export class SignUpUseCase {
     private readonly cognitoService: ICognitoService,
     @Inject(COGNITO_TOKENS.IUserRepository)
     private readonly userRepository: IUserRepository,
+    @Inject(USER_TOKENS.ITermsAcceptanceRepository)
+    private readonly termsAcceptanceRepository: ITermsAcceptanceRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute(dto: SignUpDto): Promise<SignUpResponseDto> {
@@ -25,21 +35,41 @@ export class SignUpUseCase {
       dto.password,
     );
 
-    // 2. Create user profile in local database.
-    //    If this fails (FK violation, transient DB error, etc.) we must
-    //    roll back the Cognito user to avoid orphans that block re-signup.
+    // 2. Persist the user profile AND the T&C acceptance atomically.
+    //    Both writes run on the same interactive transaction, so a failure
+    //    in either rolls back the whole thing — a usable account can never
+    //    exist without its acceptance row. The backend stamps the current
+    //    version (the client never sends it) so the record is authoritative.
+    //    If the transaction fails we roll back the Cognito user too, leaving
+    //    the email cleanly retryable instead of half-provisioned.
     let user: User;
     try {
-      user = await this.userRepository.create({
-        cognitoSub: cognitoResult.userSub,
-        email: dto.email,
-        phone: dto.phone,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        role: dto.role ?? UserRole.CLIENT,
-        companyName: dto.companyName ?? null,
-        taxId: dto.taxId ?? null,
-        profilePhotoUrl: null,
+      user = await this.prisma.$transaction(async (tx) => {
+        const created = await this.userRepository.create(
+          {
+            cognitoSub: cognitoResult.userSub,
+            email: dto.email,
+            phone: dto.phone,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            role: dto.role ?? UserRole.CLIENT,
+            companyName: dto.companyName ?? null,
+            taxId: dto.taxId ?? null,
+            profilePhotoUrl: null,
+          },
+          tx,
+        );
+
+        await this.termsAcceptanceRepository.create(
+          {
+            userId: created.id,
+            documentType: LEGAL_DOCUMENT_TYPE.TERMS,
+            version: CURRENT_TERMS_VERSION,
+          },
+          tx,
+        );
+
+        return created;
       });
     } catch (error) {
       try {

@@ -296,6 +296,14 @@ READ READ
     }
   
 
+  "TermsAcceptance" {
+    String id "🗝️"
+    String documentType 
+    String version 
+    DateTime acceptedAt 
+    }
+  
+
   "AccountDeletionAudit" {
     String id "🗝️"
     DateTime requestedAt 
@@ -661,6 +669,7 @@ READ READ
     "User" |o--|| "UserRole" : "enum:role"
     "User" }o--|o "BillingProfile" : "billingProfile"
     "User" |o--|o "DeletionReason" : "enum:deletionReason"
+    "TermsAcceptance" }o--|| "User" : "user"
     "AccountDeletionAudit" }o--|| "User" : "user"
     "AccountDeletionAudit" |o--|o "DeletionReason" : "enum:reason"
     "TransporterProfile" }o--|| "Country" : "country"
