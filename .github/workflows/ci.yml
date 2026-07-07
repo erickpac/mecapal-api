@@ -50,5 +50,8 @@ jobs:
       - name: Run unit tests with coverage threshold
         run: pnpm test
 
+      - name: Run Lambda unit tests
+        run: pnpm test:lambda
+
       - name: Build project
         run: pnpm build

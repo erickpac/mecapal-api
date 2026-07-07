@@ -1,0 +1,22 @@
+name: Deploy Cognito Lambda to Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lambdas/cognito-custom-message/**'
+      - 'src/modules/email/infrastructure/templates/cognito-*.template.ts'
+      - 'src/modules/email/infrastructure/templates/base.template.ts'
+      - '.github/workflows/_deploy-lambda.yml'
+      - '.github/workflows/deploy-lambda-prod.yml'
+
+jobs:
+  deploy:
+    name: Deploy Lambda to Prod
+    uses: ./.github/workflows/_deploy-lambda.yml
+    with:
+      environment: production
+      function_name: mekapal-cognito-custom-message-prod
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
