@@ -165,14 +165,16 @@ Everything to revisit before going live. Assumes a **separate production AWS acc
 ## Progress Tracker
 
 - [x] **1.** SES domain identity created (`mekapal.com`, us-east-1)
-- [ ] **1b.** DKIM DNS records added by domain admin → domain verified
-- [ ] **2.** SES→Cognito authorization policy
-- [ ] **3.** Cognito `EmailConfiguration` → SES (DEVELOPER mode)
-- [ ] **4.** SES production access granted
+- [x] **1b.** DKIM DNS records added by admin → **domain VERIFIED** (DkimStatus SUCCESS)
+- [x] **2.** SES→Cognito authorization policy applied (`CognitoAuthSend` on the identity, scoped to dev pool)
+- [ ] **3.** Cognito `EmailConfiguration` → SES (DEVELOPER mode) — **deferred until SES production**; wiring in sandbox would restrict dev auth emails to verified recipients only
+- [ ] **4.** SES production access — **requested, PENDING** (support case `178338553700534`, awaiting our reply)
 - [x] **5a.** `CustomMessage` Lambda built + unit-tested (`lambdas/cognito-custom-message/`)
 - [x] **5b.** Recurring deploy wired via GitHub Actions (`deploy-lambda-dev.yml` / `-prod.yml` → `_deploy-lambda.yml`)
-- [ ] **5c.** Bootstrap run per env (`07-cognito-lambda.sh`) → function created + trigger attached to pool
+- [x] **5c.** Bootstrap run on **dev** → function `mekapal-cognito-custom-message-dev` created, deployed, trigger attached to pool `us-east-1_UAqdypRST`, validated (all 3 flows render Spanish). Prod bootstrap pending.
 - [ ] **6.** Bounce/complaint configuration set (before prod)
+
+> ⚠️ Pending externally: **DMARC cleanup** — `_dmarc.mekapal.com` has conflicting records; admin to keep only `v=DMARC1; p=none; rua=mailto:dmarc@mekapal.com`.
 
 ## References
 
