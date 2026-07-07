@@ -128,9 +128,22 @@ Makes the auth emails custom. The Lambda intercepts each auth event and returns 
 
 > Quick alternative (no Lambda): set `VerificationMessageTemplate` (Spanish subject/body). Limitation — sign-up and password-reset share the **same** template; you can't differentiate their text. Fine as an interim step.
 
-### Step 6 — Bounce/complaint handling (recommended before prod)
+### Step 6 — Bounce/complaint handling — SET UP (dev)
 
-An SES **configuration set** + SNS topic to capture bounces/complaints, so reputation is monitored and hard bounces are suppressed. Not required in dev; AWS looks for it when approving production access.
+Observability for delivery problems, and evidence for the SES production request.
+
+Created (dev, us-east-1):
+- SNS topic `mekapal-ses-events-dev` (`arn:aws:sns:us-east-1:946839355377:mekapal-ses-events-dev`), with a topic policy allowing `ses.amazonaws.com` to publish (scoped to this account).
+- SES configuration set `mekapal-transactional-dev` with event destination `sns-bounce-complaint` publishing `BOUNCE` and `COMPLAINT` to the topic.
+- Email subscription (`erickj.pac@gmail.com`) — **must be confirmed** via the link SNS emails.
+
+Note: account-level **suppression** for BOUNCE and COMPLAINT is already enabled (auto-suppresses bad addresses). This config set adds *notification/observability* on top.
+
+**To actually capture events, senders must reference the config set:**
+- Cognito: set `ConfigurationSetName: mekapal-transactional-dev` in `EmailConfiguration` (Step 3).
+- Backend: pass `ConfigurationSetName` in `ses-email.service.ts`'s `SendEmailCommand` (small code change, do when wiring SES sending).
+
+For prod: recreate topic + config set as `-prod` and add CloudWatch alarms on bounce/complaint rate.
 
 ## Environment Variables
 
@@ -172,7 +185,7 @@ Everything to revisit before going live. Assumes a **separate production AWS acc
 - [x] **5a.** `CustomMessage` Lambda built + unit-tested (`lambdas/cognito-custom-message/`)
 - [x] **5b.** Recurring deploy wired via GitHub Actions (`deploy-lambda-dev.yml` / `-prod.yml` → `_deploy-lambda.yml`)
 - [x] **5c.** Bootstrap run on **dev** → function `mekapal-cognito-custom-message-dev` created, deployed, trigger attached to pool `us-east-1_UAqdypRST`, validated (all 3 flows render Spanish). Prod bootstrap pending.
-- [ ] **6.** Bounce/complaint configuration set (before prod)
+- [x] **6.** Bounce/complaint config set created on **dev** (`mekapal-transactional-dev` → SNS `mekapal-ses-events-dev`); confirm the SNS email subscription and reference the config set from senders. Prod + CloudWatch alarms pending.
 
 > ⚠️ Pending externally: **DMARC cleanup** — `_dmarc.mekapal.com` has conflicting records; admin to keep only `v=DMARC1; p=none; rua=mailto:dmarc@mekapal.com`.
 
