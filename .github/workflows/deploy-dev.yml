@@ -3,6 +3,18 @@ name: Deploy to Development
 on:
   push:
     branches: [develop]
+    # Only redeploy the API when its build inputs change. Docs, the Cognito
+    # Lambda, infra scripts/policies and their workflows deploy separately (or
+    # not at all), so they should not trigger a full ECS redeploy + migrations.
+    paths-ignore:
+      - 'docs/**'
+      - 'lambdas/**'
+      - 'infrastructure/**'
+      - '.github/workflows/_deploy-lambda.yml'
+      - '.github/workflows/deploy-lambda-dev.yml'
+      - '.github/workflows/deploy-lambda-prod.yml'
+      - '**/*.md'
+      - '.claude/**'
 
 jobs:
   deploy:
