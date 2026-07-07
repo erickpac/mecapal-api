@@ -94,7 +94,7 @@ aws lambda add-permission --function-name "$FUNCTION_NAME" \
 # will clobber the other.
 echo "🔗 Attaching CustomMessage trigger to user pool $USER_POOL_ID..."
 aws cognito-idp update-user-pool --user-pool-id "$USER_POOL_ID" --region "$AWS_REGION" \
-  --policies '{"PasswordPolicy":{"MinimumLength":8,"RequireUppercase":true,"RequireLowercase":true,"RequireNumbers":true,"RequireSymbols":true,"TemporaryPasswordValidityDays":7}}' \
+  --policies '{"PasswordPolicy":{"MinimumLength":8,"RequireUppercase":true,"RequireLowercase":true,"RequireNumbers":true,"RequireSymbols":true,"TemporaryPasswordValidityDays":7},"SignInPolicy":{"AllowedFirstAuthFactors":["PASSWORD"]}}' \
   --auto-verified-attributes email \
   --account-recovery-setting '{"RecoveryMechanisms":[{"Priority":1,"Name":"verified_email"}]}' \
   --admin-create-user-config '{"AllowAdminCreateUserOnly":false}' \
